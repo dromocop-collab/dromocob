@@ -1,65 +1,76 @@
-import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight, Camera, Code2, Play, Radar, Sparkles } from "lucide-react";
+import ProjectGrid from "@/components/project-grid";
+import PackageGrid from "@/components/package-grid";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <section className="hero section">
+        <div className="hero-noise" />
+        <div className="hero-copy">
+          <div className="eyebrow"><span className="live-dot" /> İstanbul · Türkiye</div>
+          <h1>İzleneni değil,<br/><span>hatırlananı</span> üret.</h1>
+          <p>Markalar için sinematik filmler, yüksek dönüşümlü web deneyimleri ve büyümeyi yöneten dijital sistemler tasarlıyorum.</p>
+          <div className="hero-actions">
+            <Link className="button" href="/projeler">Projeleri İncele <ArrowRight size={18} /></Link>
+            <Link className="text-link" href="/hakkimda"><Play size={15} /> Hikâyemi keşfet</Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="hero-system">
+          <div className="system-orbit orbit-one" />
+          <div className="system-orbit orbit-two" />
+          <div className="system-core">DC</div>
+          <span className="system-tag tag-film"><Camera size={16} /> FILM</span>
+          <span className="system-tag tag-code"><Code2 size={16} /> PRODUCT</span>
+          <span className="system-tag tag-growth"><Radar size={16} /> GROWTH</span>
         </div>
-      </main>
-    </div>
+        <div className="hero-stats">
+          <div><strong>03</strong><span>Disiplin<br/>tek vizyon</span></div>
+          <div><strong>360°</strong><span>uçtan uca<br/>üretim</span></div>
+          <div><strong>∞</strong><span>ölçeklenebilir<br/>sistem</span></div>
+        </div>
+      </section>
+
+      <section className="marquee"><div>FILM PRODUCTION · WEB SYSTEMS · MOBILE PRODUCTS · CREATIVE DIRECTION · SEO · GROWTH · </div></section>
+
+      <section className="section trust-section">
+        <div className="section-head">
+          <div>
+            <p className="eyebrow">Kurumsal çalışma standardı</p>
+            <h2>Süreç net.<br/><span>Risk yönetilebilir.</span></h2>
+          </div>
+          <p>Kurumsal ekiplerin beklentisine uygun şekilde kapsam, teslim takvimi, revizyon sınırı ve iletişim ritmi proje başında yazılı olarak netleşir.</p>
+        </div>
+        <div className="trust-grid">
+          <article><strong>01</strong><h3>Kickoff + kapsam</h3><p>İş hedefi, kullanıcı profili ve teslim kapsamı tek dokümanda netleştirilir.</p></article>
+          <article><strong>02</strong><h3>Haftalık raporlama</h3><p>Üretim adımları, riskler ve bir sonraki hafta planı düzenli paylaşılır.</p></article>
+          <article><strong>03</strong><h3>Canlıya alma planı</h3><p>Yayın öncesi kontrol listesi ile teknik ve içerik tarafı adım adım doğrulanır.</p></article>
+          <article><strong>04</strong><h3>Yayın sonrası destek</h3><p>İlk 30 günde performans, güvenlik ve kullanıcı geri bildirimi birlikte takip edilir.</p></article>
+        </div>
+      </section>
+
+      <section className="section split-intro">
+        <div><p className="eyebrow">Tek kişi. Çok disiplin. Tek standart.</p><h2>Fikirden ekrana,<br/>ekrandan <em>sonuca.</em></h2></div>
+        <div><p>Bir projeye yalnızca “video”, “site” ya da “reklam” diye bakmıyorum. Markanın bütün dijital yüzünü aynı hikâyenin parçaları olarak tasarlıyorum.</p>
+        <div className="pill-row"><span>Strategy</span><span>Production</span><span>Development</span><span>Growth</span></div></div>
+      </section>
+
+      <section className="section">
+        <div className="section-head"><div><p className="eyebrow">Seçili çalışmalar</p><h2>Projeler / <span>01—03</span></h2></div><Link className="text-link" href="/projeler">Tümünü gör <ArrowRight size={16}/></Link></div>
+        <ProjectGrid />
+      </section>
+
+      <section className="section dark-panel">
+        <div className="section-head"><div><p className="eyebrow"><Sparkles size={15}/> Akıllı hizmet mimarisi</p><h2>Hazır paket değil.<br/><em>Doğru kombinasyon.</em></h2></div><p>İhtiyacına göre kapsamı şekillendir, dinamik teklif motoru yaklaşık bütçeyi anında hesaplasın.</p></div>
+        <PackageGrid />
+      </section>
+
+      <section className="section mega-cta">
+        <p className="eyebrow">Sıradaki proje seninki olabilir</p>
+        <h2>Birlikte dikkat<br/><span>çekelim.</span></h2>
+        <Link className="round-link" href="/iletisim"><ArrowRight /></Link>
+      </section>
+    </>
   );
 }
