@@ -2,34 +2,64 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import SiteRuntimeSettings from "@/components/site-runtime-settings";
+import {
+  defaultDescription,
+  defaultKeywords,
+  defaultTitle,
+  organizationJsonLd,
+  siteName,
+  siteUrl,
+} from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title:{default:"Dromocob | Film, Web & Growth",template:"%s | Dromocob"},
-  description:"Sinematik prodüksiyon, modern web ürünleri ve büyüme odaklı dijital sistemler.",
-  metadataBase:new URL("https://dromocob.com"),
-  keywords:["kurumsal web sitesi","video prodüksiyon","dijital büyüme","istanbul yazılım"],
-  openGraph:{
-    title:"Dromocob | Film, Web & Growth",
-    description:"Sinematik prodüksiyon, modern web ürünleri ve büyüme odaklı dijital sistemler.",
-    url:"https://dromocob.com",
-    siteName:"Dromocob",
-    locale:"tr_TR",
-    type:"website"
+  title: { default: defaultTitle, template: `%s | ${siteName}` },
+  description: defaultDescription,
+  metadataBase: new URL(siteUrl),
+  applicationName: siteName,
+  authors: [{ name: "Cihat Erdem", url: siteUrl }],
+  creator: "Cihat Erdem",
+  publisher: siteName,
+  category: "Digital services",
+  keywords: defaultKeywords,
+  alternates: {
+    canonical: siteUrl,
   },
-  twitter:{
-    card:"summary_large_image",
-    title:"Dromocob | Film, Web & Growth",
-    description:"Sinematik prodüksiyon, modern web ürünleri ve büyüme odaklı dijital sistemler."
+  openGraph: {
+    title: defaultTitle,
+    description: defaultDescription,
+    url: siteUrl,
+    siteName,
+    locale: "tr_TR",
+    type: "website",
   },
-  robots:{
-    index:true,
-    follow:true
-  }
+  twitter: {
+    card: "summary_large_image",
+    title: defaultTitle,
+    description: defaultDescription,
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}) {
   return <html
   lang="tr"
   data-scroll-behavior="smooth"
-><body><AuthProvider><SiteRuntimeSettings>{children}</SiteRuntimeSettings></AuthProvider></body></html>;
+><body><script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+/><AuthProvider><SiteRuntimeSettings>{children}</SiteRuntimeSettings></AuthProvider></body></html>;
 }

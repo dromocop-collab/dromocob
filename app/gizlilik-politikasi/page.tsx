@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "Gizlilik Politikasi",
-  description: "Dromocob gizlilik politikasi ve veri guvenligi yaklasimi.",
+  title: "Gizlilik Politikası",
+  description: "Dromocob gizlilik politikası ve veri güvenliği yaklaşımı.",
+  alternates: {
+    canonical: absoluteUrl("/gizlilik-politikasi"),
+  },
 };
 
 export default function PrivacyPolicyPage() {
   return (
     <section className="section legal-page">
       <p className="eyebrow">Kurumsal / Hukuki</p>
-      <h1>Gizlilik Politikasi</h1>
+      <h1>Gizlilik Politikası</h1>
       <p className="legal-lead">
         Dromocob, ziyaretci ve musteri verilerinin gizliligini korumayi temel prensip kabul eder.
         Bu politika, hangi verilerin hangi kosullarda toplandigi ve nasil korundugunu aciklar.

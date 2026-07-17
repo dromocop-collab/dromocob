@@ -9,11 +9,12 @@ export async function POST(req: NextRequest) {
 
     const results = await Promise.all(snap.docs.map(async siteDoc => {
       const site = siteDoc.data();
-      if (!site.healthUrl) return { id: siteDoc.id, health: "unknown" };
+      const healthEndpoint = site.healthEndpoint || site.healthUrl;
+      if (!healthEndpoint) return { id: siteDoc.id, health: "unknown" };
 
       const started = Date.now();
       try {
-        const remote = await fetch(site.healthUrl, {
+        const remote = await fetch(healthEndpoint, {
           headers: { "user-agent": "Dromocob-Health-Check/2.0" },
           signal: AbortSignal.timeout(8000),
           cache: "no-store"

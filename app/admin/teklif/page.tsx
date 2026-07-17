@@ -138,23 +138,39 @@ export default function QuoteAdmin() {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
-    return onSnapshot(collection(db, "quote_questions"), snapshot => {
-      const data = snapshot.docs
-        .map(document => normalizeQuestion(document.id, document.data() as Record<string, unknown>))
-        .sort((a, b) => a.order - b.order);
+    return onSnapshot(
+      collection(db, "quote_questions"),
+      snapshot => {
+        const data = snapshot.docs
+          .map(document => normalizeQuestion(document.id, document.data() as Record<string, unknown>))
+          .sort((a, b) => a.order - b.order);
 
-      setQuestions(data);
-    });
+        setQuestions(data);
+        setError("");
+      },
+      snapshotError => {
+        setQuestions([]);
+        setError(snapshotError.message || "Teklif soruları okunamadı.");
+      }
+    );
   }, []);
 
   useEffect(() => {
-    return onSnapshot(collection(db, "quote_rules"), snapshot => {
-      const data = snapshot.docs
-        .map(document => normalizeRule(document.id, document.data() as Record<string, unknown>))
-        .sort((a, b) => a.priority - b.priority);
+    return onSnapshot(
+      collection(db, "quote_rules"),
+      snapshot => {
+        const data = snapshot.docs
+          .map(document => normalizeRule(document.id, document.data() as Record<string, unknown>))
+          .sort((a, b) => a.priority - b.priority);
 
-      setRules(data);
-    });
+        setRules(data);
+        setError("");
+      },
+      snapshotError => {
+        setRules([]);
+        setError(snapshotError.message || "Teklif kuralları okunamadı.");
+      }
+    );
   }, []);
 
   const simulatorQuestions = useMemo(
@@ -384,13 +400,23 @@ export default function QuoteAdmin() {
   async function removeQuestion(id?: string) {
     if (!id) return;
     if (!window.confirm("Bu soru silinsin mi?")) return;
-    await deleteDoc(doc(db, "quote_questions", id));
+
+    try {
+      await deleteDoc(doc(db, "quote_questions", id));
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Soru silinemedi.");
+    }
   }
 
   async function removeRule(id?: string) {
     if (!id) return;
     if (!window.confirm("Bu kural silinsin mi?")) return;
-    await deleteDoc(doc(db, "quote_rules", id));
+
+    try {
+      await deleteDoc(doc(db, "quote_rules", id));
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Kural silinemedi.");
+    }
   }
 
   function addQuestionOption() {

@@ -1,6 +1,13 @@
 import ProjectGrid from "@/components/project-grid";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Projeler" };
+export const metadata = pageMetadata({
+  title: "Projeler",
+  description:
+    "Dromocob tarafından geliştirilen film prodüksiyonu, web sistemi, e-ticaret ve dijital büyüme projelerinden seçili çalışmalar.",
+  path: "/projeler",
+  keywords: ["portföy", "web projeleri", "marka filmi projeleri"],
+});
 
 export default function ProjectsPage() {
   return (

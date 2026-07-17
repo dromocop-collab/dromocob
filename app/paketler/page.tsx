@@ -1,6 +1,13 @@
 import PackageGrid from "@/components/package-grid";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Paketler" };
+export const metadata = pageMetadata({
+  title: "Paketler ve Teklif",
+  description:
+    "Web sitesi, özel yazılım, video prodüksiyon ve büyüme sistemleri için dinamik paketler ve akıllı teklif akışı.",
+  path: "/paketler",
+  keywords: ["web sitesi paketi", "video prodüksiyon paketi", "teklif al"],
+});
 
 export default function PackagesPage() {
   return (

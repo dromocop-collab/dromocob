@@ -16,6 +16,9 @@ type SiteSettings = {
     keywords: string[];
     canonicalUrl: string;
     ogImage: string;
+    googleSiteVerification: string;
+    bingSiteVerification: string;
+    yandexVerification: string;
     robotsIndex: boolean;
     robotsFollow: boolean;
   };
@@ -24,10 +27,14 @@ type SiteSettings = {
     ga4MeasurementId: string;
     gtmId: string;
     googleAdsId: string;
+    googleAdsConversionLabel: string;
     metaPixelId: string;
+    metaDomainVerification: string;
     linkedinInsightId: string;
     tiktokPixelId: string;
     clarityId: string;
+    consentModeEnabled: boolean;
+    debugMode: boolean;
   };
   maintenance: {
     enabled: boolean;
@@ -49,6 +56,8 @@ type SiteSettings = {
     slackWebhookUrl: string;
     recaptchaSiteKey: string;
     cookieConsentId: string;
+    whatsappUrl: string;
+    calendlyUrl: string;
     allowedOrigins: string[];
     rateLimitPerMinute: number;
   };
@@ -65,6 +74,9 @@ const DEFAULT_SETTINGS: SiteSettings = {
     keywords: ["kurumsal web sitesi", "video prodüksiyon", "dijital büyüme"],
     canonicalUrl: "https://dromocob.com",
     ogImage: "",
+    googleSiteVerification: "",
+    bingSiteVerification: "",
+    yandexVerification: "",
     robotsIndex: true,
     robotsFollow: true,
   },
@@ -73,10 +85,14 @@ const DEFAULT_SETTINGS: SiteSettings = {
     ga4MeasurementId: "",
     gtmId: "",
     googleAdsId: "",
+    googleAdsConversionLabel: "",
     metaPixelId: "",
+    metaDomainVerification: "",
     linkedinInsightId: "",
     tiktokPixelId: "",
     clarityId: "",
+    consentModeEnabled: true,
+    debugMode: false,
   },
   maintenance: {
     enabled: false,
@@ -98,6 +114,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
     slackWebhookUrl: "",
     recaptchaSiteKey: "",
     cookieConsentId: "",
+    whatsappUrl: "",
+    calendlyUrl: "",
     allowedOrigins: ["https://dromocob.com"],
     rateLimitPerMinute: 30,
   },
@@ -114,6 +132,17 @@ function joinLines(values: string[]) {
   return values.join("\n");
 }
 
+function isHttpUrl(value: string) {
+  if (!value.trim()) return true;
+
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
 export default function Page() {
   const [tab, setTab] = useState<"seo" | "tracking" | "maintenance" | "features" | "integrations">("seo");
   const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
@@ -125,54 +154,62 @@ export default function Page() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    return onSnapshot(doc(db, "site_settings", "global"), snapshot => {
-      const data = snapshot.data() as Partial<SiteSettings> | undefined;
+    return onSnapshot(
+      doc(db, "site_settings", "global"),
+      snapshot => {
+        const data = snapshot.data() as Partial<SiteSettings> | undefined;
 
-      if (!data) {
+        if (!data) {
+          setSettings(DEFAULT_SETTINGS);
+          setKeywordsText(joinLines(DEFAULT_SETTINGS.seo.keywords));
+          setAllowPathsText(joinLines(DEFAULT_SETTINGS.maintenance.allowPaths));
+          setOriginsText(joinLines(DEFAULT_SETTINGS.integrations.allowedOrigins));
+          return;
+        }
+
+        const next: SiteSettings = {
+          ...DEFAULT_SETTINGS,
+          ...data,
+          seo: {
+            ...DEFAULT_SETTINGS.seo,
+            ...(data.seo || {}),
+            keywords: Array.isArray(data.seo?.keywords) ? data.seo.keywords.map(String) : DEFAULT_SETTINGS.seo.keywords,
+          },
+          tracking: {
+            ...DEFAULT_SETTINGS.tracking,
+            ...(data.tracking || {}),
+          },
+          maintenance: {
+            ...DEFAULT_SETTINGS.maintenance,
+            ...(data.maintenance || {}),
+            allowPaths: Array.isArray(data.maintenance?.allowPaths)
+              ? data.maintenance.allowPaths.map(String)
+              : DEFAULT_SETTINGS.maintenance.allowPaths,
+          },
+          features: {
+            ...DEFAULT_SETTINGS.features,
+            ...(data.features || {}),
+          },
+          integrations: {
+            ...DEFAULT_SETTINGS.integrations,
+            ...(data.integrations || {}),
+            allowedOrigins: Array.isArray(data.integrations?.allowedOrigins)
+              ? data.integrations.allowedOrigins.map(String)
+              : DEFAULT_SETTINGS.integrations.allowedOrigins,
+          },
+        };
+
+        setSettings(next);
+        setKeywordsText(joinLines(next.seo.keywords));
+        setAllowPathsText(joinLines(next.maintenance.allowPaths));
+        setOriginsText(joinLines(next.integrations.allowedOrigins));
+        setError("");
+      },
+      snapshotError => {
         setSettings(DEFAULT_SETTINGS);
-        setKeywordsText(joinLines(DEFAULT_SETTINGS.seo.keywords));
-        setAllowPathsText(joinLines(DEFAULT_SETTINGS.maintenance.allowPaths));
-        setOriginsText(joinLines(DEFAULT_SETTINGS.integrations.allowedOrigins));
-        return;
+        setError(snapshotError.message || "Ayarlar okunamadı.");
       }
-
-      const next: SiteSettings = {
-        ...DEFAULT_SETTINGS,
-        ...data,
-        seo: {
-          ...DEFAULT_SETTINGS.seo,
-          ...(data.seo || {}),
-          keywords: Array.isArray(data.seo?.keywords) ? data.seo.keywords.map(String) : DEFAULT_SETTINGS.seo.keywords,
-        },
-        tracking: {
-          ...DEFAULT_SETTINGS.tracking,
-          ...(data.tracking || {}),
-        },
-        maintenance: {
-          ...DEFAULT_SETTINGS.maintenance,
-          ...(data.maintenance || {}),
-          allowPaths: Array.isArray(data.maintenance?.allowPaths)
-            ? data.maintenance.allowPaths.map(String)
-            : DEFAULT_SETTINGS.maintenance.allowPaths,
-        },
-        features: {
-          ...DEFAULT_SETTINGS.features,
-          ...(data.features || {}),
-        },
-        integrations: {
-          ...DEFAULT_SETTINGS.integrations,
-          ...(data.integrations || {}),
-          allowedOrigins: Array.isArray(data.integrations?.allowedOrigins)
-            ? data.integrations.allowedOrigins.map(String)
-            : DEFAULT_SETTINGS.integrations.allowedOrigins,
-        },
-      };
-
-      setSettings(next);
-      setKeywordsText(joinLines(next.seo.keywords));
-      setAllowPathsText(joinLines(next.maintenance.allowPaths));
-      setOriginsText(joinLines(next.integrations.allowedOrigins));
-    });
+    );
   }, []);
 
   const stats = useMemo(() => {
@@ -180,6 +217,7 @@ export default function Page() {
       settings.tracking.ga4MeasurementId,
       settings.tracking.gtmId,
       settings.tracking.googleAdsId,
+      settings.tracking.googleAdsConversionLabel,
       settings.tracking.metaPixelId,
       settings.tracking.linkedinInsightId,
       settings.tracking.tiktokPixelId,
@@ -198,11 +236,48 @@ export default function Page() {
     setError("");
 
     try {
+      const canonicalUrl = settings.seo.canonicalUrl.trim();
+      const ogImage = settings.seo.ogImage.trim();
+      const crmWebhookUrl = settings.integrations.crmWebhookUrl.trim();
+      const slackWebhookUrl = settings.integrations.slackWebhookUrl.trim();
+      const whatsappUrl = settings.integrations.whatsappUrl.trim();
+      const calendlyUrl = settings.integrations.calendlyUrl.trim();
+
+      if (!isHttpUrl(canonicalUrl)) {
+        throw new Error("Canonical URL geçerli bir http/https adresi olmalı.");
+      }
+
+      if (!isHttpUrl(ogImage)) {
+        throw new Error("OG görsel URL geçerli bir http/https adresi olmalı.");
+      }
+
+      if (!isHttpUrl(crmWebhookUrl) || !isHttpUrl(slackWebhookUrl)) {
+        throw new Error("Webhook URL alanları geçerli http/https adresi olmalı.");
+      }
+
+      if (!isHttpUrl(whatsappUrl) || !isHttpUrl(calendlyUrl)) {
+        throw new Error("WhatsApp ve Calendly URL alanları geçerli http/https adresi olmalı.");
+      }
+
       const payload: SiteSettings = {
         ...settings,
         seo: {
           ...settings.seo,
+          canonicalUrl,
+          ogImage,
           keywords: parseLines(keywordsText),
+        },
+        tracking: {
+          ...settings.tracking,
+          ga4MeasurementId: settings.tracking.ga4MeasurementId.trim(),
+          gtmId: settings.tracking.gtmId.trim(),
+          googleAdsId: settings.tracking.googleAdsId.trim(),
+          googleAdsConversionLabel: settings.tracking.googleAdsConversionLabel.trim(),
+          metaPixelId: settings.tracking.metaPixelId.trim(),
+          metaDomainVerification: settings.tracking.metaDomainVerification.trim(),
+          linkedinInsightId: settings.tracking.linkedinInsightId.trim(),
+          tiktokPixelId: settings.tracking.tiktokPixelId.trim(),
+          clarityId: settings.tracking.clarityId.trim(),
         },
         maintenance: {
           ...settings.maintenance,
@@ -210,6 +285,10 @@ export default function Page() {
         },
         integrations: {
           ...settings.integrations,
+          crmWebhookUrl,
+          slackWebhookUrl,
+          whatsappUrl,
+          calendlyUrl,
           allowedOrigins: parseLines(originsText),
         },
         version: Number(settings.version || 0) + 1,
@@ -258,6 +337,7 @@ export default function Page() {
         <article className="admin-panel settings-stat"><small>Sürüm</small><strong>{settings.version}</strong></article>
         <article className="admin-panel settings-stat"><small>Tracking Bağlantı</small><strong>{stats.trackingCount}</strong></article>
         <article className="admin-panel settings-stat"><small>Bakım Modu</small><strong>{stats.maintenanceStatus}</strong></article>
+        <article className="admin-panel settings-stat"><small>Consent Mode</small><strong>{settings.tracking.consentModeEnabled ? "Aktif" : "Kapalı"}</strong></article>
       </section>
 
       <div className="admin-segment settings-tabs">
@@ -278,6 +358,9 @@ export default function Page() {
             <label className="full">Anahtar Kelimeler (satır başına 1)<textarea value={keywordsText} onChange={event => setKeywordsText(event.target.value)} /></label>
             <label>Canonical URL<input value={settings.seo.canonicalUrl} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, canonicalUrl: event.target.value } }))} /></label>
             <label>OG Görsel URL<input value={settings.seo.ogImage} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, ogImage: event.target.value } }))} /></label>
+            <label>Google Site Verification<input value={settings.seo.googleSiteVerification} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, googleSiteVerification: event.target.value } }))} placeholder="google-site-verification token" /></label>
+            <label>Bing Verification<input value={settings.seo.bingSiteVerification} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, bingSiteVerification: event.target.value } }))} /></label>
+            <label>Yandex Verification<input value={settings.seo.yandexVerification} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, yandexVerification: event.target.value } }))} /></label>
             <label className="toggle"><input type="checkbox" checked={settings.seo.robotsIndex} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, robotsIndex: event.target.checked } }))} /> Robots index</label>
             <label className="toggle"><input type="checkbox" checked={settings.seo.robotsFollow} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, robotsFollow: event.target.checked } }))} /> Robots follow</label>
           </div>
@@ -289,10 +372,14 @@ export default function Page() {
             <label>GA4 Measurement ID<input value={settings.tracking.ga4MeasurementId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, ga4MeasurementId: event.target.value } }))} placeholder="G-XXXXXXXXXX" /></label>
             <label>GTM ID<input value={settings.tracking.gtmId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, gtmId: event.target.value } }))} placeholder="GTM-XXXXXX" /></label>
             <label>Google Ads ID<input value={settings.tracking.googleAdsId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsId: event.target.value } }))} placeholder="AW-XXXXXXX" /></label>
+            <label>Ads Conversion Label<input value={settings.tracking.googleAdsConversionLabel} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsConversionLabel: event.target.value } }))} placeholder="abcDEF123..." /></label>
             <label>Meta Pixel ID<input value={settings.tracking.metaPixelId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, metaPixelId: event.target.value } }))} /></label>
+            <label>Meta Domain Verification<input value={settings.tracking.metaDomainVerification} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, metaDomainVerification: event.target.value } }))} /></label>
             <label>LinkedIn Insight ID<input value={settings.tracking.linkedinInsightId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, linkedinInsightId: event.target.value } }))} /></label>
             <label>TikTok Pixel ID<input value={settings.tracking.tiktokPixelId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, tiktokPixelId: event.target.value } }))} /></label>
             <label>Microsoft Clarity ID<input value={settings.tracking.clarityId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, clarityId: event.target.value } }))} /></label>
+            <label className="toggle"><input type="checkbox" checked={settings.tracking.consentModeEnabled} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, consentModeEnabled: event.target.checked } }))} /> Google Consent Mode v2 varsayılanını yükle</label>
+            <label className="toggle"><input type="checkbox" checked={settings.tracking.debugMode} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, debugMode: event.target.checked } }))} /> Analytics debug mode</label>
           </div>
         )}
 
@@ -323,6 +410,8 @@ export default function Page() {
             <label className="full">Slack Webhook URL<input value={settings.integrations.slackWebhookUrl} onChange={event => setSettings(current => ({ ...current, integrations: { ...current.integrations, slackWebhookUrl: event.target.value } }))} /></label>
             <label>reCAPTCHA Site Key<input value={settings.integrations.recaptchaSiteKey} onChange={event => setSettings(current => ({ ...current, integrations: { ...current.integrations, recaptchaSiteKey: event.target.value } }))} /></label>
             <label>Cookie Consent ID<input value={settings.integrations.cookieConsentId} onChange={event => setSettings(current => ({ ...current, integrations: { ...current.integrations, cookieConsentId: event.target.value } }))} /></label>
+            <label>WhatsApp URL<input value={settings.integrations.whatsappUrl} onChange={event => setSettings(current => ({ ...current, integrations: { ...current.integrations, whatsappUrl: event.target.value } }))} placeholder="https://wa.me/90..." /></label>
+            <label>Calendly URL<input value={settings.integrations.calendlyUrl} onChange={event => setSettings(current => ({ ...current, integrations: { ...current.integrations, calendlyUrl: event.target.value } }))} placeholder="https://calendly.com/..." /></label>
             <label>Rate Limit / dk<input type="number" value={settings.integrations.rateLimitPerMinute} onChange={event => setSettings(current => ({ ...current, integrations: { ...current.integrations, rateLimitPerMinute: Number(event.target.value || 0) } }))} /></label>
             <label className="full">Allowed Origins (satır başına 1)<textarea value={originsText} onChange={event => setOriginsText(event.target.value)} /></label>
           </div>

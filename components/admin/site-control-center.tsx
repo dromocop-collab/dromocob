@@ -21,7 +21,18 @@ async function adminFetch(url: string, init?: RequestInit) {
       ...(init?.headers || {})
     }
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    const contentType = res.headers.get("content-type") || "";
+    const body = contentType.includes("application/json")
+      ? await res.json().catch(() => null)
+      : await res.text().catch(() => "");
+    const message =
+      body && typeof body === "object" && "message" in body
+        ? String(body.message)
+        : String(body || res.statusText || "Request failed");
+
+    throw new Error(message);
+  }
   return res;
 }
 
@@ -30,10 +41,19 @@ export default function SiteControlCenter() {
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState("");
   const [checkingAll, setCheckingAll] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => onSnapshot(collection(db, "managed_sites"), snap => {
-    setSites(snap.docs.map(d => ({ id: d.id, ...d.data() } as ExtendedSite)));
-  }), []);
+  useEffect(() => onSnapshot(
+    collection(db, "managed_sites"),
+    snap => {
+      setSites(snap.docs.map(d => ({ id: d.id, ...d.data() } as ExtendedSite)));
+      setError("");
+    },
+    snapshotError => {
+      setSites([]);
+      setError(snapshotError.message || "Yönetilen siteler okunamadı.");
+    }
+  ), []);
 
   async function command(site: ExtendedSite, status: ManagedSite["status"]) {
     setBusy(site.id);
@@ -82,9 +102,9 @@ export default function SiteControlCenter() {
         body: JSON.stringify({
           name: fd.get("name"),
           domain: fd.get("domain"),
-          controlUrl: fd.get("controlUrl"),
-          healthUrl: fd.get("healthUrl"),
-          controlSecret: fd.get("controlSecret")
+          controlEndpoint: fd.get("controlEndpoint"),
+          healthEndpoint: fd.get("healthEndpoint"),
+          secret: fd.get("secret")
         })
       });
       form.reset();
@@ -110,6 +130,8 @@ export default function SiteControlCenter() {
         <button className="admin-action" onClick={() => setOpen(true)}><Plus size={17}/> Site ekle</button>
       </div>
     </div>
+
+    {error && <div className="admin-alert">{error}</div>}
 
     <div className="fleet-summary">
       <div><ShieldCheck/><span><strong>{sites.filter(s => s.status === "active").length}</strong> Aktif</span></div>
@@ -151,9 +173,9 @@ export default function SiteControlCenter() {
         <h2>Yeni site bağla</h2>
         <label>Proje adı<input name="name" required placeholder="AKC Oto Kılıf"/></label>
         <label>Domain<input name="domain" required placeholder="akcotokilif.com"/></label>
-        <label>Control endpoint<input name="controlUrl" required placeholder="https://akcotokilif.com/api/dromocob-control"/></label>
-        <label>Health endpoint<input name="healthUrl" required placeholder="https://akcotokilif.com/api/health"/></label>
-        <label>Site Control Secret<input name="controlSecret" type="password" minLength={40} required placeholder="openssl rand -hex 48 ile üret"/></label>
+        <label>Control endpoint<input name="controlEndpoint" required placeholder="https://akcotokilif.com/api/dromocob-control"/></label>
+        <label>Health endpoint<input name="healthEndpoint" required placeholder="https://akcotokilif.com/api/health"/></label>
+        <label>Site Control Secret<input name="secret" type="password" minLength={40} required placeholder="openssl rand -hex 48 ile üret"/></label>
         <div className="admin-note">Secret Firestore&apos;da public site kaydına yazılmaz. Server-only secret koleksiyonunda tutulur.</div>
         <button className="button button-full" disabled={busy === "register"}>{busy === "register" ? "Bağlanıyor..." : "Control Center&apos;a ekle"}</button>
       </form>

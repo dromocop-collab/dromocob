@@ -1,6 +1,13 @@
 import { Camera, Code2, Layers3, MoveUpRight } from "lucide-react";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = { title: "Hakkımda" };
+export const metadata = pageMetadata({
+  title: "Hakkımda",
+  description:
+    "Cihat Erdem'in film prodüksiyonu, web geliştirme, operasyon ve dijital büyüme alanlarını birleştiren Dromocob yaklaşımı.",
+  path: "/hakkimda",
+  keywords: ["Cihat Erdem", "videographer", "web geliştirici"],
+});
 
 export default function AboutPage() {
   return (

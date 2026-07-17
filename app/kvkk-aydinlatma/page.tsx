@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
+import { absoluteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = {
-  title: "KVKK Aydinlatma Metni",
-  description: "Dromocob KVKK aydinlatma metni ve kisisel veri isleme esaslari.",
+  title: "KVKK Aydınlatma Metni",
+  description: "Dromocob KVKK aydınlatma metni ve kişisel veri işleme esasları.",
+  alternates: {
+    canonical: absoluteUrl("/kvkk-aydinlatma"),
+  },
 };
 
 export default function KvkkPage() {
   return (
     <section className="section legal-page">
       <p className="eyebrow">Kurumsal / Hukuki</p>
-      <h1>KVKK Aydinlatma Metni</h1>
+      <h1>KVKK Aydınlatma Metni</h1>
       <p className="legal-lead">
         Bu metin, 6698 sayili Kisisel Verilerin Korunmasi Kanunu kapsaminda Dromocob
         tarafindan elde edilen verilerin hangi amacla islendigi ve haklarinizin neler oldugu

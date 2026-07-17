@@ -74,7 +74,7 @@ export function AuthProvider({
   const [adminLoading, setAdminLoading] = useState(true);
 
   const checkAdmin = useCallback(async (currentUser: User | null) => {
-    if (!currentUser) {
+    if (!currentUser || currentUser.isAnonymous) {
       setIsAdmin(false);
       setAdminRole(null);
       setAdminLoading(false);
@@ -116,19 +116,6 @@ export function AuthProvider({
         isFirestoreAdmin ||
         isEnvAdmin ||
         isFallbackAdmin;
-
-      console.log("[DROMOCOB AUTH]", {
-        uid: currentUser.uid,
-        email,
-        adminDocumentExists: adminSnap.exists(),
-        adminDocument: adminSnap.exists()
-          ? adminSnap.data()
-          : null,
-        isFirestoreAdmin,
-        isEnvAdmin,
-        isFallbackAdmin,
-        finalAdmin,
-      });
 
       setIsAdmin(finalAdmin);
 
@@ -187,6 +174,16 @@ export function AuthProvider({
         async (currentUser) => {
           unsubscribeProfile?.();
           unsubscribeAdmin?.();
+
+          if (currentUser?.isAnonymous) {
+            setUser(null);
+            setProfile(null);
+            setIsAdmin(false);
+            setAdminRole(null);
+            setLoading(false);
+            setAdminLoading(false);
+            return;
+          }
 
           setUser(currentUser);
           setProfile(null);

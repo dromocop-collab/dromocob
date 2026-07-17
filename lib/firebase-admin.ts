@@ -1,5 +1,6 @@
 import {
   applicationDefault,
+  cert,
   getApps,
   initializeApp,
 } from "firebase-admin/app";
@@ -13,15 +14,28 @@ import {
 } from "firebase-admin/firestore";
 
 const projectId =
+  process.env.FIREBASE_ADMIN_PROJECT_ID ||
   process.env.FIREBASE_PROJECT_ID ||
   process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ||
   "dromocob";
+
+const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n");
+
+const credential =
+  projectId && clientEmail && privateKey
+    ? cert({
+        projectId,
+        clientEmail,
+        privateKey,
+      })
+    : applicationDefault();
 
 const adminApp =
   getApps().length > 0
     ? getApps()[0]
     : initializeApp({
-        credential: applicationDefault(),
+        credential,
         projectId,
       });
 

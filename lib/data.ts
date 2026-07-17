@@ -254,8 +254,8 @@ export async function fetchActivePackages() {
 }
 
 export async function fetchQuoteEngine() {
-  const questionSnap = await getDocs(query(collection(db, "quote_questions"), orderBy("order")));
-  const ruleSnap = await getDocs(query(collection(db, "quote_rules"), orderBy("priority")));
+  const questionSnap = await getDocs(query(collection(db, "quote_questions"), where("active", "==", true), orderBy("order")));
+  const ruleSnap = await getDocs(query(collection(db, "quote_rules"), where("enabled", "==", true), orderBy("priority")));
 
   return {
     questions: questionSnap.docs

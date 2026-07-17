@@ -1,0 +1,26 @@
+[debug] [2026-07-17T10:12:24.430Z] ----------------------------------------------------------------------
+[debug] [2026-07-17T10:12:24.431Z] Command:       /opt/homebrew/Cellar/node/25.8.1_1/bin/node /opt/homebrew/bin/firebase deploy --only firestore:rules --dry-run --project demo-dromocob --config /private/tmp/dromocob-firebase.json --non-interactive
+[debug] [2026-07-17T10:12:24.431Z] CLI Version:   15.12.0
+[debug] [2026-07-17T10:12:24.431Z] Platform:      darwin
+[debug] [2026-07-17T10:12:24.431Z] Node Version:  v25.8.1
+[debug] [2026-07-17T10:12:24.431Z] Time:          Fri Jul 17 2026 13:12:24 GMT+0300 (Türkiye Standard Time)
+[debug] [2026-07-17T10:12:24.431Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-17T10:12:24.432Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2026-07-17T10:12:24.766Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-17T10:12:24.768Z] *** [apiv2] error from fetch(https://firebase-public.firebaseio.com/cli.json, {"headers":{},"method":"GET"}): FetchError: request to https://firebase-public.firebaseio.com/cli.json failed, reason: getaddrinfo ENOTFOUND firebase-public.firebaseio.com
+[warn] ⚠  Unable to fetch the CLI MOTD and remote config. This is not a fatal error, but may indicate an issue with your network connection. 
+[debug] [2026-07-17T10:12:24.768Z] Failed to fetch MOTD FirebaseError: Failed to make request to https://firebase-public.firebaseio.com/cli.json
+[debug] [2026-07-17T10:12:25.388Z] Error: request to https://oauth2.googleapis.com/token failed, reason: getaddrinfo ENOTFOUND oauth2.googleapis.com
+    at Gaxios._request (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/gaxios/build/src/gaxios.js:149:19)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async UserRefreshClient.refreshTokenNoCache (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/google-auth-library/build/src/auth/oauth2client.js:212:19)
+    at async UserRefreshClient.refreshAccessTokenAsync (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/google-auth-library/build/src/auth/oauth2client.js:247:19)
+    at async UserRefreshClient.getAccessTokenAsync (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/google-auth-library/build/src/auth/oauth2client.js:276:23)
+    at async GoogleAuth.getAccessToken (/opt/homebrew/lib/node_modules/firebase-tools/node_modules/google-auth-library/build/src/auth/googleauth.js:723:17)
+    at async autoAuth (/opt/homebrew/lib/node_modules/firebase-tools/lib/requireAuth.js:28:19)
+    at async requireAuth (/opt/homebrew/lib/node_modules/firebase-tools/lib/requireAuth.js:90:20)
+    at async requirePermissions (/opt/homebrew/lib/node_modules/firebase-tools/lib/requirePermissions.js:17:5)
+    at async /opt/homebrew/lib/node_modules/firebase-tools/lib/command.js:264:17
+[error] 
+[error] Error: Failed to authenticate, have you run firebase login?

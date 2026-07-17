@@ -8,7 +8,6 @@ import {
 } from "react";
 
 import {
-  sendPasswordResetEmail,
   signOut,
   updateProfile,
 } from "firebase/auth";
@@ -70,6 +69,14 @@ export default function ProfilePage() {
 
   const [securityBusy, setSecurityBusy] =
     useState(false);
+  const [passwordResetStep, setPasswordResetStep] =
+    useState<"idle" | "code">("idle");
+  const [passwordCode, setPasswordCode] =
+    useState("");
+  const [newPassword, setNewPassword] =
+    useState("");
+  const [newPasswordAgain, setNewPasswordAgain] =
+    useState("");
 
   const [notice, setNotice] =
     useState("");
@@ -224,21 +231,102 @@ export default function ProfilePage() {
     setError("");
 
     try {
-      await sendPasswordResetEmail(
-        auth,
-        user.email
+      const response = await fetch(
+        "/api/auth/password-reset/send",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: user.email,
+          }),
+        }
       );
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.message || "Şifre yenileme kodu gönderilemedi."
+        );
+      }
 
       setNotice(
-        "Şifre yenileme bağlantısı e-posta adresine gönderildi."
+        payload?.message ||
+          "Şifre yenileme kodu e-posta adresine gönderildi."
       );
+      setPasswordResetStep("code");
     } catch (resetError) {
       console.error(
         resetError
       );
 
       setError(
-        "Şifre yenileme e-postası gönderilemedi."
+        resetError instanceof Error
+          ? resetError.message
+          : "Şifre yenileme kodu gönderilemedi."
+      );
+    } finally {
+      setSecurityBusy(false);
+    }
+  }
+
+  async function confirmPasswordReset() {
+    if (!user?.email) {
+      return;
+    }
+
+    if (newPassword !== newPasswordAgain) {
+      setError("Yeni şifreler eşleşmiyor.");
+      return;
+    }
+
+    setSecurityBusy(true);
+    setNotice("");
+    setError("");
+
+    try {
+      const response = await fetch(
+        "/api/auth/password-reset/confirm",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            code: passwordCode,
+            email: user.email,
+            password: newPassword,
+          }),
+        }
+      );
+      const payload = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(
+          payload?.message || "Şifre yenilenemedi."
+        );
+      }
+
+      setNotice(
+        payload?.message ||
+          "Şifre yenilendi. Yeni şifrenle tekrar giriş yap."
+      );
+      setPasswordResetStep("idle");
+      setPasswordCode("");
+      setNewPassword("");
+      setNewPasswordAgain("");
+      await signOut(auth);
+      router.replace("/giris");
+    } catch (resetError) {
+      console.error(
+        resetError
+      );
+
+      setError(
+        resetError instanceof Error
+          ? resetError.message
+          : "Şifre yenilenemedi."
       );
     } finally {
       setSecurityBusy(false);
@@ -763,8 +851,97 @@ export default function ProfilePage() {
                 />
               )}
 
-              Şifre yenileme bağlantısı gönder
+              Şifre yenileme kodu gönder
             </button>
+
+            {passwordResetStep === "code" && (
+              <div className="profile-reset-panel">
+                <label className="auth-code-field compact-code">
+                  <KeyRound
+                    size={18}
+                  />
+
+                  <input
+                    value={passwordCode}
+                    onChange={(event) =>
+                      setPasswordCode(
+                        event.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 6)
+                      )
+                    }
+                    inputMode="numeric"
+                    pattern="\d{6}"
+                    placeholder="000000"
+                  />
+                </label>
+
+                <label>
+                  Yeni şifre
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(event) =>
+                      setNewPassword(
+                        event.target.value
+                      )
+                    }
+                    minLength={8}
+                    placeholder="Büyük harf ve rakam içermeli"
+                  />
+                </label>
+
+                <label>
+                  Yeni şifre tekrar
+                  <input
+                    type="password"
+                    value={newPasswordAgain}
+                    onChange={(event) =>
+                      setNewPasswordAgain(
+                        event.target.value
+                      )
+                    }
+                    minLength={8}
+                  />
+                </label>
+
+                <div className="profile-reset-actions">
+                  <button
+                    type="button"
+                    className="verify-secondary"
+                    onClick={handlePasswordReset}
+                    disabled={securityBusy}
+                  >
+                    Kodu tekrar gönder
+                  </button>
+
+                  <button
+                    type="button"
+                    className="profile-action"
+                    onClick={confirmPasswordReset}
+                    disabled={
+                      securityBusy ||
+                      passwordCode.length !== 6 ||
+                      !newPassword ||
+                      !newPasswordAgain
+                    }
+                  >
+                    {securityBusy ? (
+                      <Loader2
+                        size={17}
+                        className="spin"
+                      />
+                    ) : (
+                      <ShieldCheck
+                        size={17}
+                      />
+                    )}
+
+                    Şifreyi yenile
+                  </button>
+                </div>
+              </div>
+            )}
 
             <button
               type="button"

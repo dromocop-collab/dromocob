@@ -11,7 +11,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     if (!snap.exists) return new NextResponse("Site not found", { status: 404 });
     const site = snap.data()!;
-    if (!site.healthUrl) return new NextResponse("Health URL missing", { status: 409 });
+    const healthEndpoint = site.healthEndpoint || site.healthUrl;
+    if (!healthEndpoint) return new NextResponse("Health endpoint missing", { status: 409 });
 
     const started = Date.now();
     let health: "online" | "offline" = "offline";
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let payload: unknown = null;
 
     try {
-      const remote = await fetch(site.healthUrl, {
+      const remote = await fetch(healthEndpoint, {
         headers: { "user-agent": "Dromocob-Health-Check/2.0" },
         signal: AbortSignal.timeout(8000),
         cache: "no-store"

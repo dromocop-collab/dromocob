@@ -6,6 +6,20 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Loader2, LockKeyhole } from "lucide-react";
 
+const FALLBACK_ADMIN_EMAILS = [
+  "cihatwin@gmail.com",
+];
+
+function getAdminEmails(): string[] {
+  return [
+    ...(process.env.NEXT_PUBLIC_ADMIN_EMAILS || "")
+      .split(",")
+      .map(x => x.trim().toLowerCase())
+      .filter(Boolean),
+    ...FALLBACK_ADMIN_EMAILS,
+  ];
+}
+
 export default function AdminAuth({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [authorized, setAuthorized] = useState(false);
@@ -20,10 +34,22 @@ export default function AdminAuth({ children }: { children: ReactNode }) {
       return;
     }
 
-    const allowlist = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || "").split(",").map(x => x.trim().toLowerCase()).filter(Boolean);
-    const firestoreAdmin = await getDoc(doc(db, "admin_users", current.uid));
-    const isAllowed = allowlist.includes(current.email?.toLowerCase() || "") || firestoreAdmin.data()?.active === true;
-    setAuthorized(isAllowed);
+    const allowlist = getAdminEmails();
+    const email = current.email?.toLowerCase() || "";
+
+    if (allowlist.includes(email)) {
+      setAuthorized(true);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const firestoreAdmin = await getDoc(doc(db, "admin_users", current.uid));
+      setAuthorized(firestoreAdmin.data()?.active === true);
+    } catch {
+      setAuthorized(false);
+    }
+
     setLoading(false);
   }), []);
 

@@ -1,27 +1,1559 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn(){ return request.auth != null; }
-    function isOwner(uid){ return signedIn() && request.auth.uid == uid; }
-    function isAdmin(){ return signedIn() && exists(/databases/$(database)/documents/admin_users/$(request.auth.uid)) && get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.active == true; }
 
-    match /users/{uid} {
-      allow create: if isOwner(uid) && request.resource.data.uid == request.auth.uid && request.resource.data.email == request.auth.token.email && request.resource.data.status == "active";
-      allow read: if isOwner(uid) || isAdmin();
-      allow update: if (isOwner(uid) && request.resource.data.uid == resource.data.uid && request.resource.data.email == resource.data.email && request.resource.data.status == resource.data.status) || isAdmin();
-      allow delete: if isAdmin();
+    // =========================================================
+    // DROMOCOB FIRESTORE SECURITY RULES
+    // =========================================================
+
+
+    // =========================================================
+    // AUTH HELPERS
+    // =========================================================
+
+    function signedIn() {
+      return request.auth != null;
     }
-    match /projects/{id}{ allow read: if resource.data.active == true || isAdmin(); allow write: if isAdmin(); }
-    match /packages/{id}{ allow read: if resource.data.active == true || isAdmin(); allow write: if isAdmin(); }
-    match /quote_questions/{id}{ allow read: if resource.data.active == true || isAdmin(); allow write: if isAdmin(); }
-    match /quote_rules/{id}{ allow read: if resource.data.enabled == true || isAdmin(); allow write: if isAdmin(); }
-    match /quotes/{id}{ allow create: if request.resource.data.status == "new"; allow read,update,delete: if isAdmin(); }
-    match /contacts/{id}{ allow create: if request.resource.data.status == "new"; allow read,update,delete: if isAdmin(); }
-    match /chat_sessions/{sid}{ allow create,update,read: if true; match /messages/{mid}{ allow create,read: if true; allow update,delete: if isAdmin(); } }
-    match /managed_sites/{id}{ allow read: if isAdmin(); allow write: if false; }
-    match /managed_site_secrets/{id}{ allow read,write: if false; }
-    match /site_events/{id}{ allow read: if isAdmin(); allow write: if false; }
-    match /site_settings/{id}{ allow read: if resource.data.active == true || isAdmin(); allow write: if isAdmin(); }
-    match /admin_users/{uid}{ allow read: if isOwner(uid) || isAdmin(); allow write: if false; }
+
+    function currentUid() {
+      return request.auth.uid;
+    }
+
+    function hasEmailClaim() {
+      return signedIn()
+        && request.auth.token != null
+        && "email" in request.auth.token
+        && request.auth.token.email is string;
+    }
+
+    function currentEmail() {
+      return request.auth.token.email;
+    }
+
+    function emailVerified() {
+      return signedIn()
+        && request.auth.token != null
+        && "email_verified" in request.auth.token
+        && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return signedIn()
+        && currentUid() == userId;
+    }
+
+
+    // =========================================================
+    // VALIDATION HELPERS
+    // =========================================================
+
+    function isNonEmptyString(value, maxLength) {
+      return value is string
+        && value.size() > 0
+        && value.size() <= maxLength;
+    }
+
+    function isOptionalString(data, field, maxLength) {
+      return !(field in data)
+        || (
+          data[field] is string
+          && data[field].size() <= maxLength
+        );
+    }
+
+    function isOptionalBool(data, field) {
+      return !(field in data)
+        || data[field] is bool;
+    }
+
+    function isOptionalNumber(data, field) {
+      return !(field in data)
+        || data[field] is number;
+    }
+
+    function isOptionalTimestamp(data, field) {
+      return !(field in data)
+        || data[field] is timestamp;
+    }
+
+    function isOptionalList(data, field) {
+      return !(field in data)
+        || data[field] is list;
+    }
+
+    function isOptionalMap(data, field) {
+      return !(field in data)
+        || data[field] is map;
+    }
+
+    function isNonNegativeInteger(value) {
+      return value is int
+        && value >= 0;
+    }
+
+    function hasValidCreatedAt(data) {
+      return "createdAt" in data
+        && data.createdAt is timestamp
+        && data.createdAt == request.time;
+    }
+
+    function hasValidUpdatedAt(data) {
+      return "updatedAt" in data
+        && data.updatedAt is timestamp
+        && data.updatedAt == request.time;
+    }
+
+
+    // =========================================================
+    // BREAK-GLASS SUPER ADMIN
+    // =========================================================
+
+    function isBootstrapSuperAdmin() {
+      return signedIn()
+        && hasEmailClaim()
+        && emailVerified()
+        && currentEmail() == "cihatwin@gmail.com";
+    }
+
+
+    // =========================================================
+    // ADMIN HELPERS
+    // =========================================================
+
+    function adminPath() {
+      return /databases/$(database)/documents/admin_users/$(currentUid());
+    }
+
+    function adminDocExists() {
+      return signedIn()
+        && exists(adminPath());
+    }
+
+    function adminDoc() {
+      return get(adminPath());
+    }
+
+    function adminIsActive() {
+      return adminDocExists()
+        && adminDoc().data.active == true;
+    }
+
+    function adminRoleIsValid() {
+      return adminDocExists()
+        && (
+          adminDoc().data.role == "admin"
+          || adminDoc().data.role == "super_admin"
+        );
+    }
+
+    function isAdmin() {
+      return isBootstrapSuperAdmin()
+        || (
+          adminIsActive()
+          && adminRoleIsValid()
+        );
+    }
+
+    function isSuperAdmin() {
+      return isBootstrapSuperAdmin()
+        || (
+          adminIsActive()
+          && adminDoc().data.role == "super_admin"
+        );
+    }
+
+
+    // =========================================================
+    // USERS
+    // =========================================================
+
+    match /users/{userId} {
+
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasOnly([
+          "uid",
+          "email",
+          "displayName",
+          "photoURL",
+          "phone",
+          "company",
+          "city",
+          "bio",
+          "verified",
+          "emailVerifiedAt",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ])
+        && request.resource.data.uid == currentUid()
+        && hasEmailClaim()
+        && request.resource.data.email == currentEmail()
+        && request.resource.data.status == "active"
+        && isOptionalString(
+          request.resource.data,
+          "displayName",
+          120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "photoURL",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "phone",
+          30
+        )
+        && isOptionalString(
+          request.resource.data,
+          "company",
+          180
+        )
+        && isOptionalString(
+          request.resource.data,
+          "city",
+          120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "bio",
+          1000
+        )
+        && isOptionalBool(
+          request.resource.data,
+          "verified"
+        )
+        && isOptionalTimestamp(
+          request.resource.data,
+          "emailVerifiedAt"
+        )
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow read: if isOwner(userId)
+        || isAdmin();
+
+      allow update: if isAdmin()
+        || (
+          isOwner(userId)
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "displayName",
+              "photoURL",
+              "phone",
+              "company",
+              "city",
+              "bio",
+              "verified",
+              "emailVerifiedAt",
+              "updatedAt"
+            ])
+
+          && request.resource.data.uid
+            == resource.data.uid
+
+          && request.resource.data.email
+            == resource.data.email
+
+          && request.resource.data.status
+            == resource.data.status
+
+          && isOptionalString(
+            request.resource.data,
+            "displayName",
+            120
+          )
+
+          && isOptionalString(
+            request.resource.data,
+            "photoURL",
+            1000
+          )
+
+          && isOptionalString(
+            request.resource.data,
+            "phone",
+            30
+          )
+
+          && isOptionalString(
+            request.resource.data,
+            "company",
+            180
+          )
+
+          && isOptionalString(
+            request.resource.data,
+            "city",
+            120
+          )
+
+          && isOptionalString(
+            request.resource.data,
+            "bio",
+            1000
+          )
+
+          && isOptionalBool(
+            request.resource.data,
+            "verified"
+          )
+
+          && isOptionalTimestamp(
+            request.resource.data,
+            "emailVerifiedAt"
+          )
+
+          && hasValidUpdatedAt(request.resource.data)
+        );
+
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // =========================================================
+    // ADMIN USERS
+    // =========================================================
+
+    match /admin_users/{adminId} {
+
+      allow get: if signedIn()
+        && (
+          currentUid() == adminId
+          || isAdmin()
+        );
+
+      allow list: if isAdmin();
+
+      allow create: if isSuperAdmin()
+        && request.resource.data.keys().hasOnly([
+          "uid",
+          "email",
+          "displayName",
+          "role",
+          "active",
+          "createdAt",
+          "updatedAt",
+          "createdBy"
+        ])
+        && request.resource.data.uid == adminId
+        && isNonEmptyString(
+          request.resource.data.email,
+          320
+        )
+        && (
+          request.resource.data.role == "admin"
+          || request.resource.data.role == "super_admin"
+        )
+        && request.resource.data.active is bool
+        && request.resource.data.createdBy == currentUid()
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow update: if isSuperAdmin()
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && (
+          request.resource.data.role == "admin"
+          || request.resource.data.role == "super_admin"
+        )
+        && request.resource.data.active is bool
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if isSuperAdmin()
+        && adminId != currentUid();
+    }
+
+
+    // =========================================================
+    // PROJECTS
+    //
+    // Public sorgu:
+    // where("active", "==", true)
+    // =========================================================
+
+    match /projects/{projectId} {
+
+      allow read: if isAdmin()
+        || resource.data.active == true;
+
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          "title",
+          "slug",
+          "subtitle",
+          "description",
+          "coverImage",
+          "coverImageStoragePath",
+          "showreel",
+          "showreelStoragePath",
+          "gallery",
+          "category",
+          "client",
+          "clientName",
+          "services",
+          "year",
+          "projectUrl",
+          "order",
+          "sortOrder",
+          "featured",
+          "active",
+          "createdAt",
+          "updatedAt"
+        ])
+        && isNonEmptyString(
+          request.resource.data.title,
+          180
+        )
+        && isOptionalString(
+          request.resource.data,
+          "slug",
+          180
+        )
+        && request.resource.data.active is bool
+        && isOptionalString(
+          request.resource.data,
+          "subtitle",
+          300
+        )
+        && isOptionalString(
+          request.resource.data,
+          "coverImage",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "coverImageStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "showreel",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "showreelStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "client",
+          180
+        )
+        && isOptionalList(
+          request.resource.data,
+          "services"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "year"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "order"
+        )
+        && isOptionalBool(
+          request.resource.data,
+          "featured"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "sortOrder"
+        )
+        && isOptionalList(
+          request.resource.data,
+          "gallery"
+        )
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          "title",
+          "slug",
+          "subtitle",
+          "description",
+          "coverImage",
+          "coverImageStoragePath",
+          "showreel",
+          "showreelStoragePath",
+          "gallery",
+          "category",
+          "client",
+          "clientName",
+          "services",
+          "year",
+          "projectUrl",
+          "order",
+          "sortOrder",
+          "featured",
+          "active",
+          "createdAt",
+          "updatedAt"
+        ])
+        && request.resource.data.active is bool
+        && isOptionalString(
+          request.resource.data,
+          "slug",
+          180
+        )
+        && isOptionalString(
+          request.resource.data,
+          "subtitle",
+          300
+        )
+        && isOptionalString(
+          request.resource.data,
+          "coverImage",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "coverImageStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "showreel",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "showreelStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "client",
+          180
+        )
+        && isOptionalList(
+          request.resource.data,
+          "services"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "year"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "order"
+        )
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // =========================================================
+    // PACKAGES
+    //
+    // Public sorgu:
+    // where("active", "==", true)
+    // =========================================================
+
+    match /packages/{packageId} {
+
+      allow read: if isAdmin()
+        || resource.data.active == true;
+
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          "title",
+          "slug",
+          "subtitle",
+          "description",
+          "image",
+          "imageStoragePath",
+          "promoVideo",
+          "promoVideoStoragePath",
+          "features",
+          "idealFor",
+          "kpiFocus",
+          "price",
+          "priceFrom",
+          "priceLabel",
+          "currency",
+          "badge",
+          "theme",
+          "deliveryTime",
+          "supportWindow",
+          "maxRevision",
+          "guarantee",
+          "cta",
+          "order",
+          "sortOrder",
+          "featured",
+          "active",
+          "createdAt",
+          "updatedAt"
+        ])
+        && isNonEmptyString(
+          request.resource.data.title,
+          180
+        )
+        && request.resource.data.active is bool
+        && isOptionalString(
+          request.resource.data,
+          "slug",
+          180
+        )
+        && isOptionalString(
+          request.resource.data,
+          "subtitle",
+          300
+        )
+        && isOptionalString(
+          request.resource.data,
+          "image",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "imageStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "promoVideo",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "promoVideoStoragePath",
+          1000
+        )
+        && isOptionalList(
+          request.resource.data,
+          "features"
+        )
+        && isOptionalList(
+          request.resource.data,
+          "idealFor"
+        )
+        && isOptionalList(
+          request.resource.data,
+          "kpiFocus"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "priceFrom"
+        )
+        && isOptionalString(
+          request.resource.data,
+          "badge",
+          120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "theme",
+          30
+        )
+        && isOptionalString(
+          request.resource.data,
+          "deliveryTime",
+          120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "supportWindow",
+          120
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "maxRevision"
+        )
+        && isOptionalString(
+          request.resource.data,
+          "guarantee",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "cta",
+          120
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "order"
+        )
+        && isOptionalBool(
+          request.resource.data,
+          "featured"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "price"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "sortOrder"
+        )
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          "title",
+          "slug",
+          "subtitle",
+          "description",
+          "image",
+          "imageStoragePath",
+          "promoVideo",
+          "promoVideoStoragePath",
+          "features",
+          "idealFor",
+          "kpiFocus",
+          "price",
+          "priceFrom",
+          "priceLabel",
+          "currency",
+          "badge",
+          "theme",
+          "deliveryTime",
+          "supportWindow",
+          "maxRevision",
+          "guarantee",
+          "cta",
+          "order",
+          "sortOrder",
+          "featured",
+          "active",
+          "createdAt",
+          "updatedAt"
+        ])
+        && request.resource.data.active is bool
+        && isOptionalString(
+          request.resource.data,
+          "slug",
+          180
+        )
+        && isOptionalString(
+          request.resource.data,
+          "subtitle",
+          300
+        )
+        && isOptionalString(
+          request.resource.data,
+          "image",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "imageStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "promoVideo",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "promoVideoStoragePath",
+          1000
+        )
+        && isOptionalList(
+          request.resource.data,
+          "features"
+        )
+        && isOptionalList(
+          request.resource.data,
+          "idealFor"
+        )
+        && isOptionalList(
+          request.resource.data,
+          "kpiFocus"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "priceFrom"
+        )
+        && isOptionalString(
+          request.resource.data,
+          "badge",
+          120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "theme",
+          30
+        )
+        && isOptionalString(
+          request.resource.data,
+          "deliveryTime",
+          120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "supportWindow",
+          120
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "maxRevision"
+        )
+        && isOptionalString(
+          request.resource.data,
+          "guarantee",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "cta",
+          120
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "order"
+        )
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // =========================================================
+    // QUOTE QUESTIONS
+    //
+    // Public sorgu:
+    // where("active", "==", true)
+    // =========================================================
+
+    match /quote_questions/{questionId} {
+
+      allow read: if isAdmin()
+        || resource.data.active == true;
+
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          "label",
+          "key",
+          "title",
+          "subtitle",
+          "description",
+          "type",
+          "options",
+          "optionsJson",
+          "min",
+          "max",
+          "order",
+          "required",
+          "sortOrder",
+          "active",
+          "createdAt",
+          "updatedAt"
+        ])
+        && isNonEmptyString(
+          request.resource.data.key,
+          120
+        )
+        && isNonEmptyString(
+          request.resource.data.title,
+          300
+        )
+        && isNonEmptyString(
+          request.resource.data.type,
+          50
+        )
+        && request.resource.data.active is bool
+        && isOptionalList(
+          request.resource.data,
+          "options"
+        )
+        && isOptionalString(
+          request.resource.data,
+          "optionsJson",
+          10000
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "min"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "max"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "order"
+        )
+        && isOptionalBool(
+          request.resource.data,
+          "required"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "sortOrder"
+        )
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly([
+          "label",
+          "key",
+          "title",
+          "subtitle",
+          "description",
+          "type",
+          "options",
+          "optionsJson",
+          "min",
+          "max",
+          "order",
+          "required",
+          "sortOrder",
+          "active",
+          "createdAt",
+          "updatedAt"
+        ])
+        && isNonEmptyString(
+          request.resource.data.key,
+          120
+        )
+        && isNonEmptyString(
+          request.resource.data.title,
+          300
+        )
+        && request.resource.data.active is bool
+        && isOptionalString(
+          request.resource.data,
+          "optionsJson",
+          10000
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "min"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "max"
+        )
+        && isOptionalNumber(
+          request.resource.data,
+          "order"
+        )
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // =========================================================
+    // QUOTE RULES
+    //
+    // Public sorgu:
+    // where("enabled", "==", true)
+    // =========================================================
+
+    match /quote_rules/{ruleId} {
+
+      allow read: if isAdmin()
+        || resource.data.enabled == true;
+
+      allow create: if isAdmin()
+        && request.resource.data.enabled is bool
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow update: if isAdmin()
+        && request.resource.data.enabled is bool
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // =========================================================
+    // QUOTE ENGINE VERSIONS
+    // =========================================================
+
+    match /quote_engine_versions/{versionId} {
+
+      allow read: if isAdmin();
+
+      allow create: if isAdmin()
+        && hasValidCreatedAt(request.resource.data);
+
+      allow update: if isAdmin()
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // =========================================================
+    // QUOTES
+    // Public create, admin management
+    // =========================================================
+
+    match /quotes/{quoteId} {
+
+      allow create: if request.resource.data.keys().hasOnly([
+          "name",
+          "email",
+          "phone",
+          "company",
+          "message",
+          "answers",
+          "packageId",
+          "projectType",
+          "budget",
+          "status",
+          "source",
+          "createdAt",
+          "updatedAt"
+        ])
+        && isNonEmptyString(
+          request.resource.data.name,
+          120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "email",
+          320
+        )
+        && isOptionalString(
+          request.resource.data,
+          "phone",
+          30
+        )
+        && isOptionalString(
+          request.resource.data,
+          "company",
+          180
+        )
+        && isOptionalString(
+          request.resource.data,
+          "message",
+          5000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "packageId",
+          150
+        )
+        && isOptionalString(
+          request.resource.data,
+          "projectType",
+          150
+        )
+        && isOptionalString(
+          request.resource.data,
+          "budget",
+          150
+        )
+        && isOptionalString(
+          request.resource.data,
+          "source",
+          150
+        )
+        && isOptionalMap(
+          request.resource.data,
+          "answers"
+        )
+        && request.resource.data.status == "new"
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow read: if isAdmin();
+
+      allow update: if isAdmin()
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "status",
+            "adminNote",
+            "assignedTo",
+            "updatedAt"
+          ])
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // =========================================================
+    // CONTACT REQUESTS
+    // Public create, admin management
+    // =========================================================
+
+    match /contacts/{contactId} {
+
+      allow create: if request.resource.data.keys().hasOnly([
+          "name",
+          "email",
+          "phone",
+          "subject",
+          "message",
+          "status",
+          "source",
+          "createdAt",
+          "updatedAt"
+        ])
+        && isNonEmptyString(
+          request.resource.data.name,
+          120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "email",
+          320
+        )
+        && isOptionalString(
+          request.resource.data,
+          "phone",
+          30
+        )
+        && isOptionalString(
+          request.resource.data,
+          "subject",
+          300
+        )
+        && isNonEmptyString(
+          request.resource.data.message,
+          5000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "source",
+          150
+        )
+        && request.resource.data.status == "new"
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow read: if isAdmin();
+
+      allow update: if isAdmin()
+        && request.resource.data
+          .diff(resource.data)
+          .affectedKeys()
+          .hasOnly([
+            "status",
+            "adminNote",
+            "assignedTo",
+            "updatedAt"
+          ])
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // =========================================================
+    // LIVE CHAT
+    // Requires Firebase Anonymous Authentication
+    // =========================================================
+
+    match /chat_sessions/{sessionId} {
+
+      function isChatOwner() {
+        return signedIn()
+          && resource.data.ownerUid == currentUid();
+      }
+
+      function isIncomingChatOwner() {
+        return signedIn()
+          && request.resource.data.ownerUid == currentUid();
+      }
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          "ownerUid",
+          "status",
+          "visitorName",
+          "visitorEmail",
+          "visitorPhone",
+          "lastMessage",
+          "lastMessageAt",
+          "unreadAdmin",
+          "unreadVisitor",
+          "createdAt",
+          "updatedAt"
+        ])
+        && request.resource.data.ownerUid == currentUid()
+        && request.resource.data.status == "open"
+        && isOptionalString(
+          request.resource.data,
+          "visitorName",
+          120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "visitorEmail",
+          320
+        )
+        && isOptionalString(
+          request.resource.data,
+          "visitorPhone",
+          30
+        )
+        && isOptionalString(
+          request.resource.data,
+          "lastMessage",
+          1000
+        )
+        && (
+          !("unreadAdmin" in request.resource.data)
+          || isNonNegativeInteger(
+            request.resource.data.unreadAdmin
+          )
+        )
+        && (
+          !("unreadVisitor" in request.resource.data)
+          || isNonNegativeInteger(
+            request.resource.data.unreadVisitor
+          )
+        )
+        && isOptionalTimestamp(
+          request.resource.data,
+          "lastMessageAt"
+        )
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow get: if isAdmin()
+        || isChatOwner();
+
+      allow list: if isAdmin();
+
+      allow update: if isAdmin()
+        || (
+          isChatOwner()
+
+          && isIncomingChatOwner()
+
+          && request.resource.data.ownerUid
+            == resource.data.ownerUid
+
+          && request.resource.data.status
+            == resource.data.status
+
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "visitorName",
+              "visitorEmail",
+              "visitorPhone",
+              "lastMessage",
+              "lastMessageAt",
+              "unreadAdmin",
+              "updatedAt"
+            ])
+
+          && isOptionalString(
+            request.resource.data,
+            "visitorName",
+            120
+          )
+
+          && isOptionalString(
+            request.resource.data,
+            "visitorEmail",
+            320
+          )
+
+          && isOptionalString(
+            request.resource.data,
+            "visitorPhone",
+            30
+          )
+
+          && isOptionalString(
+            request.resource.data,
+            "lastMessage",
+            1000
+          )
+
+          && isOptionalTimestamp(
+            request.resource.data,
+            "lastMessageAt"
+          )
+
+          && (
+            !("unreadAdmin" in request.resource.data)
+            || isNonNegativeInteger(
+              request.resource.data.unreadAdmin
+            )
+          )
+
+          && hasValidUpdatedAt(request.resource.data)
+        );
+
+      allow delete: if isSuperAdmin();
+
+
+      // =======================================================
+      // CHAT MESSAGES
+      // =======================================================
+
+      match /messages/{messageId} {
+
+        function parentSessionPath() {
+          return /databases/$(database)/documents/chat_sessions/$(sessionId);
+        }
+
+        function parentSessionExists() {
+          return exists(parentSessionPath());
+        }
+
+        function parentSession() {
+          return get(parentSessionPath());
+        }
+
+        function isSessionOwner() {
+          return signedIn()
+            && parentSessionExists()
+            && parentSession().data.ownerUid == currentUid();
+        }
+
+        function sessionIsOpen() {
+          return parentSessionExists()
+            && parentSession().data.status == "open";
+        }
+
+        allow create: if (
+            isSessionOwner()
+            && sessionIsOpen()
+
+            && request.resource.data.keys().hasOnly([
+              "sender",
+              "senderUid",
+              "text",
+              "attachmentUrl",
+              "attachmentType",
+              "read",
+              "createdAt"
+            ])
+
+            && request.resource.data.sender == "visitor"
+
+            && request.resource.data.senderUid
+              == currentUid()
+
+            && isNonEmptyString(
+              request.resource.data.text,
+              2000
+            )
+
+            && isOptionalString(
+              request.resource.data,
+              "attachmentUrl",
+              1000
+            )
+
+            && isOptionalString(
+              request.resource.data,
+              "attachmentType",
+              100
+            )
+
+            && (
+              !("read" in request.resource.data)
+              || request.resource.data.read == false
+            )
+
+            && hasValidCreatedAt(request.resource.data)
+          )
+          || (
+            isAdmin()
+
+            && request.resource.data.keys().hasOnly([
+              "sender",
+              "senderUid",
+              "text",
+              "attachmentUrl",
+              "attachmentType",
+              "read",
+              "createdAt"
+            ])
+
+            && request.resource.data.sender == "admin"
+
+            && request.resource.data.senderUid
+              == currentUid()
+
+            && isNonEmptyString(
+              request.resource.data.text,
+              2000
+            )
+
+            && isOptionalString(
+              request.resource.data,
+              "attachmentUrl",
+              1000
+            )
+
+            && isOptionalString(
+              request.resource.data,
+              "attachmentType",
+              100
+            )
+
+            && (
+              !("read" in request.resource.data)
+              || request.resource.data.read is bool
+            )
+
+            && hasValidCreatedAt(request.resource.data)
+          );
+
+        allow read: if isAdmin()
+          || isSessionOwner();
+
+        allow update: if isAdmin()
+          && request.resource.data
+            .diff(resource.data)
+            .affectedKeys()
+            .hasOnly([
+              "read"
+            ])
+          && request.resource.data.read is bool;
+
+        allow delete: if isSuperAdmin();
+      }
+    }
+
+
+    // =========================================================
+    // MANAGED SITES
+    // Browser: admin read only
+    // Server Admin SDK bypasses these rules
+    // =========================================================
+
+    match /managed_sites/{siteId} {
+
+      allow read: if isAdmin();
+
+      allow create, update, delete: if false;
+    }
+
+
+    // =========================================================
+    // MANAGED SITE SECRETS
+    // Server only
+    // =========================================================
+
+    match /managed_site_secrets/{siteId} {
+
+      allow read, write: if false;
+    }
+
+
+    // =========================================================
+    // SITE EVENTS
+    // =========================================================
+
+    match /site_events/{eventId} {
+
+      allow read: if isAdmin();
+
+      allow create, update, delete: if false;
+    }
+
+
+    // =========================================================
+    // SITE SETTINGS
+    //
+    // Public sorgu:
+    // where("active", "==", true)
+    // =========================================================
+
+    match /site_settings/{settingId} {
+
+      allow read: if isAdmin()
+        || resource.data.active == true;
+
+      allow create: if isAdmin()
+        && request.resource.data.active is bool
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow update: if isAdmin()
+        && request.resource.data.active is bool
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if isSuperAdmin();
+    }
+
+
+    // =========================================================
+    // AUDIT LOGS
+    // Server writes, super admin reads
+    // =========================================================
+
+    match /audit_logs/{logId} {
+
+      allow read: if isSuperAdmin();
+
+      allow create, update, delete: if false;
+    }
+
+
+    // =========================================================
+    // SYSTEM CONTROL
+    // Server only
+    // =========================================================
+
+    match /system_control/{documentId} {
+
+      allow read, write: if false;
+    }
+
+    match /system_control_nonces/{nonceId} {
+
+      allow read, write: if false;
+    }
+
+
+    // =========================================================
+    // RATE LIMITS
+    // Server only
+    // =========================================================
+
+    match /rate_limits/{documentId} {
+
+      allow read, write: if false;
+    }
+
+
+    // =========================================================
+    // AUTH CODES + TRIGGER EMAIL
+    // Server only. Firebase Admin SDK and extensions bypass rules.
+    // =========================================================
+
+    match /auth_email_codes/{documentId} {
+
+      allow read, write: if false;
+    }
+
+    match /auth_password_reset_codes/{documentId} {
+
+      allow read, write: if false;
+    }
+
+    match /mail/{documentId} {
+
+      allow read, write: if false;
+    }
+
+
+    // =========================================================
+    // DEFAULT DENY
+    // =========================================================
+
+    match /{document=**} {
+
+      allow read, write: if false;
+    }
   }
 }

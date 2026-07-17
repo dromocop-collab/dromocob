@@ -67,6 +67,8 @@ export type ManagedSite = {
   name: string;
   domain: string;
   status: "active" | "maintenance" | "disabled";
+  controlEndpoint?: string;
+  healthEndpoint?: string;
   controlUrl?: string;
   healthUrl?: string;
   lastHealth?: "online" | "offline" | "unknown";

@@ -2,6 +2,15 @@ import Link from "next/link";
 import { ArrowRight, Camera, Code2, Play, Radar, Sparkles } from "lucide-react";
 import ProjectGrid from "@/components/project-grid";
 import PackageGrid from "@/components/package-grid";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Dromocob | Film, Web ve Büyüme Sistemleri",
+  description:
+    "Markalar için sinematik film prodüksiyonu, yüksek dönüşümlü web deneyimleri, admin paneller ve dijital büyüme sistemleri.",
+  path: "/",
+  keywords: ["film prodüksiyonu", "web tasarım", "büyüme sistemi"],
+});
 
 export default function Home() {
   return (

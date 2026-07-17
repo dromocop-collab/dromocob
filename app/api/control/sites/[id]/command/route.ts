@@ -22,8 +22,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     if (!siteSnap.exists) return new NextResponse("Site not found", { status: 404 });
 
     const site = siteSnap.data()!;
-    const controlSecret = String(secretSnap.data()?.controlSecret || "");
-    if (!site.controlUrl) return new NextResponse("Control endpoint is not configured", { status: 409 });
+    const secret = secretSnap.data();
+    const controlSecret = String(secret?.secret || secret?.controlSecret || "");
+    const controlEndpoint = site.controlEndpoint || site.controlUrl;
+    if (!controlEndpoint) return new NextResponse("Control endpoint is not configured", { status: 409 });
     if (!controlSecret) return new NextResponse("Control secret is not configured", { status: 409 });
 
     const timestamp = Date.now().toString();
@@ -42,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       createdAt: new Date()
     });
 
-    const remote = await fetch(site.controlUrl, {
+    const remote = await fetch(controlEndpoint, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -66,7 +68,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         remoteResponse: remoteText.slice(0, 1000),
         createdAt: new Date()
       });
-      return new NextResponse(`Remote site rejected command (${remote.status}): ${remoteText}`, { status: 502 });
+      return NextResponse.json(
+        {
+          ok: false,
+          message: `Remote site rejected command (${remote.status}): ${remoteText || remote.statusText}`,
+        },
+        { status: 502 }
+      );
     }
 
     await Promise.all([

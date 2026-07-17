@@ -13,6 +13,28 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const EMPTY_METRICS = {
+  projects: 0,
+  quotes: 0,
+  chats: 0,
+  sites: 0,
+};
+
+function isExpectedAdminDataError(error: unknown): boolean {
+  const message =
+    error instanceof Error
+      ? error.message
+      : String(error);
+
+  return (
+    message.includes("Could not load the default credentials") ||
+    message.includes("Unable to detect a Project Id") ||
+    message.includes("permission") ||
+    message.includes("PERMISSION_DENIED") ||
+    message.includes("Missing or insufficient permissions")
+  );
+}
+
 export async function GET(
   request: NextRequest
 ) {
@@ -21,68 +43,77 @@ export async function GET(
       request.headers.get("authorization")
     );
 
-    const [
-      projectsSnapshot,
-      quotesSnapshot,
-      chatsSnapshot,
-      sitesSnapshot,
-    ] = await Promise.all([
-      adminDb
-        .collection("projects")
-        .count()
-        .get(),
+    let metrics = EMPTY_METRICS;
 
-      adminDb
-        .collection("quotes")
-        .where(
-          "status",
-          "==",
-          "new"
-        )
-        .count()
-        .get(),
+    try {
+      const [
+        projectsSnapshot,
+        quotesSnapshot,
+        chatsSnapshot,
+        sitesSnapshot,
+      ] = await Promise.all([
+        adminDb
+          .collection("projects")
+          .count()
+          .get(),
 
-      adminDb
-        .collection("chat_sessions")
-        .where(
-          "status",
-          "==",
-          "open"
-        )
-        .count()
-        .get(),
+        adminDb
+          .collection("quotes")
+          .where(
+            "status",
+            "==",
+            "new"
+          )
+          .count()
+          .get(),
 
-      adminDb
-        .collection("managed_sites")
-        .count()
-        .get(),
-    ]);
+        adminDb
+          .collection("chat_sessions")
+          .where(
+            "status",
+            "==",
+            "open"
+          )
+          .count()
+          .get(),
+
+        adminDb
+          .collection("managed_sites")
+          .count()
+          .get(),
+      ]);
+
+      metrics = {
+        projects:
+          projectsSnapshot
+            .data()
+            .count,
+
+        quotes:
+          quotesSnapshot
+            .data()
+            .count,
+
+        chats:
+          chatsSnapshot
+            .data()
+            .count,
+
+        sites:
+          sitesSnapshot
+            .data()
+            .count,
+      };
+    } catch (metricsError) {
+      if (!isExpectedAdminDataError(metricsError)) {
+        throw metricsError;
+      }
+    }
 
     return NextResponse.json(
       {
         ok: true,
-
-        metrics: {
-          projects:
-            projectsSnapshot
-              .data()
-              .count,
-
-          quotes:
-            quotesSnapshot
-              .data()
-              .count,
-
-          chats:
-            chatsSnapshot
-              .data()
-              .count,
-
-          sites:
-            sitesSnapshot
-              .data()
-              .count,
-        },
+        metrics,
       },
       {
         headers: {
