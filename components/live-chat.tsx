@@ -112,8 +112,12 @@ function replaceStoredSessionId(): string {
 function getErrorMessage(error: unknown): string {
   const code = getErrorCode(error);
 
+  if (code === "auth/configuration-not-found") {
+    return "Firebase Auth yapılandırması bulunamadı. Canlı ortam Firebase public env değerlerini kontrol et.";
+  }
+
   if (code === "permission-denied") {
-    return "Canlı destek izinleri şu anda kapalı görünüyor.";
+    return "Canlı destek izinleri kapalı. Firestore rules deploy edilmiş mi kontrol et.";
   }
 
   if (code === "auth/operation-not-allowed") {
@@ -124,11 +128,17 @@ function getErrorMessage(error: unknown): string {
     return "İnternet bağlantısı kurulamadı.";
   }
 
-  if (code === "unavailable") {
-    return "Canlı destek servisine şu anda ulaşılamıyor.";
+  if (code === "failed-precondition") {
+    return "Canlı destek için Firestore index veya servis koşulu eksik.";
   }
 
-  return "Canlı destek başlatılırken bir hata oluştu.";
+  if (code === "unavailable") {
+    return "Firestore canlı destek servisine ulaşılamıyor. Firebase env, domain izinleri veya ağ bağlantısını kontrol et.";
+  }
+
+  return code
+    ? `Canlı destek başlatılamadı (${code}).`
+    : "Canlı destek başlatılırken bir hata oluştu.";
 }
 
 function getErrorCode(error: unknown): string {
@@ -170,6 +180,12 @@ export default function LiveChat() {
   const isReady =
     status === "ready" || status === "sending";
   const isSending = status === "sending";
+  const hasFirebaseConfig = Boolean(
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY &&
+      process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN &&
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID &&
+      process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  );
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -188,6 +204,22 @@ export default function LiveChat() {
     }
 
     let cancelled = false;
+
+    if (!hasFirebaseConfig) {
+      const timer = window.setTimeout(() => {
+        if (!cancelled) {
+          setStatus("error");
+          setErrorMessage(
+            "Firebase public env değerleri eksik. NEXT_PUBLIC_FIREBASE_* ayarlarını kontrol et."
+          );
+        }
+      }, 0);
+
+      return () => {
+        cancelled = true;
+        window.clearTimeout(timer);
+      };
+    }
 
     const unsubscribeAuth = onAuthStateChanged(
       auth,
@@ -213,6 +245,7 @@ export default function LiveChat() {
 
           console.warn(
             "[DROMOCOB CHAT] Authentication error:",
+            getErrorCode(error),
             error
           );
 
@@ -227,7 +260,7 @@ export default function LiveChat() {
       cancelled = true;
       unsubscribeAuth();
     };
-  }, [open, retryKey]);
+  }, [hasFirebaseConfig, open, retryKey]);
 
   useEffect(() => {
     if (!open || !sessionId || !currentUser) {
@@ -376,9 +409,9 @@ export default function LiveChat() {
              * Next.js geliştirme overlay'ini gereksiz yere
              * kırmızı hata ekranına çevirmesin.
              */
-            if (getErrorCode(error) !== "permission-denied") {
-              console.warn(
-                "[DROMOCOB CHAT] Snapshot error:",
+        if (getErrorCode(error) !== "permission-denied") {
+          console.warn(
+            "[DROMOCOB CHAT] Snapshot error:",
                 error.code,
                 error.message
               );
@@ -399,6 +432,7 @@ export default function LiveChat() {
         if (getErrorCode(error) !== "permission-denied") {
           console.warn(
             "[DROMOCOB CHAT] Initialization error:",
+            getErrorCode(error),
             error
           );
         }
@@ -489,6 +523,7 @@ export default function LiveChat() {
       if (getErrorCode(error) !== "permission-denied") {
         console.warn(
           "[DROMOCOB CHAT] Send error:",
+          getErrorCode(error),
           error
         );
       }

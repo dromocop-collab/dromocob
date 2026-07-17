@@ -239,7 +239,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { ok: false, message: "Site registration failed because the server could not complete the request" },
+      {
+        ok: false,
+        message:
+          "Server could not complete site registration. Check Firebase Admin credentials and server logs.",
+      },
       { status: 500 }
     );
   }
