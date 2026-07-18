@@ -11,6 +11,9 @@ import {
   siteName,
   siteUrl,
 } from "@/lib/seo";
+import { getPublicTrackingSettings } from "@/lib/runtime-tracking";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: { default: defaultTitle, template: `%s | ${siteName}` },
@@ -68,12 +71,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({children}:{children:React.ReactNode}) {
+export default async function RootLayout({children}:{children:React.ReactNode}) {
+  const initialTracking = await getPublicTrackingSettings();
+
   return <html
   lang="tr"
   data-scroll-behavior="smooth"
 ><body><script
   type="application/ld+json"
   dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": [organizationJsonLd, websiteJsonLd] }).replace(/</g, "\\u003c") }}
-/><AuthProvider><SiteRuntimeSettings>{children}</SiteRuntimeSettings></AuthProvider></body></html>;
+/><AuthProvider><SiteRuntimeSettings initialTracking={initialTracking}>{children}</SiteRuntimeSettings></AuthProvider></body></html>;
 }

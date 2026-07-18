@@ -8,6 +8,7 @@ import { db } from "@/lib/firebase";
 import SiteNav from "@/components/site-nav";
 import SiteFooter from "@/components/site-footer";
 import LiveChat from "@/components/live-chat";
+import type { PublicTrackingSettings } from "@/lib/runtime-tracking";
 
 type RuntimeSiteSettings = {
   active?: boolean;
@@ -92,10 +93,10 @@ function upsertMeta(name: string, content: string) {
   document.head.appendChild(meta);
 }
 
-export default function SiteRuntimeSettings({ children }: { children: ReactNode }) {
+export default function SiteRuntimeSettings({ children, initialTracking }: { children: ReactNode; initialTracking?: PublicTrackingSettings }) {
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith("/admin");
-  const [settings, setSettings] = useState<RuntimeSiteSettings>({ tracking: environmentTracking });
+  const [settings, setSettings] = useState<RuntimeSiteSettings>({ tracking: { ...environmentTracking, ...initialTracking } });
   const initialPageView = useRef(true);
 
   useEffect(() => {
@@ -103,14 +104,14 @@ export default function SiteRuntimeSettings({ children }: { children: ReactNode 
       SETTINGS_DOC,
       snapshot => {
         if (!snapshot.exists()) {
-          setSettings({ tracking: environmentTracking });
+          setSettings({ tracking: { ...environmentTracking, ...initialTracking } });
           return;
         }
 
         const data = snapshot.data() as RuntimeSiteSettings;
         setSettings({
           ...data,
-          tracking: { ...environmentTracking, ...data.tracking },
+          tracking: { ...environmentTracking, ...initialTracking, ...data.tracking },
         });
       },
       error => {
@@ -121,10 +122,10 @@ export default function SiteRuntimeSettings({ children }: { children: ReactNode 
           );
         }
 
-        setSettings({ tracking: environmentTracking });
+        setSettings({ tracking: { ...environmentTracking, ...initialTracking } });
       }
     );
-  }, []);
+  }, [initialTracking]);
 
   useEffect(() => {
     const seo = settings.seo;

@@ -81,7 +81,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     titleTemplate: "%s | Dromocob",
     defaultDescription: "Sinematik prodüksiyon, modern web ürünleri ve büyüme odaklı dijital sistemler.",
     keywords: ["kurumsal web sitesi", "video prodüksiyon", "dijital büyüme"],
-    canonicalUrl: "https://dromocob.com",
+    canonicalUrl: "https://dromocob.tr",
     ogImage: "",
     googleSiteVerification: "",
     bingSiteVerification: "",
@@ -134,7 +134,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     cookieConsentId: "",
     whatsappUrl: "",
     calendlyUrl: "",
-    allowedOrigins: ["https://dromocob.com"],
+    allowedOrigins: ["https://dromocob.tr", "https://www.dromocob.tr"],
     rateLimitPerMinute: 30,
   },
 };

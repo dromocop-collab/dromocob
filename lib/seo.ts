@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const siteUrl = "https://dromocob.com";
+export const siteUrl = "https://dromocob.tr";
 export const siteName = "Dromocob";
 export const defaultTitle = "Dromocob | Film, Web & Growth";
 export const defaultDescription =
