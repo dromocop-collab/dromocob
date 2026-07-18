@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { doc, onSnapshot } from "firebase/firestore";
@@ -45,6 +45,15 @@ type RuntimeSiteSettings = {
 
 const SETTINGS_DOC = doc(db, "site_settings", "global");
 
+const environmentTracking: NonNullable<RuntimeSiteSettings["tracking"]> = {
+  enabled: true,
+  ga4MeasurementId:
+    process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID ||
+    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ||
+    "",
+  gtmId: process.env.NEXT_PUBLIC_GTM_ID || "",
+};
+
 function getErrorCode(error: unknown): string {
   if (
     typeof error === "object" &&
@@ -59,6 +68,11 @@ function getErrorCode(error: unknown): string {
 
 function cleanId(value: unknown): string {
   return String(value || "").trim();
+}
+
+function validId(value: unknown, pattern: RegExp): string {
+  const id = cleanId(value).toUpperCase();
+  return pattern.test(id) ? id : "";
 }
 
 function upsertMeta(name: string, content: string) {
@@ -81,19 +95,23 @@ function upsertMeta(name: string, content: string) {
 export default function SiteRuntimeSettings({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith("/admin");
-  const [settings, setSettings] = useState<RuntimeSiteSettings>({});
+  const [settings, setSettings] = useState<RuntimeSiteSettings>({ tracking: environmentTracking });
+  const initialPageView = useRef(true);
 
   useEffect(() => {
     return onSnapshot(
       SETTINGS_DOC,
       snapshot => {
         if (!snapshot.exists()) {
-          setSettings({});
+          setSettings({ tracking: environmentTracking });
           return;
         }
 
         const data = snapshot.data() as RuntimeSiteSettings;
-        setSettings(data);
+        setSettings({
+          ...data,
+          tracking: { ...environmentTracking, ...data.tracking },
+        });
       },
       error => {
         if (getErrorCode(error) !== "permission-denied") {
@@ -103,7 +121,7 @@ export default function SiteRuntimeSettings({ children }: { children: ReactNode 
           );
         }
 
-        setSettings({});
+        setSettings({ tracking: environmentTracking });
       }
     );
   }, []);
@@ -137,17 +155,43 @@ export default function SiteRuntimeSettings({ children }: { children: ReactNode 
   const tracking = settings.tracking;
   const trackingEnabled = tracking?.enabled !== false;
 
-  const ga4Id = trackingEnabled ? cleanId(tracking?.ga4MeasurementId) : "";
-  const gtmId = trackingEnabled ? cleanId(tracking?.gtmId) : "";
-  const adsId = trackingEnabled ? cleanId(tracking?.googleAdsId) : "";
+  const ga4Id = trackingEnabled ? validId(tracking?.ga4MeasurementId, /^G-[A-Z0-9]+$/) : "";
+  const gtmId = trackingEnabled ? validId(tracking?.gtmId, /^GTM-[A-Z0-9]+$/) : "";
+  const adsId = trackingEnabled ? validId(tracking?.googleAdsId, /^AW-[0-9]+$/) : "";
   const adsConversionLabel = trackingEnabled ? cleanId(tracking?.googleAdsConversionLabel) : "";
   const pixelId = trackingEnabled ? cleanId(tracking?.metaPixelId) : "";
   const linkedinId = trackingEnabled ? cleanId(tracking?.linkedinInsightId) : "";
   const tiktokId = trackingEnabled ? cleanId(tracking?.tiktokPixelId) : "";
   const clarityId = trackingEnabled ? cleanId(tracking?.clarityId) : "";
   const debugMode = trackingEnabled && tracking?.debugMode === true;
-  const consentModeEnabled = trackingEnabled && tracking?.consentModeEnabled !== false;
+  // Consent Mode must only be enabled together with a CMP/cookie banner that
+  // actually updates consent. Default-denied without an update drops all data.
+  const consentModeEnabled = trackingEnabled && tracking?.consentModeEnabled === true;
   const gtagId = ga4Id || adsId;
+
+  useEffect(() => {
+    if (initialPageView.current) {
+      initialPageView.current = false;
+      return;
+    }
+
+    const browserWindow = window as typeof window & {
+      gtag?: (...args: unknown[]) => void;
+      dataLayer?: unknown[];
+    };
+
+    if (ga4Id && browserWindow.gtag) {
+      browserWindow.gtag("event", "page_view", {
+        page_path: pathname,
+        page_location: window.location.href,
+        page_title: document.title,
+      });
+    }
+
+    if (gtmId && browserWindow.dataLayer) {
+      browserWindow.dataLayer.push({ event: "virtual_page_view", page_path: pathname });
+    }
+  }, [ga4Id, gtmId, pathname]);
 
   return (
     <>
@@ -167,9 +211,20 @@ export default function SiteRuntimeSettings({ children }: { children: ReactNode 
       )}
 
       {gtmId && (
-        <Script id="dromocob-gtm" strategy="afterInteractive">
-          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');`}
-        </Script>
+        <>
+          <Script id="dromocob-gtm" strategy="afterInteractive">
+            {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');`}
+          </Script>
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+              height="0"
+              width="0"
+              title="Google Tag Manager"
+              style={{ display: "none", visibility: "hidden" }}
+            />
+          </noscript>
+        </>
       )}
 
       {pixelId && (

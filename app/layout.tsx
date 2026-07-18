@@ -7,6 +7,7 @@ import {
   defaultKeywords,
   defaultTitle,
   organizationJsonLd,
+  websiteJsonLd,
   siteName,
   siteUrl,
 } from "@/lib/seo";
@@ -20,10 +21,14 @@ export const metadata: Metadata = {
   creator: "Cihat Erdem",
   publisher: siteName,
   category: "Digital services",
+  generator: "Next.js",
+  referrer: "origin-when-cross-origin",
   keywords: defaultKeywords,
   alternates: {
     canonical: siteUrl,
+    languages: { "tr-TR": siteUrl, "x-default": siteUrl },
   },
+  manifest: "/manifest.webmanifest",
   openGraph: {
     title: defaultTitle,
     description: defaultDescription,
@@ -31,15 +36,24 @@ export const metadata: Metadata = {
     siteName,
     locale: "tr_TR",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Dromocob — Film, Web ve Growth Sistemleri" }],
   },
   twitter: {
     card: "summary_large_image",
     title: defaultTitle,
     description: defaultDescription,
+    images: ["/opengraph-image"],
   },
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
+  },
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { "msvalidate.01": process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
   },
   robots: {
     index: true,
@@ -60,6 +74,6 @@ export default function RootLayout({children}:{children:React.ReactNode}) {
   data-scroll-behavior="smooth"
 ><body><script
   type="application/ld+json"
-  dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+  dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": [organizationJsonLd, websiteJsonLd] }).replace(/</g, "\\u003c") }}
 /><AuthProvider><SiteRuntimeSettings>{children}</SiteRuntimeSettings></AuthProvider></body></html>;
 }

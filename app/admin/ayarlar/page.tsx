@@ -109,7 +109,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     linkedinInsightId: "",
     tiktokPixelId: "",
     clarityId: "",
-    consentModeEnabled: true,
+    consentModeEnabled: false,
     debugMode: false,
   },
   maintenance: {
@@ -435,8 +435,8 @@ export default function Page() {
         {tab === "tracking" && (
           <div className="settings-grid">
             <label className="toggle full"><input type="checkbox" checked={settings.tracking.enabled} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, enabled: event.target.checked } }))} /> Tracking scriptlerini aktif et</label>
-            <label>GA4 Measurement ID<input value={settings.tracking.ga4MeasurementId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, ga4MeasurementId: event.target.value } }))} placeholder="G-XXXXXXXXXX" /></label>
-            <label>GTM ID<input value={settings.tracking.gtmId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, gtmId: event.target.value } }))} placeholder="GTM-XXXXXX" /></label>
+            <label>GA4 Measurement ID<input value={settings.tracking.ga4MeasurementId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, ga4MeasurementId: event.target.value } }))} placeholder="G-XXXXXXXXXX" /><small>GA4 doğrudan yüklenir. GTM içinde ayrıca aynı GA4 etiketini kurma; çift ölçüm oluşur.</small></label>
+            <label>GTM ID<input value={settings.tracking.gtmId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, gtmId: event.target.value } }))} placeholder="GTM-XXXXXX" /><small>Container kimliğini gir: ör. GTM-ABC1234.</small></label>
             <label>Google Ads ID<input value={settings.tracking.googleAdsId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsId: event.target.value } }))} placeholder="AW-XXXXXXX" /></label>
             <label>Ads Conversion Label<input value={settings.tracking.googleAdsConversionLabel} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsConversionLabel: event.target.value } }))} placeholder="abcDEF123..." /></label>
             <label>Meta Pixel ID<input value={settings.tracking.metaPixelId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, metaPixelId: event.target.value } }))} /></label>
@@ -444,7 +444,7 @@ export default function Page() {
             <label>LinkedIn Insight ID<input value={settings.tracking.linkedinInsightId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, linkedinInsightId: event.target.value } }))} /></label>
             <label>TikTok Pixel ID<input value={settings.tracking.tiktokPixelId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, tiktokPixelId: event.target.value } }))} /></label>
             <label>Microsoft Clarity ID<input value={settings.tracking.clarityId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, clarityId: event.target.value } }))} /></label>
-            <label className="toggle"><input type="checkbox" checked={settings.tracking.consentModeEnabled} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, consentModeEnabled: event.target.checked } }))} /> Google Consent Mode v2 varsayılanını yükle</label>
+            <label className="toggle"><input type="checkbox" checked={settings.tracking.consentModeEnabled} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, consentModeEnabled: event.target.checked } }))} /> Google Consent Mode v2 (yalnızca çalışan çerez izin paneli varsa aç)</label>
             <label className="toggle"><input type="checkbox" checked={settings.tracking.debugMode} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, debugMode: event.target.checked } }))} /> Analytics debug mode</label>
           </div>
         )}
