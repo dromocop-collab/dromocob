@@ -109,7 +109,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     linkedinInsightId: "",
     tiktokPixelId: "",
     clarityId: "",
-    consentModeEnabled: false,
+    consentModeEnabled: true,
     debugMode: false,
   },
   maintenance: {
@@ -313,6 +313,7 @@ export default function Page() {
         },
         tracking: {
           ...settings.tracking,
+          consentModeEnabled: true,
           ga4MeasurementId: settings.tracking.ga4MeasurementId.trim(),
           gtmId: settings.tracking.gtmId.trim(),
           googleAdsId: settings.tracking.googleAdsId.trim(),
@@ -444,7 +445,7 @@ export default function Page() {
             <label>LinkedIn Insight ID<input value={settings.tracking.linkedinInsightId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, linkedinInsightId: event.target.value } }))} /></label>
             <label>TikTok Pixel ID<input value={settings.tracking.tiktokPixelId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, tiktokPixelId: event.target.value } }))} /></label>
             <label>Microsoft Clarity ID<input value={settings.tracking.clarityId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, clarityId: event.target.value } }))} /></label>
-            <label className="toggle"><input type="checkbox" checked={settings.tracking.consentModeEnabled} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, consentModeEnabled: event.target.checked } }))} /> Google Consent Mode v2 (yalnızca çalışan çerez izin paneli varsa aç)</label>
+            <label className="toggle"><input type="checkbox" checked readOnly disabled /> Google Consent Mode v2 + çerez tercih paneli aktif</label>
             <label className="toggle"><input type="checkbox" checked={settings.tracking.debugMode} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, debugMode: event.target.checked } }))} /> Analytics debug mode</label>
           </div>
         )}

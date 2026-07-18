@@ -12,6 +12,7 @@ import {
   siteUrl,
 } from "@/lib/seo";
 import { getPublicTrackingSettings } from "@/lib/runtime-tracking";
+import { getConsentBootstrapScript } from "@/lib/google-consent";
 
 export const revalidate = 60;
 
@@ -77,7 +78,10 @@ export default async function RootLayout({children}:{children:React.ReactNode}) 
   return <html
   lang="tr"
   data-scroll-behavior="smooth"
-><body><script
+><head><script
+  id="dromocob-consent-bootstrap"
+  dangerouslySetInnerHTML={{ __html: getConsentBootstrapScript() }}
+/></head><body><script
   type="application/ld+json"
   dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": [organizationJsonLd, websiteJsonLd] }).replace(/</g, "\\u003c") }}
 /><AuthProvider><SiteRuntimeSettings initialTracking={initialTracking}>{children}</SiteRuntimeSettings></AuthProvider></body></html>;

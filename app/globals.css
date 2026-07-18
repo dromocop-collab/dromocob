@@ -5631,3 +5631,13 @@ main { overflow:hidden; }
     justify-content: flex-start;
   }
 }
+
+/* Consent Mode v2 */
+.cookie-consent{position:fixed;z-index:10000;left:24px;right:24px;bottom:24px;margin:auto;max-width:1120px;display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:start;padding:26px;background:#10140ff2;color:#f6f8f0;border:1px solid #ffffff26;border-radius:24px;box-shadow:0 24px 80px #0007;backdrop-filter:blur(18px)}
+.cookie-consent-icon{width:50px;height:50px;display:grid;place-items:center;border-radius:15px;background:var(--acid);color:var(--ink)}
+.cookie-consent-copy{display:grid;gap:7px}.cookie-consent-copy .eyebrow{margin:0;color:var(--acid)}.cookie-consent-copy h2{margin:0;font-size:27px;letter-spacing:-.04em}.cookie-consent-copy>p:last-child,.cookie-consent-copy>p{margin:0;max-width:700px;color:#c9d0c4;font-size:13px;line-height:1.65}.cookie-consent-copy a{color:var(--acid)}
+.cookie-consent-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;min-width:285px}.cookie-consent-actions .button{grid-column:1/-1;justify-content:center;border:0;cursor:pointer}.cookie-secondary{min-height:42px;padding:0 14px;display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid #ffffff26;border-radius:10px;background:#ffffff0b;color:#f6f8f0;font-weight:800;cursor:pointer}.cookie-secondary svg{width:15px}
+.cookie-consent-close{position:absolute;right:11px;top:10px;width:30px;height:30px;display:none;place-items:center;border:0;background:none;color:#fff;cursor:pointer}.cookie-consent-close svg{width:18px}
+.cookie-preferences{display:grid;gap:7px;margin-top:12px}.cookie-preferences label{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:11px 13px;border:1px solid #ffffff18;border-radius:11px}.cookie-preferences label span{display:grid;gap:2px}.cookie-preferences small{color:#9ca698}.cookie-preferences input{width:18px;height:18px;accent-color:var(--acid)}
+.cookie-settings-button{position:fixed;z-index:9999;left:18px;bottom:18px;width:46px;height:46px;display:grid;place-items:center;border:1px solid #ffffff30;border-radius:50%;background:var(--ink);color:var(--acid);box-shadow:0 10px 30px #0004;cursor:pointer}.cookie-settings-button svg{width:20px}
+@media(max-width:800px){.cookie-consent{left:12px;right:12px;bottom:12px;grid-template-columns:auto 1fr;padding:20px;gap:14px}.cookie-consent-actions{grid-column:1/-1;width:100%;min-width:0}.cookie-consent-close{display:grid}.cookie-consent-copy h2{font-size:23px}}

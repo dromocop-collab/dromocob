@@ -8,7 +8,9 @@ import { db } from "@/lib/firebase";
 import SiteNav from "@/components/site-nav";
 import SiteFooter from "@/components/site-footer";
 import LiveChat from "@/components/live-chat";
+import CookieConsent from "@/components/cookie-consent";
 import type { PublicTrackingSettings } from "@/lib/runtime-tracking";
+import { CONSENT_STORAGE_KEY, type ConsentChoice } from "@/lib/google-consent";
 
 type RuntimeSiteSettings = {
   active?: boolean;
@@ -97,7 +99,26 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith("/admin");
   const [settings, setSettings] = useState<RuntimeSiteSettings>({ tracking: { ...environmentTracking, ...initialTracking } });
+  const [consent, setConsent] = useState<ConsentChoice | null>(null);
   const initialPageView = useRef(true);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(CONSENT_STORAGE_KEY) || "null") as ConsentChoice | null;
+        if (saved && typeof saved.analytics === "boolean" && typeof saved.advertising === "boolean") setConsent(saved);
+      } catch {
+        setConsent(null);
+      }
+    }, 0);
+
+    const update = (event: Event) => setConsent((event as CustomEvent<ConsentChoice>).detail);
+    window.addEventListener("dromocob:consent", update);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("dromocob:consent", update);
+    };
+  }, []);
 
   useEffect(() => {
     return onSnapshot(
@@ -165,10 +186,8 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
   const tiktokId = trackingEnabled ? cleanId(tracking?.tiktokPixelId) : "";
   const clarityId = trackingEnabled ? cleanId(tracking?.clarityId) : "";
   const debugMode = trackingEnabled && tracking?.debugMode === true;
-  // Consent Mode must only be enabled together with a CMP/cookie banner that
-  // actually updates consent. Default-denied without an update drops all data.
-  const consentModeEnabled = trackingEnabled && tracking?.consentModeEnabled === true;
   const gtagId = ga4Id || adsId;
+  const directGtagId = gtmId ? "" : gtagId;
 
   useEffect(() => {
     if (initialPageView.current) {
@@ -181,7 +200,7 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
       dataLayer?: unknown[];
     };
 
-    if (ga4Id && browserWindow.gtag) {
+    if (ga4Id && !gtmId && browserWindow.gtag) {
       browserWindow.gtag("event", "page_view", {
         page_path: pathname,
         page_location: window.location.href,
@@ -196,15 +215,9 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
 
   return (
     <>
-      {gtagId && consentModeEnabled && (
-        <Script id="dromocob-consent-mode" strategy="afterInteractive">
-          {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('consent', 'default', { ad_storage: 'denied', analytics_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', wait_for_update: 500 });`}
-        </Script>
-      )}
-
-      {gtagId && (
+      {directGtagId && (
         <>
-          <Script src={`https://www.googletagmanager.com/gtag/js?id=${gtagId}`} strategy="afterInteractive" />
+          <Script src={`https://www.googletagmanager.com/gtag/js?id=${directGtagId}`} strategy="afterInteractive" />
           <Script id="dromocob-gtag" strategy="afterInteractive">
             {`window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date());${ga4Id ? ` gtag('config', '${ga4Id}', { send_page_view: true${debugMode ? ", debug_mode: true" : ""} });` : ""}${adsId ? ` gtag('config', '${adsId}'${debugMode ? ", { debug_mode: true }" : ""});` : ""}${adsId && adsConversionLabel ? ` window.dromocobAdsConversion = function(value, currency){ gtag('event', 'conversion', { send_to: '${adsId}/${adsConversionLabel}', value: value || 1.0, currency: currency || 'TRY' }); };` : ""}`}
           </Script>
@@ -228,13 +241,13 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
         </>
       )}
 
-      {pixelId && (
+      {pixelId && consent?.advertising && (
         <Script id="dromocob-meta-pixel" strategy="afterInteractive">
           {`!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js'); fbq('init', '${pixelId}'); fbq('track', 'PageView');`}
         </Script>
       )}
 
-      {linkedinId && (
+      {linkedinId && consent?.advertising && (
         <>
           <Script id="dromocob-linkedin-insight" strategy="afterInteractive">
             {`_linkedin_partner_id = '${linkedinId}'; window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || []; window._linkedin_data_partner_ids.push(_linkedin_partner_id); (function(l) { if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])}; window.lintrk.q=[]} var s = document.getElementsByTagName('script')[0]; var b = document.createElement('script'); b.type = 'text/javascript'; b.async = true; b.src = 'https://snap.licdn.com/li.lms-analytics/insight.min.js'; s.parentNode.insertBefore(b, s);})(window.lintrk);`}
@@ -246,13 +259,13 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
         </>
       )}
 
-      {tiktokId && (
+      {tiktokId && consent?.advertising && (
         <Script id="dromocob-tiktok-pixel" strategy="afterInteractive">
           {`!function (w, d, t) { w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=['page','track','identify','instances','debug','on','off','once','ready','alias','group','enableCookie','disableCookie'],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var i='https://analytics.tiktok.com/i18n/pixel/events.js';ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=i,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};var o=document.createElement('script');o.type='text/javascript',o.async=!0,o.src=i+'?sdkid='+e+'&lib='+t;var a=document.getElementsByTagName('script')[0];a.parentNode.insertBefore(o,a)}; ttq.load('${tiktokId}'); ttq.page(); }(window, document, 'ttq');`}
         </Script>
       )}
 
-      {clarityId && (
+      {clarityId && consent?.analytics && (
         <Script id="dromocob-clarity" strategy="afterInteractive">
           {`(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, 'clarity', 'script', '${clarityId}');`}
         </Script>
@@ -274,6 +287,7 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
           <main className={isAdminRoute ? "admin-route-main" : undefined}>{children}</main>
           {!isAdminRoute && <SiteFooter />}
           {!isAdminRoute && settings.features?.liveChatEnabled !== false && <LiveChat />}
+          {!isAdminRoute && trackingEnabled && <CookieConsent />}
         </>
       )}
     </>
