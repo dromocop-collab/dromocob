@@ -103,5 +103,5 @@ export const organizationJsonLd = {
     "Digital growth systems",
     "SEO",
   ],
-  email: "hello@dromocob.com",
+  email: "info@dromocob.com",
 };

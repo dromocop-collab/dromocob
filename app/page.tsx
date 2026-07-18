@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Camera, Code2, Play, Radar, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, Camera, Code2, Film, Gauge, Layers3, Play, Radar, Sparkles } from "lucide-react";
 import ProjectGrid from "@/components/project-grid";
 import PackageGrid from "@/components/package-grid";
 import { pageMetadata } from "@/lib/seo";
@@ -14,7 +14,7 @@ export const metadata = pageMetadata({
 
 export default function Home() {
   return (
-    <>
+    <div className="home-page">
       <section className="hero section">
         <div className="hero-noise" />
         <div className="hero-copy">
@@ -27,15 +27,28 @@ export default function Home() {
           </div>
         </div>
         <div className="hero-system">
-          <div className="system-orbit orbit-one" />
-          <div className="system-orbit orbit-two" />
-          <div className="system-core">DC</div>
-          <span className="system-tag tag-film"><Camera size={16} /> FILM</span>
-          <span className="system-tag tag-code"><Code2 size={16} /> PRODUCT</span>
-          <span className="system-tag tag-growth"><Radar size={16} /> GROWTH</span>
+          <div className="system-grid" />
+          <div className="system-scan" />
+          <div className="system-orbit orbit-outer"><i/><i/><i/></div>
+          <div className="system-orbit orbit-one"><i/><i/></div>
+          <div className="system-orbit orbit-two"><i/></div>
+          <div className="system-core">
+            <span>DC</span>
+            <small>DIGITAL FLAGSHIP</small>
+            <b><i/> ALL SYSTEMS ACTIVE</b>
+          </div>
+          <span className="system-tag tag-film"><Camera size={16} /><span><small>PRODUCTION</small>BRAND FILM</span><b>4K</b></span>
+          <span className="system-tag tag-code"><Code2 size={16} /><span><small>TECHNOLOGY</small>WEB APP</span><b>LIVE</b></span>
+          <span className="system-tag tag-growth"><Radar size={16} /><span><small>INTELLIGENCE</small>GROWTH</span><b>+28%</b></span>
+          <span className="system-tag tag-automation"><Bot size={16} /><span><small>OPERATIONS</small>AUTOMATION</span><b>24/7</b></span>
+          <div className="system-console">
+            <span><Film size={13}/> Video production</span>
+            <span><Layers3 size={13}/> Product system</span>
+            <span><Gauge size={13}/> Performance layer</span>
+          </div>
         </div>
         <div className="hero-stats">
-          <div><strong>03</strong><span>Disiplin<br/>tek vizyon</span></div>
+          <div><strong>04</strong><span>uzmanlık<br/>tek vizyon</span></div>
           <div><strong>360°</strong><span>uçtan uca<br/>üretim</span></div>
           <div><strong>∞</strong><span>ölçeklenebilir<br/>sistem</span></div>
         </div>
@@ -65,12 +78,12 @@ export default function Home() {
         <div className="pill-row"><span>Strategy</span><span>Production</span><span>Development</span><span>Growth</span></div></div>
       </section>
 
-      <section className="section">
+      <section className="section home-projects">
         <div className="section-head"><div><p className="eyebrow">Seçili çalışmalar</p><h2>Projeler / <span>01—03</span></h2></div><Link className="text-link" href="/projeler">Tümünü gör <ArrowRight size={16}/></Link></div>
         <ProjectGrid />
       </section>
 
-      <section className="section dark-panel">
+      <section className="section dark-panel home-packages">
         <div className="section-head"><div><p className="eyebrow"><Sparkles size={15}/> Akıllı hizmet mimarisi</p><h2>Hazır paket değil.<br/><em>Doğru kombinasyon.</em></h2></div><p>İhtiyacına göre kapsamı şekillendir, dinamik teklif motoru yaklaşık bütçeyi anında hesaplasın.</p></div>
         <PackageGrid />
       </section>
@@ -80,6 +93,6 @@ export default function Home() {
         <h2>Birlikte dikkat<br/><span>çekelim.</span></h2>
         <Link className="round-link" href="/iletisim"><ArrowRight /></Link>
       </section>
-    </>
+    </div>
   );
 }

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useState } from "react";
-import { Boxes, CircleGauge, FolderKanban, LogOut, Menu, MessageSquare, Package, RadioTower, Settings2, Sparkles, X } from "lucide-react";
+import { Boxes, CircleGauge, Command, ExternalLink, FolderKanban, LogOut, Mail, Menu, MessageSquare, Package, RadioTower, Settings2, Sparkles, X } from "lucide-react";
 
 const nav = [
   [CircleGauge, "Genel Bakış", "/admin"],
@@ -15,12 +15,14 @@ const nav = [
   [MessageSquare, "Canlı Destek", "/admin/destek"],
   [RadioTower, "Site Control Center", "/admin/siteler"],
   [Boxes, "Form & Talepler", "/admin/talepler"],
+  [Mail, "Aboneler & Mail", "/admin/aboneler"],
   [Settings2, "Ayarlar", "/admin/ayarlar"]
 ];
 
 export default function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const activeItem = nav.find(([, , href]) => pathname === href || (String(href) !== "/admin" && pathname.startsWith(String(href))));
 
   return (
     <div className="admin-os">
@@ -36,8 +38,10 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
       </aside>
       <div className="admin-main">
         <header className="admin-topbar">
-          <div><span className="system-status"/><strong>Sistem çevrimiçi</strong></div>
+          <div className="admin-context"><span className="system-status"/><div><small>DROMOCOB CONTROL OS</small><strong>{activeItem ? String(activeItem[1]) : "Sistem çevrimiçi"}</strong></div></div>
           <div className="admin-topbar-actions">
+            <div className="admin-command"><Command size={14}/><span>Hızlı komut</span><kbd>⌘ K</kbd></div>
+            <Link className="admin-site-link" href="/" target="_blank">Siteyi aç <ExternalLink size={14}/></Link>
             <button className="admin-mobile-toggle" onClick={() => setMobileNavOpen(true)} aria-label="Admin menüsünü aç">
               <Menu size={18}/>
             </button>

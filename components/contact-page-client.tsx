@@ -60,7 +60,7 @@ export default function ContactPageClient() {
         <p className="eyebrow">Contact / Let&apos;s build</p>
         <h1>Bir fikrin varsa,<br/><span>masaya koyalım.</span></h1>
         <p>Projenin ne kadar ham olduğu önemli değil. Hedefi birlikte netleştiririz.</p>
-        <a href="mailto:hello@dromocob.com">hello@dromocob.com <ArrowUpRight size={18}/></a>
+        <a href="mailto:info@dromocob.com">info@dromocob.com <ArrowUpRight size={18}/></a>
       </div>
       {sent ? <div className="success-panel"><span>✓</span><h2>Mesaj alındı.</h2><p>Proje detaylarını inceleyip dönüş yapacağım.</p></div> :
       <form className="contact-form" onSubmit={submit}>

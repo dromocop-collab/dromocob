@@ -55,7 +55,7 @@ export default function KvkkPage() {
       </div>
 
       <div className="legal-note">
-        Basvuru ve talepleriniz icin: hello@dromocob.com
+        Basvuru ve talepleriniz icin: info@dromocob.com
       </div>
     </section>
   );

@@ -586,6 +586,7 @@ service cloud.firestore {
           "maxRevision",
           "guarantee",
           "cta",
+          "quoteService",
           "order",
           "sortOrder",
           "featured",
@@ -678,6 +679,11 @@ service cloud.firestore {
           "cta",
           120
         )
+        && isOptionalString(
+          request.resource.data,
+          "quoteService",
+          30
+        )
         && isOptionalNumber(
           request.resource.data,
           "order"
@@ -721,6 +727,7 @@ service cloud.firestore {
           "maxRevision",
           "guarantee",
           "cta",
+          "quoteService",
           "order",
           "sortOrder",
           "featured",
@@ -808,6 +815,11 @@ service cloud.firestore {
           request.resource.data,
           "cta",
           120
+        )
+        && isOptionalString(
+          request.resource.data,
+          "quoteService",
+          30
         )
         && isOptionalNumber(
           request.resource.data,
@@ -1146,6 +1158,21 @@ service cloud.firestore {
         && hasValidUpdatedAt(request.resource.data);
 
       allow delete: if isSuperAdmin();
+    }
+
+    // =========================================================
+    // NEWSLETTER SUBSCRIBERS
+    // Server writes through Admin SDK; admins can inspect.
+    // =========================================================
+
+    match /newsletter_subscribers/{subscriberId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+
+    match /newsletter_campaigns/{campaignId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
     }
 
 

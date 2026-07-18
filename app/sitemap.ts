@@ -6,6 +6,7 @@ const routes = [
   { path: "/hakkimda", priority: 0.8 },
   { path: "/projeler", priority: 0.9 },
   { path: "/paketler", priority: 0.9 },
+  { path: "/kurumsal", priority: 0.8 },
   { path: "/iletisim", priority: 0.8 },
   { path: "/kvkk-aydinlatma", priority: 0.3 },
   { path: "/gizlilik-politikasi", priority: 0.3 },

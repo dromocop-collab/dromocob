@@ -65,6 +65,9 @@ function normalizePackage(raw: Record<string, unknown>, id: string): ServicePack
     featured: raw.featured === true,
     order: Number(raw.order || 0) || 0,
     theme,
+    quoteService: ["web", "software", "video", "social", "hybrid"].includes(String(raw.quoteService || ""))
+      ? (String(raw.quoteService) as ServicePackage["quoteService"])
+      : undefined,
   };
 }
 
@@ -174,58 +177,61 @@ export const fallbackProjects: Project[] = [
 
 export const fallbackPackages: ServicePackage[] = [
   {
-    id: "launch",
-    title: "Launch",
-    subtitle: "Yeni marka ve işletmeler için",
-    priceFrom: 25000,
-    description: "Dijitalde güçlü bir ilk izlenim için temel kurumsal sistem.",
-    features: ["Kurumsal web sitesi", "Mobil uyum", "Temel SEO", "İletişim ve teklif akışı", "Analytics kurulumu"],
-    idealFor: ["Yeni kurulan işletmeler", "İlk dijital dönüşümünü yapan markalar"],
-    kpiFocus: ["Lansman görünürlüğü", "Temel lead toplama"],
-    deliveryTime: "2-3 hafta",
-    supportWindow: "30 gün",
-    maxRevision: 2,
-    guarantee: "Yayına alındıktan sonraki ilk ay teknik stabilite desteği.",
-    cta: "Launch Paketi Planla",
-    theme: "dark",
+    id: "web-application",
+    title: "Web Application",
+    subtitle: "Kurumsal platform ve özel yazılım",
+    priceFrom: 65000,
+    description: "Markanın satış, operasyon ve müşteri deneyimini tek merkezde yöneten ölçeklenebilir dijital ürün.",
+    features: ["Stratejik UX ve arayüz tasarımı", "Next.js web uygulaması", "Gelişmiş yönetim paneli", "Üyelik ve rol yönetimi", "CRM, ERP ve API entegrasyonları", "SEO, analitik ve performans mimarisi"],
+    idealFor: ["Kurumsal markalar", "B2B hizmet şirketleri", "Dijital ürün girişimleri"],
+    kpiFocus: ["Nitelikli lead", "Operasyon verimliliği", "Dönüşüm oranı"],
+    deliveryTime: "5-9 hafta",
+    supportWindow: "90 gün",
+    maxRevision: 5,
+    guarantee: "Yayın öncesi kalite kontrol, performans denetimi ve 90 günlük stabilizasyon desteği.",
+    cta: "Web Sistemini Planla",
+    theme: "graphite",
+    quoteService: "software",
     active: true,
     order: 1
   },
   {
-    id: "growth",
-    title: "Growth",
-    subtitle: "Büyümek isteyen işletmeler için",
-    priceFrom: 55000,
-    description: "İçerik, web ve dönüşüm odaklı büyüme katmanı.",
-    features: ["Gelişmiş dinamik web", "Admin panel", "İçerik sistemi", "Reels kreatif planı", "Dönüşüm optimizasyonu"],
-    idealFor: ["Büyüme dönemindeki KOBİ", "Dijitalde düzenli müşteri akışı isteyen ekipler"],
-    kpiFocus: ["Dönüşüm oranı", "Müşteri edinme maliyeti", "Satış başına gelir"],
-    deliveryTime: "3-5 hafta",
-    supportWindow: "60 gün",
-    maxRevision: 4,
-    guarantee: "Dönüşüm hunisi için temel CRO iyileştirmeleri ve performans takibi.",
-    cta: "Growth Planını Özelleştir",
-    theme: "light",
-    badge: "En çok tercih edilen",
-    featured: true,
+    id: "video-production",
+    title: "Video Production",
+    subtitle: "Sinematik marka ve kampanya filmleri",
+    priceFrom: 45000,
+    description: "Konseptten post prodüksiyona kadar markayı güçlü bir anlatıya dönüştüren uçtan uca film üretimi.",
+    features: ["Kreatif konsept ve senaryo", "Storyboard ve çekim planı", "Sinematik kamera ve ışık ekibi", "Drone ve hareketli kamera opsiyonları", "Kurgu, renk ve ses tasarımı", "Dikey ve yatay teslim formatları"],
+    idealFor: ["Marka lansmanları", "Reklam kampanyaları", "Ürün ve hizmet tanıtımları"],
+    kpiFocus: ["İzlenme kalitesi", "Marka hatırlanırlığı", "Kampanya etkileşimi"],
+    deliveryTime: "3-6 hafta",
+    supportWindow: "45 gün",
+    maxRevision: 3,
+    guarantee: "Yayın platformlarına uygun master çıktılar ve arşivlenebilir teslim paketi.",
+    cta: "Prodüksiyonu Planla",
+    theme: "royal",
+    quoteService: "video",
     active: true,
     order: 2
   },
   {
-    id: "authority",
-    title: "Authority",
-    subtitle: "Markasını kategorisinde lider konumlamak isteyenlere",
-    priceFrom: 95000,
-    description: "Özel yazılım, sinematik prodüksiyon ve performans mimarisi.",
-    features: ["Özel web uygulaması", "Gelişmiş admin operasyonu", "Video prodüksiyon", "SEO mimarisi", "Aylık stratejik yönetim"],
-    idealFor: ["Kurumsal ekipler", "Çoklu kanal büyüme hedefi olan markalar"],
-    kpiFocus: ["Pazar payı", "Marka otoritesi", "Uzun vadeli gelir artışı"],
-    deliveryTime: "6-10 hafta",
-    supportWindow: "90 gün",
+    id: "digital-flagship",
+    title: "Digital Flagship",
+    subtitle: "Web application + video production",
+    priceFrom: 125000,
+    description: "Dijital ürün, sinematik marka anlatısı ve büyüme altyapısını tek kreatif-teknoloji ekibinde birleştiren amiral paket.",
+    features: ["Özel web uygulaması ve admin sistemi", "Marka filmi veya kampanya prodüksiyonu", "Fotoğraf ve dijital içerik kütüphanesi", "CRM, analitik ve otomasyon entegrasyonu", "Lansman stratejisi ve kanal adaptasyonları", "90 günlük optimizasyon ve danışmanlık"],
+    idealFor: ["Yeni nesil kurumsal dönüşüm", "Marka ve ürün lansmanı", "Kategori liderliği hedefleyen ekipler"],
+    kpiFocus: ["Dönüşüm", "Marka otoritesi", "Dijital operasyon", "İçerik performansı"],
+    deliveryTime: "8-14 hafta",
+    supportWindow: "120 gün",
     maxRevision: 6,
-    guarantee: "Quarter bazlı strateji ve ölçeklenebilir teknik mimari desteği.",
-    cta: "Authority Programına Başla",
+    guarantee: "Tek proje lideri, entegre üretim takvimi ve lansman sonrası performans optimizasyonu.",
+    cta: "Flagship Kapsamını Oluştur",
     theme: "neon",
+    badge: "En kapsamlı sistem",
+    featured: true,
+    quoteService: "hybrid",
     active: true,
     order: 3
   }
@@ -248,7 +254,11 @@ export async function fetchActivePackages() {
       .map(d => normalizePackage(d.data() as Record<string, unknown>, d.id))
       .filter(item => item.title && item.priceFrom > 0 && item.features.length > 0);
 
-    return data.length ? data : fallbackPackages;
+    // Eski genel paket şeması yerine yeni uzmanlık paketlerini göster.
+    // Admin panelden yeni şemayla en az bir akış tanımlandığında dinamik veri devralır.
+    return data.length && data.some(item => item.quoteService)
+      ? data
+      : fallbackPackages;
   } catch {
     return fallbackPackages;
   }

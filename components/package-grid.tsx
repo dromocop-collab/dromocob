@@ -9,6 +9,7 @@ import QuoteWizard from "@/components/quote-wizard";
 export default function PackageGrid() {
   const [packages, setPackages] = useState<ServicePackage[]>(fallbackPackages);
   const [quoteOpen, setQuoteOpen] = useState(false);
+  const [quoteService, setQuoteService] = useState<ServicePackage["quoteService"]>();
 
   useEffect(() => {
     fetchActivePackages().then(setPackages);
@@ -46,11 +47,11 @@ export default function PackageGrid() {
             </div>
             {item.guarantee && <p className="package-guarantee"><ShieldCheck size={17}/>{item.guarantee}</p>}
 
-            <button className="button button-full" onClick={() => setQuoteOpen(true)}>{item.cta || "Paketi Özelleştir"} <ArrowUpRight size={18} /></button>
+            <button className="button button-full" onClick={() => { setQuoteService(item.quoteService); setQuoteOpen(true); }}>{item.cta || "Paketi Özelleştir"} <ArrowUpRight size={18} /></button>
           </article>
         ))}
       </div>
-      <QuoteWizard open={quoteOpen} onClose={() => setQuoteOpen(false)} />
+      {quoteOpen && <QuoteWizard open initialService={quoteService} onClose={() => setQuoteOpen(false)} />}
     </>
   );
 }

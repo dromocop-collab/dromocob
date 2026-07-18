@@ -851,6 +851,9 @@ export default function CollectionManager({
         )
           .trim()
           .toLowerCase();
+        const quoteService = String(payload.quoteService || "")
+          .trim()
+          .toLowerCase();
 
         if (
           !title ||
@@ -897,6 +900,10 @@ export default function CollectionManager({
           description;
         payload.theme =
           theme || "dark";
+        if (quoteService && !["web", "software", "video", "social", "hybrid"].includes(quoteService)) {
+          throw new Error("Teklif akışı web, software, video, social veya hybrid olmalı.");
+        }
+        payload.quoteService = quoteService;
       }
 
       if (editing) {

@@ -36,6 +36,7 @@ export type ServicePackage = {
   active?: boolean;
   featured?: boolean;
   order?: number;
+  quoteService?: "web" | "software" | "video" | "social" | "hybrid";
 };
 
 export type QuoteQuestion = {

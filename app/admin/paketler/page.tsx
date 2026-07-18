@@ -61,6 +61,13 @@ export default function AdminPackagesPage() {
         },
 
         {
+          key: "quoteService",
+          label: "Teklif motoru akışı",
+          placeholder: "web | software | video | hybrid",
+          helpText: "Kart butonuna basıldığında açılacak soru akışı. Birleşik paket için hybrid yaz.",
+        },
+
+        {
           key: "description",
           label: "Açıklama",
           type: "textarea",

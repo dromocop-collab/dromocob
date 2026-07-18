@@ -1,10 +1,18 @@
 import MetricCards from "@/components/admin/metric-cards";
-import { ArrowUpRight, Cpu, Radar, Zap } from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, Cpu, Mail, MessageSquare, Package, Radar, Settings2, Zap } from "lucide-react";
 
 export default function AdminDashboard() {
+  const dateLabel = new Intl.DateTimeFormat("tr-TR", { day: "2-digit", month: "short", year: "numeric" }).format(new Date()).toUpperCase();
   return (
     <>
-      <div className="admin-title"><div><p className="admin-kicker">14 JUL 2026 / OPERATIONS</p><h1>İyi geceler, Cihat.</h1><p>Dromocob dijital operasyonunun anlık görünümü.</p></div><button className="admin-action"><Zap size={17}/> Hızlı işlem</button></div>
+      <div className="admin-title"><div><p className="admin-kicker">{dateLabel} / EXECUTIVE OVERVIEW</p><h1>Kontrol merkezi.</h1><p>Dromocob dijital operasyonunun, kitlesinin ve servislerinin anlık görünümü.</p></div><Link href="/admin/ayarlar" className="admin-action"><Zap size={17}/> Sistem ayarları</Link></div>
+      <section className="admin-quick-grid">
+        <Link href="/admin/paketler"><span><Package/></span><div><small>CONTENT OPS</small><strong>Paketleri yönet</strong></div><ArrowUpRight/></Link>
+        <Link href="/admin/destek"><span><MessageSquare/></span><div><small>CUSTOMER CARE</small><strong>Canlı desteğe git</strong></div><ArrowUpRight/></Link>
+        <Link href="/admin/aboneler"><span><Mail/></span><div><small>AUDIENCE</small><strong>Kampanya oluştur</strong></div><ArrowUpRight/></Link>
+        <Link href="/admin/ayarlar"><span><Settings2/></span><div><small>SEO & SYSTEM</small><strong>Görünürlüğü optimize et</strong></div><ArrowUpRight/></Link>
+      </section>
       <MetricCards />
       <div className="admin-dashboard-grid">
         <section className="admin-panel wide">

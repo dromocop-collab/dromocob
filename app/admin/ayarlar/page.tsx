@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { Check, Globe, LineChart, ShieldCheck, Wrench } from "lucide-react";
 import { db } from "@/lib/firebase";
@@ -21,6 +21,15 @@ type SiteSettings = {
     yandexVerification: string;
     robotsIndex: boolean;
     robotsFollow: boolean;
+    locale: string;
+    twitterHandle: string;
+    organizationName: string;
+    organizationDescription: string;
+    logoUrl: string;
+    socialProfiles: string[];
+    noIndexPaths: string[];
+    structuredDataEnabled: boolean;
+    sitemapEnabled: boolean;
   };
   tracking: {
     enabled: boolean;
@@ -79,6 +88,15 @@ const DEFAULT_SETTINGS: SiteSettings = {
     yandexVerification: "",
     robotsIndex: true,
     robotsFollow: true,
+    locale: "tr_TR",
+    twitterHandle: "",
+    organizationName: "Dromocob",
+    organizationDescription: "Film prodüksiyonu, web application ve dijital büyüme stüdyosu.",
+    logoUrl: "",
+    socialProfiles: [],
+    noIndexPaths: ["/admin", "/profilim"],
+    structuredDataEnabled: true,
+    sitemapEnabled: true,
   },
   tracking: {
     enabled: true,
@@ -99,7 +117,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     title: "Kısa bir bakım molasındayız",
     message: "Seni daha iyi bir deneyimle karşılamak için sistemde güncelleme yapıyoruz.",
     estimatedBackAt: "",
-    contactEmail: "hello@dromocob.com",
+    contactEmail: "info@dromocob.com",
     allowPaths: ["/admin", "/giris"],
   },
   features: {
@@ -149,6 +167,8 @@ export default function Page() {
   const [keywordsText, setKeywordsText] = useState(joinLines(DEFAULT_SETTINGS.seo.keywords));
   const [allowPathsText, setAllowPathsText] = useState(joinLines(DEFAULT_SETTINGS.maintenance.allowPaths));
   const [originsText, setOriginsText] = useState(joinLines(DEFAULT_SETTINGS.integrations.allowedOrigins));
+  const [socialProfilesText, setSocialProfilesText] = useState("");
+  const [noIndexPathsText, setNoIndexPathsText] = useState(joinLines(DEFAULT_SETTINGS.seo.noIndexPaths));
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
@@ -164,6 +184,8 @@ export default function Page() {
           setKeywordsText(joinLines(DEFAULT_SETTINGS.seo.keywords));
           setAllowPathsText(joinLines(DEFAULT_SETTINGS.maintenance.allowPaths));
           setOriginsText(joinLines(DEFAULT_SETTINGS.integrations.allowedOrigins));
+          setSocialProfilesText(joinLines(DEFAULT_SETTINGS.seo.socialProfiles));
+          setNoIndexPathsText(joinLines(DEFAULT_SETTINGS.seo.noIndexPaths));
           return;
         }
 
@@ -174,6 +196,8 @@ export default function Page() {
             ...DEFAULT_SETTINGS.seo,
             ...(data.seo || {}),
             keywords: Array.isArray(data.seo?.keywords) ? data.seo.keywords.map(String) : DEFAULT_SETTINGS.seo.keywords,
+            socialProfiles: Array.isArray(data.seo?.socialProfiles) ? data.seo.socialProfiles.map(String) : DEFAULT_SETTINGS.seo.socialProfiles,
+            noIndexPaths: Array.isArray(data.seo?.noIndexPaths) ? data.seo.noIndexPaths.map(String) : DEFAULT_SETTINGS.seo.noIndexPaths,
           },
           tracking: {
             ...DEFAULT_SETTINGS.tracking,
@@ -203,6 +227,8 @@ export default function Page() {
         setKeywordsText(joinLines(next.seo.keywords));
         setAllowPathsText(joinLines(next.maintenance.allowPaths));
         setOriginsText(joinLines(next.integrations.allowedOrigins));
+        setSocialProfilesText(joinLines(next.seo.socialProfiles));
+        setNoIndexPathsText(joinLines(next.seo.noIndexPaths));
         setError("");
       },
       snapshotError => {
@@ -211,6 +237,22 @@ export default function Page() {
       }
     );
   }, []);
+
+  const seoScore = useMemo(() => {
+    const checks = [
+      settings.seo.defaultTitle.length >= 30 && settings.seo.defaultTitle.length <= 60,
+      settings.seo.defaultDescription.length >= 120 && settings.seo.defaultDescription.length <= 160,
+      Boolean(settings.seo.canonicalUrl),
+      Boolean(settings.seo.ogImage),
+      parseLines(keywordsText).length >= 3,
+      Boolean(settings.seo.googleSiteVerification),
+      settings.seo.robotsIndex && settings.seo.robotsFollow,
+      settings.seo.structuredDataEnabled,
+      settings.seo.sitemapEnabled,
+      Boolean(settings.seo.organizationName && settings.seo.organizationDescription),
+    ];
+    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  }, [keywordsText, settings.seo]);
 
   const stats = useMemo(() => {
     const trackingCount = [
@@ -266,6 +308,8 @@ export default function Page() {
           canonicalUrl,
           ogImage,
           keywords: parseLines(keywordsText),
+          socialProfiles: parseLines(socialProfilesText),
+          noIndexPaths: parseLines(noIndexPathsText),
         },
         tracking: {
           ...settings.tracking,
@@ -313,6 +357,8 @@ export default function Page() {
     setKeywordsText(joinLines(DEFAULT_SETTINGS.seo.keywords));
     setAllowPathsText(joinLines(DEFAULT_SETTINGS.maintenance.allowPaths));
     setOriginsText(joinLines(DEFAULT_SETTINGS.integrations.allowedOrigins));
+    setSocialProfilesText(joinLines(DEFAULT_SETTINGS.seo.socialProfiles));
+    setNoIndexPathsText(joinLines(DEFAULT_SETTINGS.seo.noIndexPaths));
     setStatus("Varsayılan değerler forma yüklendi. Kaydet ile yayınlayabilirsin.");
   }
 
@@ -334,7 +380,7 @@ export default function Page() {
       {error && <div className="admin-alert">{error}</div>}
 
       <section className="settings-stats-grid">
-        <article className="admin-panel settings-stat"><small>Sürüm</small><strong>{settings.version}</strong></article>
+        <article className="admin-panel settings-stat"><small>SEO Sağlık Skoru</small><strong>{seoScore}%</strong></article>
         <article className="admin-panel settings-stat"><small>Tracking Bağlantı</small><strong>{stats.trackingCount}</strong></article>
         <article className="admin-panel settings-stat"><small>Bakım Modu</small><strong>{stats.maintenanceStatus}</strong></article>
         <article className="admin-panel settings-stat"><small>Consent Mode</small><strong>{settings.tracking.consentModeEnabled ? "Aktif" : "Kapalı"}</strong></article>
@@ -350,7 +396,9 @@ export default function Page() {
 
       <section className="admin-panel settings-form-panel">
         {tab === "seo" && (
-          <div className="settings-grid">
+          <div className="seo-control-layout">
+          <div className="settings-grid seo-settings-grid">
+            <div className="settings-section-title full"><span>01</span><div><strong>Arama görünümü</strong><small>Google sonuçlarında görünen temel marka bilgileri.</small></div></div>
             <label>Site Adı<input value={settings.seo.siteName} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, siteName: event.target.value } }))} /></label>
             <label>Varsayılan Başlık<input value={settings.seo.defaultTitle} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, defaultTitle: event.target.value } }))} /></label>
             <label className="full">Title Template<input value={settings.seo.titleTemplate} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, titleTemplate: event.target.value } }))} placeholder="%s | Dromocob" /></label>
@@ -358,11 +406,29 @@ export default function Page() {
             <label className="full">Anahtar Kelimeler (satır başına 1)<textarea value={keywordsText} onChange={event => setKeywordsText(event.target.value)} /></label>
             <label>Canonical URL<input value={settings.seo.canonicalUrl} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, canonicalUrl: event.target.value } }))} /></label>
             <label>OG Görsel URL<input value={settings.seo.ogImage} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, ogImage: event.target.value } }))} /></label>
+            <div className="settings-section-title full"><span>02</span><div><strong>Sosyal paylaşım & marka</strong><small>Open Graph, X/Twitter ve Organization schema bilgileri.</small></div></div>
+            <label>Locale<input value={settings.seo.locale} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, locale: event.target.value } }))} placeholder="tr_TR" /></label>
+            <label>X / Twitter Kullanıcı Adı<input value={settings.seo.twitterHandle} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, twitterHandle: event.target.value } }))} placeholder="@dromocob" /></label>
+            <label>Organization Adı<input value={settings.seo.organizationName} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, organizationName: event.target.value } }))} /></label>
+            <label>Logo URL<input value={settings.seo.logoUrl} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, logoUrl: event.target.value } }))} /></label>
+            <label className="full">Organization Açıklaması<textarea value={settings.seo.organizationDescription} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, organizationDescription: event.target.value } }))} /></label>
+            <label className="full">Sosyal Profil URL&apos;leri (satır başına 1)<textarea value={socialProfilesText} onChange={event => setSocialProfilesText(event.target.value)} placeholder="https://instagram.com/dromocob" /></label>
+            <div className="settings-section-title full"><span>03</span><div><strong>İndeksleme & doğrulama</strong><small>Arama motorlarının siteyi keşfetme ve tarama kuralları.</small></div></div>
             <label>Google Site Verification<input value={settings.seo.googleSiteVerification} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, googleSiteVerification: event.target.value } }))} placeholder="google-site-verification token" /></label>
             <label>Bing Verification<input value={settings.seo.bingSiteVerification} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, bingSiteVerification: event.target.value } }))} /></label>
             <label>Yandex Verification<input value={settings.seo.yandexVerification} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, yandexVerification: event.target.value } }))} /></label>
             <label className="toggle"><input type="checkbox" checked={settings.seo.robotsIndex} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, robotsIndex: event.target.checked } }))} /> Robots index</label>
             <label className="toggle"><input type="checkbox" checked={settings.seo.robotsFollow} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, robotsFollow: event.target.checked } }))} /> Robots follow</label>
+            <label className="toggle"><input type="checkbox" checked={settings.seo.structuredDataEnabled} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, structuredDataEnabled: event.target.checked } }))} /> Organization Schema aktif</label>
+            <label className="toggle"><input type="checkbox" checked={settings.seo.sitemapEnabled} onChange={event => setSettings(current => ({ ...current, seo: { ...current.seo, sitemapEnabled: event.target.checked } }))} /> XML Sitemap aktif</label>
+            <label className="full">Noindex Path&apos;leri (satır başına 1)<textarea value={noIndexPathsText} onChange={event => setNoIndexPathsText(event.target.value)} placeholder="/admin" /></label>
+          </div>
+          <aside className="seo-preview-rail">
+            <div className="seo-score-card"><div><span style={{ "--seo-score": `${seoScore * 3.6}deg` } as CSSProperties}><b>{seoScore}</b></span><div><small>SEO HEALTH</small><strong>{seoScore >= 80 ? "Mükemmel" : seoScore >= 60 ? "İyi" : "Geliştirilmeli"}</strong></div></div><p>Başlık, açıklama, indeksleme, schema ve doğrulama sinyallerine göre hesaplandı.</p></div>
+            <div className="serp-preview"><p>GOOGLE PREVIEW</p><span>{settings.seo.canonicalUrl || "https://dromocob.com"}</span><h3>{settings.seo.defaultTitle || "Dromocob"}</h3><div>{settings.seo.defaultDescription || "Meta açıklaması burada görünecek."}</div><small>{settings.seo.defaultTitle.length}/60 başlık · {settings.seo.defaultDescription.length}/160 açıklama</small></div>
+            <div className="og-preview"><p>SOCIAL PREVIEW</p><div className="og-preview-image" style={settings.seo.ogImage ? { backgroundImage: `url(${settings.seo.ogImage})` } : undefined}><span>1200 × 630</span></div><strong>{settings.seo.defaultTitle}</strong><small>{settings.seo.defaultDescription}</small></div>
+            <div className="seo-checklist"><p>YAYIN KONTROLÜ</p>{[["Canonical URL",!!settings.seo.canonicalUrl],["OG görsel",!!settings.seo.ogImage],["Organization schema",settings.seo.structuredDataEnabled],["Sitemap",settings.seo.sitemapEnabled],["Google doğrulama",!!settings.seo.googleSiteVerification]].map(([label, ok]) => <div key={String(label)} className={ok ? "ok" : ""}><i/>{String(label)}<b>{ok ? "Hazır" : "Eksik"}</b></div>)}</div>
+          </aside>
           </div>
         )}
 

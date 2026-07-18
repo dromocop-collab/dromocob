@@ -2,11 +2,12 @@ import {
   NextRequest,
   NextResponse,
 } from "next/server";
+import { createHash } from "node:crypto";
 
 import { adminDb } from "@/lib/firebase-admin";
 
 type LeadPayload = {
-  type?: "contact" | "quote";
+  type?: "contact" | "quote" | "newsletter";
   website?: string;
   name?: string;
   email?: string;
@@ -101,6 +102,7 @@ export async function POST(
       ![
         "contact",
         "quote",
+        "newsletter",
       ].includes(type)
     ) {
       return new NextResponse(
@@ -110,7 +112,7 @@ export async function POST(
     }
 
     if (normalizeText(body.website)) {
-      return NextResponse.json({ ok: true });
+      return NextResponse.json({ ok: true, stored: false });
     }
 
     const now = Date.now();
@@ -174,6 +176,35 @@ export async function POST(
         });
 
       return NextResponse.json({ ok: true });
+    }
+
+    if (type === "newsletter") {
+      const email = normalizeText(body.email, 180).toLowerCase();
+
+      if (!isValidEmail(email)) {
+        return new NextResponse("Geçerli bir e-posta adresi gir.", { status: 400 });
+      }
+
+      const subscriberId = createHash("sha256").update(email).digest("hex");
+
+      await adminDb.collection("newsletter_subscribers").doc(subscriberId).set({
+        email,
+        status: "active",
+        source: "website_footer",
+        consentAt: new Date(),
+        updatedAt: new Date(),
+      }, { merge: true });
+
+      const storedSubscriber = await adminDb
+        .collection("newsletter_subscribers")
+        .doc(subscriberId)
+        .get();
+
+      if (!storedSubscriber.exists) {
+        throw new Error("Newsletter subscriber verification failed");
+      }
+
+      return NextResponse.json({ ok: true, stored: true });
     }
 
     const estimatedPrice =
