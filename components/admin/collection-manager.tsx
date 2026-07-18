@@ -60,6 +60,7 @@ export type Field = {
     | "textarea"
     | "boolean"
     | "array"
+    | "theme"
     | "image"
     | "video";
 
@@ -881,10 +882,12 @@ export default function CollectionManager({
             "dark",
             "light",
             "neon",
+            "graphite",
+            "royal",
           ].includes(theme)
         ) {
           throw new Error(
-            "Tema sadece dark, light veya neon olabilir."
+            "Geçerli bir kart teması seçmelisin."
           );
         }
 
@@ -1036,6 +1039,33 @@ export default function CollectionManager({
   ) {
     const value =
       formValues[field.key];
+
+    if (field.type === "theme") {
+      const themes = [
+        ["dark", "Executive Dark"],
+        ["light", "Editorial Ivory"],
+        ["neon", "Digital Neon"],
+        ["graphite", "Graphite Pro"],
+        ["royal", "Royal Blue"],
+      ];
+
+      return (
+        <div className="studio-theme-picker">
+          {themes.map(([themeKey, themeLabel]) => (
+            <button
+              type="button"
+              key={themeKey}
+              className={`theme-choice theme-choice-${themeKey} ${String(value || "dark") === themeKey ? "is-selected" : ""}`}
+              onClick={() => updateValue(field.key, themeKey)}
+            >
+              <i />
+              <span>{themeLabel}</span>
+              {String(value || "dark") === themeKey && <Check size={14} />}
+            </button>
+          ))}
+        </div>
+      );
+    }
 
     if (
       field.type ===

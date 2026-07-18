@@ -1222,7 +1222,13 @@ service cloud.firestore {
         && hasValidUpdatedAt(request.resource.data);
 
       allow get: if isAdmin()
-        || isChatOwner();
+        || isChatOwner()
+        // Yeni oturum belgesi henüz yokken resource.data okunamaz.
+        // UID tabanlı belge yolu ilk okumayı güvenle yetkilendirir.
+        || (
+          signedIn()
+          && sessionId == currentUid()
+        );
 
       allow list: if isAdmin();
 

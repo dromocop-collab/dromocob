@@ -30,7 +30,7 @@ export type ServicePackage = {
   supportWindow?: string;
   maxRevision?: number;
   guarantee?: string;
-  theme?: "dark" | "light" | "neon";
+  theme?: "dark" | "light" | "neon" | "graphite" | "royal";
   badge?: string;
   cta?: string;
   active?: boolean;
@@ -49,6 +49,7 @@ export type QuoteQuestion = {
   max?: number;
   active?: boolean;
   order?: number;
+  serviceTypes?: string[];
 };
 
 export type QuoteRule = {

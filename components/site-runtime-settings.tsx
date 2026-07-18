@@ -80,6 +80,7 @@ function upsertMeta(name: string, content: string) {
 
 export default function SiteRuntimeSettings({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const isAdminRoute = pathname.startsWith("/admin");
   const [settings, setSettings] = useState<RuntimeSiteSettings>({});
 
   useEffect(() => {
@@ -213,10 +214,10 @@ export default function SiteRuntimeSettings({ children }: { children: ReactNode 
         </div>
       ) : (
         <>
-          <SiteNav />
-          <main>{children}</main>
-          <SiteFooter />
-          {settings.features?.liveChatEnabled !== false && <LiveChat />}
+          {!isAdminRoute && <SiteNav />}
+          <main className={isAdminRoute ? "admin-route-main" : undefined}>{children}</main>
+          {!isAdminRoute && <SiteFooter />}
+          {!isAdminRoute && settings.features?.liveChatEnabled !== false && <LiveChat />}
         </>
       )}
     </>

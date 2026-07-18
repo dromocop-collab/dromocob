@@ -98,15 +98,10 @@ function getStoredSessionId(): string {
   return newSessionId;
 }
 
-function replaceStoredSessionId(): string {
-  const newSessionId = createSessionId();
+function persistUidBasedSessionId(uid: string): string {
+  window.localStorage.setItem(CHAT_STORAGE_KEY, uid);
 
-  window.localStorage.setItem(
-    CHAT_STORAGE_KEY,
-    newSessionId
-  );
-
-  return newSessionId;
+  return uid;
 }
 
 function getErrorMessage(error: unknown): string {
@@ -238,6 +233,19 @@ export default function LiveChat() {
           }
 
           setCurrentUser(user);
+
+          /*
+           * Oturum yolu auth UID'sine bağlı olunca rules, belge henüz
+           * oluşmadan yapılan ilk get isteğini de güvenle doğrulayabilir.
+           */
+          setSessionId((activeSessionId) => {
+            if (activeSessionId === user.uid) {
+              return activeSessionId;
+            }
+
+            setMessages([]);
+            return persistUidBasedSessionId(user.uid);
+          });
         } catch (error) {
           if (cancelled) {
             return;
@@ -324,7 +332,7 @@ export default function LiveChat() {
            */
           if (session.ownerUid !== user.uid) {
             const newSessionId =
-              replaceStoredSessionId();
+              persistUidBasedSessionId(user.uid);
 
             setMessages([]);
             setSessionId(newSessionId);
@@ -335,11 +343,11 @@ export default function LiveChat() {
            * Admin oturumu kapattıysa yeni konuşma başlat.
            */
           if (session.status === "closed") {
-            const newSessionId =
-              replaceStoredSessionId();
-
             setMessages([]);
-            setSessionId(newSessionId);
+            setStatus("error");
+            setErrorMessage(
+              "Bu destek konuşması kapatılmış. Yeni görüşme için destek ekibiyle iletişime geç."
+            );
             return;
           }
         }

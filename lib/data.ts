@@ -40,7 +40,7 @@ function normalizePackage(raw: Record<string, unknown>, id: string): ServicePack
   const priceFrom = Number(raw.priceFrom || raw.startingPrice || 0);
 
   const themeValue = String(raw.theme || "").trim().toLowerCase();
-  const theme = themeValue === "light" || themeValue === "neon" || themeValue === "dark"
+  const theme = ["light", "neon", "dark", "graphite", "royal"].includes(themeValue)
     ? (themeValue as ServicePackage["theme"])
     : undefined;
 
@@ -106,6 +106,7 @@ function normalizeQuestion(raw: Record<string, unknown>, id: string): QuoteQuest
     max: Number(raw.max || 0) || undefined,
     active: raw.active !== false,
     order: Number(raw.order || 0) || 0,
+    serviceTypes: toArray(raw.serviceTypes),
   };
 }
 

@@ -55,10 +55,9 @@ export default function AdminPackagesPage() {
         {
           key: "theme",
           label: "Kart teması",
-          placeholder:
-            "dark | light | neon",
+          type: "theme",
           helpText:
-            "Boş bırakırsan varsayılan tema kullanılır.",
+            "Marka sunumuna uygun premium kart görünümünü seç.",
         },
 
         {
