@@ -5,7 +5,7 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import AccountMenu from "@/components/auth/account-menu";
 
-const links=[["Anasayfa","/"],["Hakkımda","/hakkimda"],["Projeler","/projeler"],["Paketler","/paketler"],["Kurumsal","/kurumsal"],["İletişim","/iletisim"]];
+const links=[["Anasayfa","/"],["Hizmetler","/hizmetler/web-tasarim"],["Projeler","/projeler"],["Paketler","/paketler"],["Kurumsal","/kurumsal"],["İletişim","/iletisim"]];
 export default function SiteNav(){
   const [open,setOpen]=useState(false);
   const pathname=usePathname();
