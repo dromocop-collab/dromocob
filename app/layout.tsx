@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import SiteRuntimeSettings from "@/components/site-runtime-settings";
@@ -49,8 +50,12 @@ export const metadata: Metadata = {
     images: ["/opengraph-image"],
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+    ],
     shortcut: "/favicon.ico",
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
@@ -78,8 +83,9 @@ export default async function RootLayout({children}:{children:React.ReactNode}) 
   return <html
   lang="tr"
   data-scroll-behavior="smooth"
-><head><script
+><head><Script
   id="dromocob-consent-bootstrap"
+  strategy="beforeInteractive"
   dangerouslySetInnerHTML={{ __html: getConsentBootstrapScript() }}
 /></head><body><script
   type="application/ld+json"

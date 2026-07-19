@@ -2,18 +2,18 @@
 
 import { FormEvent, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowUpRight,
   Check,
   Clapperboard,
   Code2,
-  AtSign,
-  ExternalLink,
   Loader2,
   Mail,
   Send,
   Sparkles,
 } from "lucide-react";
+import { siteEmail, sitePhone, sitePhoneDisplay } from "@/lib/seo";
 
 type SubscribeState = "idle" | "loading" | "success" | "error";
 
@@ -91,14 +91,14 @@ export default function SiteFooter() {
 
       <section className="footer-directory">
         <div className="footer-brand-block">
-          <Link className="footer-brand" href="/"><span className="brand-dot"/>DROMOCOB</Link>
+          <Link className="footer-brand" href="/"><Image src="/logo.svg" alt="" width={32} height={32}/>DROMOCOB</Link>
           <p>Strateji, teknoloji ve sinematik üretimi tek sistemde birleştiren bağımsız dijital stüdyo.</p>
           <div className="footer-status"><i/> Tüm sistemler aktif <small>UTC+3</small></div>
         </div>
 
         <nav><p>Yetkinlikler</p><Link href="/hizmetler/web-tasarim">Web Tasarım <Code2/></Link><Link href="/hizmetler/video-film-produksiyon">Video & Film <Clapperboard/></Link><Link href="/paketler">Digital Flagship <Sparkles/></Link><Link href="/kurumsal">Growth Systems <ArrowUpRight/></Link></nav>
         <nav><p>Keşfet</p><Link href="/">Anasayfa</Link><Link href="/projeler">Projeler</Link><Link href="/hakkimda">Hakkımda</Link><Link href="/kurumsal">Kurumsal</Link><Link href="/iletisim">İletişim</Link></nav>
-        <div className="footer-contact"><p>İletişim</p><a href="mailto:info@dromocob.com">info@dromocob.com <ArrowUpRight/></a><span>İstanbul, Türkiye<br/>Remote worldwide</span><div><a href="https://www.instagram.com/" target="_blank" rel="noreferrer" aria-label="Instagram"><AtSign/></a><a href="https://www.linkedin.com/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><ExternalLink/></a></div></div>
+        <div className="footer-contact"><p>İletişim</p><a href={`mailto:${siteEmail}`}>{siteEmail} <ArrowUpRight/></a><a href={`tel:${sitePhone}`}>{sitePhoneDisplay} <ArrowUpRight/></a><span>İstanbul, Türkiye<br/>Türkiye geneli hizmet</span></div>
       </section>
 
       <div className="footer-bottom">

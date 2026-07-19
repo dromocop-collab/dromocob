@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 
 export const siteUrl = "https://dromocob.tr";
 export const siteName = "Dromocob";
-export const defaultTitle = "Dromocob | Film, Web & Growth";
+export const siteEmail = "info@dromocob.tr";
+export const sitePhone = "+905304788298";
+export const sitePhoneDisplay = "+90 530 478 82 98";
+export const defaultTitle = "Web Tasarım ve Video Prodüksiyon Ajansı | Türkiye";
 export const defaultDescription =
   "İstanbul merkezli Dromocob; markalar için sinematik film prodüksiyonu, yüksek performanslı web ürünleri, SEO ve ölçülebilir büyüme sistemleri geliştirir.";
 
@@ -91,6 +94,14 @@ export const organizationJsonLd = {
   "@id": `${siteUrl}/#organization`,
   name: siteName,
   url: siteUrl,
+  logo: {
+    "@type": "ImageObject",
+    url: absoluteUrl("/logo.svg"),
+    contentUrl: absoluteUrl("/logo.svg"),
+    width: 512,
+    height: 512,
+  },
+  image: absoluteUrl("/opengraph-image"),
   description: defaultDescription,
   areaServed: {
     "@type": "Country",
@@ -106,7 +117,16 @@ export const organizationJsonLd = {
     "Digital growth systems",
     "SEO",
   ],
-  email: "info@dromocob.com",
+  email: siteEmail,
+  telephone: sitePhone,
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "sales",
+    email: siteEmail,
+    telephone: sitePhone,
+    areaServed: "TR",
+    availableLanguage: ["Turkish"],
+  },
 };
 
 export const websiteJsonLd = {

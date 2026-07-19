@@ -50,7 +50,7 @@ export default function PrivacyPolicyPage() {
 
       <div className="legal-block">
         <h2>5. Iletisim</h2>
-        <p>Gizlilik talepleri icin info@dromocob.com adresi uzerinden bize ulasabilirsiniz.</p>
+        <p>Gizlilik talepleri için info@dromocob.tr adresi üzerinden bize ulaşabilirsiniz.</p>
       </div>
     </section>
   );

@@ -25,14 +25,10 @@ export default function Image() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 999,
-              background: "#d7ff35",
-            }}
-          />
+          <div style={{ position: "relative", width: 58, height: 58, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", borderRadius: 14, border: "1px solid #405060", background: "#101821" }}>
+            <div style={{ marginLeft: 5, color: "#f7f9fc", fontSize: 42, lineHeight: 1, fontWeight: 900 }}>D</div>
+            <div style={{ position: "absolute", left: 7, top: 4, color: "#0798f2", fontSize: 47, lineHeight: 1, fontWeight: 900 }}>›</div>
+          </div>
           <div style={{ fontSize: 34, fontWeight: 800, letterSpacing: 4 }}>
             {siteName.toUpperCase()}
           </div>
@@ -47,7 +43,7 @@ export default function Image() {
               fontWeight: 900,
             }}
           >
-            Film, Web ve<br />Growth Sistemleri
+            Web Tasarım ve<br />Video Prodüksiyon
           </div>
           <div style={{ maxWidth: 780, fontSize: 30, lineHeight: 1.3, color: "#c9d0c1" }}>
             {defaultDescription}

@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Loader2 } from "lucide-react";
+import { siteEmail, sitePhone, sitePhoneDisplay } from "@/lib/seo";
 
 export default function ContactPageClient() {
   const [sent, setSent] = useState(false);
@@ -60,7 +61,7 @@ export default function ContactPageClient() {
         <p className="eyebrow">Contact / Let&apos;s build</p>
         <h1>Bir fikrin varsa,<br/><span>masaya koyalım.</span></h1>
         <p>Projenin ne kadar ham olduğu önemli değil. Hedefi birlikte netleştiririz.</p>
-        <a href="mailto:info@dromocob.com">info@dromocob.com <ArrowUpRight size={18}/></a>
+        <div className="contact-direct"><a href={`mailto:${siteEmail}`}>{siteEmail} <ArrowUpRight size={18}/></a><a href={`tel:${sitePhone}`}>{sitePhoneDisplay} <ArrowUpRight size={18}/></a></div>
       </div>
       {sent ? <div className="success-panel"><span>✓</span><h2>Mesaj alındı.</h2><p>Proje detaylarını inceleyip dönüş yapacağım.</p></div> :
       <form className="contact-form" onSubmit={submit}>

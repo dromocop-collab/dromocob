@@ -4,6 +4,7 @@ import {
   KeyboardEvent,
   FormEvent,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -32,6 +33,7 @@ import {
   Send,
   Sparkles,
   Tag,
+  Trash2,
   UserCheck,
   XCircle,
 } from "lucide-react";
@@ -181,11 +183,15 @@ export default function LiveChatAdmin() {
     error,
     setError,
   ] = useState("");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deletePhrase, setDeletePhrase] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
-  const messageEndRef =
+  const messagesRef =
     useRef<HTMLDivElement | null>(null);
   const noteRef =
     useRef<HTMLTextAreaElement | null>(null);
+  const pageScrollRef = useRef<number | null>(null);
 
   useEffect(() => {
     return onSnapshot(
@@ -239,8 +245,8 @@ export default function LiveChatAdmin() {
             })
             .sort(
               (left, right) =>
-                (right.updatedAt?.toMillis() || 0) -
-                (left.updatedAt?.toMillis() || 0)
+                (right.lastMessageAt?.toMillis() || right.createdAt?.toMillis() || 0) -
+                (left.lastMessageAt?.toMillis() || left.createdAt?.toMillis() || 0)
             );
 
         setSessions(nextSessions);
@@ -315,7 +321,6 @@ export default function LiveChatAdmin() {
           doc(db, "chat_sessions", active),
           {
             unreadAdmin: 0,
-            updatedAt: serverTimestamp(),
           }
         ).catch(updateError => {
           if (getErrorCode(updateError) !== "permission-denied") {
@@ -332,11 +337,24 @@ export default function LiveChatAdmin() {
   }, [active]);
 
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({
-      block: "end",
-      behavior: "smooth",
-    });
+    const container = messagesRef.current;
+
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages, active]);
+
+  useLayoutEffect(() => {
+    if (pageScrollRef.current === null) {
+      return;
+    }
+
+    window.scrollTo({
+      top: pageScrollRef.current,
+      behavior: "auto",
+    });
+    pageScrollRef.current = null;
+  }, [active]);
 
   const activeSession = useMemo(
     () =>
@@ -404,8 +422,11 @@ export default function LiveChatAdmin() {
   }, [filter, search, sessions]);
 
   function selectSession(sessionId: string): void {
+    pageScrollRef.current = window.scrollY;
     setMessages([]);
     setTagDraft("");
+    setDeleteConfirmOpen(false);
+    setDeletePhrase("");
     setLoadingMessages(true);
     setActive(sessionId);
   }
@@ -585,6 +606,45 @@ export default function LiveChatAdmin() {
     }
   }
 
+  async function deleteSession(): Promise<void> {
+    if (!active || deleting) {
+      return;
+    }
+
+    const currentUser = auth.currentUser;
+
+    if (!currentUser) {
+      setError("Admin oturumu bulunamadı. Yeniden giriş yap.");
+      return;
+    }
+
+    setDeleting(true);
+    setError("");
+
+    try {
+      const token = await currentUser.getIdToken();
+      const response = await fetch(`/api/admin/chat-sessions/${encodeURIComponent(active)}`, {
+        method: "DELETE",
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Görüşme silinemedi. Lütfen tekrar deneyin.");
+      }
+
+      setDeleteConfirmOpen(false);
+      setDeletePhrase("");
+      setMessages([]);
+      setActive("");
+    } catch (deleteError) {
+      setError(getAdminErrorMessage(deleteError));
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="support-desk">
       <div className="support-command-bar">
@@ -755,7 +815,7 @@ export default function LiveChatAdmin() {
 
         {active ? (
           <div className="support-main-grid">
-            <div className="support-messages">
+            <div className="support-messages" ref={messagesRef}>
               {loadingMessages && (
                 <div className="support-placeholder">
                   Mesajlar yükleniyor...
@@ -787,7 +847,6 @@ export default function LiveChatAdmin() {
                 </div>
               )}
 
-              <div ref={messageEndRef} />
             </div>
 
             <aside className="support-inspector">
@@ -911,6 +970,36 @@ export default function LiveChatAdmin() {
                 >
                   Notu kaydet
                 </button>
+              </div>
+
+              <div className="support-inspector-card support-danger-card">
+                <span>Görüşme yönetimi</span>
+                <p>Görüşmeyi ve tüm mesaj geçmişini kalıcı olarak siler.</p>
+                {deleteConfirmOpen ? (
+                  <div className="support-delete-confirm">
+                    <strong>Bu işlem geri alınamaz.</strong>
+                    <label>
+                      Onaylamak için SİL yazın
+                      <input
+                        value={deletePhrase}
+                        onChange={event => setDeletePhrase(event.target.value)}
+                        placeholder="SİL"
+                        autoComplete="off"
+                      />
+                    </label>
+                    <div>
+                      <button type="button" onClick={() => { setDeleteConfirmOpen(false); setDeletePhrase(""); }} disabled={deleting}>Vazgeç</button>
+                      <button type="button" className="danger" onClick={deleteSession} disabled={deleting || deletePhrase.trim().toLocaleUpperCase("tr-TR") !== "SİL"}>
+                        {deleting ? <Loader2 size={14} className="spin" /> : <Trash2 size={14} />}
+                        Kalıcı olarak sil
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button type="button" className="support-delete-button" onClick={() => { setDeletePhrase(""); setDeleteConfirmOpen(true); }} disabled={deleting}>
+                    <Trash2 size={14} /> Görüşmeyi sil
+                  </button>
+                )}
               </div>
             </aside>
 

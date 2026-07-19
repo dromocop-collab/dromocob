@@ -2,6 +2,7 @@
 
 import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { projectCaseStudies } from "@/lib/project-case-studies";
 import type { Project, ServicePackage, QuoteQuestion, QuoteRule } from "@/lib/types";
 
 type QuestionOptionShape = {
@@ -140,40 +141,19 @@ function normalizeRule(raw: Record<string, unknown>, id: string): QuoteRule {
   };
 }
 
-export const fallbackProjects: Project[] = [
-  {
-    id: "cinematic-brand",
-    title: "Cinematic Brand Film",
-    slug: "cinematic-brand-film",
-    category: "Film Production",
-    summary: "Marka hikâyesini premium sinematografi ve güçlü kurgu ile anlatan kampanya filmi.",
-    description: "Sony FX3, profesyonel hareket sistemleri ve sinematik post-prodüksiyon yaklaşımı.",
-    featured: true,
-    active: true,
-    order: 1
-  },
-  {
-    id: "digital-commerce",
-    title: "Digital Commerce System",
-    slug: "digital-commerce-system",
-    category: "Web & Product",
-    summary: "Dinamik fiyat, admin operasyonu ve analitik odaklı modern e-ticaret deneyimi.",
-    description: "Next.js ve Firebase tabanlı ölçeklenebilir dijital ürün altyapısı.",
-    featured: true,
-    active: true,
-    order: 2
-  },
-  {
-    id: "social-growth",
-    title: "Social Growth Direction",
-    slug: "social-growth-direction",
-    category: "Growth",
-    summary: "Reels, kreatif yön ve reklam odaklı uçtan uca sosyal büyüme sistemi.",
-    description: "İçerik üretiminden yayın planına kadar bütünleşik yönetim.",
-    active: true,
-    order: 3
-  }
-];
+export const fallbackProjects: Project[] = projectCaseStudies.map((project, index) => ({
+  id: project.id,
+  title: project.title,
+  slug: project.slug,
+  category: project.category,
+  summary: project.summary,
+  description: project.description,
+  coverUrl: project.coverUrl,
+  year: project.year,
+  featured: index < 2,
+  active: true,
+  order: index + 1,
+}));
 
 export const fallbackPackages: ServicePackage[] = [
   {

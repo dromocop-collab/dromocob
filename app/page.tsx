@@ -5,7 +5,7 @@ import PackageGrid from "@/components/package-grid";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
-  title: "Dromocob | Film, Web ve Büyüme Sistemleri",
+  title: "Web Tasarım ve Video Prodüksiyon Ajansı | Türkiye",
   description:
     "Markalar için sinematik film prodüksiyonu, yüksek dönüşümlü web deneyimleri, admin paneller ve dijital büyüme sistemleri.",
   path: "/",
@@ -19,7 +19,7 @@ export default function Home() {
         <div className="hero-noise" />
         <div className="hero-copy">
           <div className="eyebrow"><span className="live-dot" /> İstanbul · Türkiye</div>
-          <h1>İzleneni değil,<br/><span>hatırlananı</span> üret.</h1>
+          <h1>Web tasarım & film.<br/><span>Hatırlananı</span> üret.</h1>
           <p>Markalar için sinematik filmler, yüksek dönüşümlü web deneyimleri ve büyümeyi yöneten dijital sistemler tasarlıyorum.</p>
           <div className="hero-actions">
             <Link className="button" href="/projeler">Projeleri İncele <ArrowRight size={18} /></Link>
