@@ -33,7 +33,7 @@ export default function SiteNav(){
         {links.map(([l,h])=><Link key={h} href={h} className={isActive(String(h))?"nav-link active":"nav-link"}>{l}</Link>)}
       </div>
       <div className="nav-actions">
-        <Link href="/paketler#teklif" className="nav-cta"><span><small>Yeni proje</small>Teklif Oluştur</span><i><ArrowUpRight size={16}/></i></Link>
+        <Link href="/site-olustur" className="nav-cta"><span><small>Dromocob Sites</small>Site Oluştur</span><i><ArrowUpRight size={16}/></i></Link>
         <AccountMenu/>
       </div>
     </nav>
@@ -41,7 +41,7 @@ export default function SiteNav(){
     {open&&<div className="mobile-nav" id="mobile-site-navigation">
       <div className="mobile-nav-intro"><span>MENU / 01—06</span><p>Film, web ve büyüme sistemleri için bütünleşik üretim.</p></div>
       <div className="mobile-nav-links">{links.map(([l,h],index)=><Link key={h} href={h} className={isActive(String(h))?"nav-link active":"nav-link"} onClick={()=>setOpen(false)}><span>0{index+1}</span>{l}<ArrowUpRight size={18}/></Link>)}</div>
-      <div className="mobile-nav-footer"><Link href="/paketler#teklif" className="nav-cta" onClick={()=>setOpen(false)}><span><small>Projenizi planlayın</small>Teklif Oluştur</span><i><ArrowUpRight size={17}/></i></Link><AccountMenu/></div>
+      <div className="mobile-nav-footer"><Link href="/site-olustur" className="nav-cta" onClick={()=>setOpen(false)}><span><small>Dromocob Sites</small>Site Oluştur</span><i><ArrowUpRight size={17}/></i></Link><AccountMenu/></div>
     </div>}
   </header>;
 }

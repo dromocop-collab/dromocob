@@ -98,6 +98,7 @@ function upsertMeta(name: string, content: string) {
 export default function SiteRuntimeSettings({ children, initialTracking }: { children: ReactNode; initialTracking?: PublicTrackingSettings }) {
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith("/admin");
+  const isWorkspaceRoute = isAdminRoute || pathname.startsWith("/site-olustur") || pathname.startsWith("/site-duzenle");
   const [settings, setSettings] = useState<RuntimeSiteSettings>({ tracking: { ...environmentTracking, ...initialTracking } });
   const [consent, setConsent] = useState<ConsentChoice | null>(null);
   const initialPageView = useRef(true);
@@ -283,11 +284,11 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
         </div>
       ) : (
         <>
-          {!isAdminRoute && <SiteNav />}
-          <main className={isAdminRoute ? "admin-route-main" : undefined}>{children}</main>
-          {!isAdminRoute && <SiteFooter />}
-          {!isAdminRoute && settings.features?.liveChatEnabled !== false && <LiveChat />}
-          {!isAdminRoute && trackingEnabled && <CookieConsent />}
+          {!isWorkspaceRoute && <SiteNav />}
+          <main className={isWorkspaceRoute ? "admin-route-main" : undefined}>{children}</main>
+          {!isWorkspaceRoute && <SiteFooter />}
+          {!isWorkspaceRoute && settings.features?.liveChatEnabled !== false && <LiveChat />}
+          {!isWorkspaceRoute && trackingEnabled && <CookieConsent />}
         </>
       )}
     </>

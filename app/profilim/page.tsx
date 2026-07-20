@@ -33,6 +33,7 @@ import {
   Fingerprint,
   KeyRound,
   Loader2,
+  LayoutDashboard,
   LockKeyhole,
   LogOut,
   Mail,
@@ -688,6 +689,21 @@ export default function ProfilePage() {
         </form>
 
         <aside className="profile-sidebar">
+          <section className="profile-card profile-sites-card">
+            <div className="profile-card-head">
+              <LayoutDashboard />
+              <div>
+                <h2>Sitelerim</h2>
+                <p>Web sitelerini yönet ve düzenle.</p>
+              </div>
+            </div>
+            <p className="profile-sites-copy">Dromocob Sites ile oluşturduğun tüm projelere tek yerden ulaş.</p>
+            <Link href="/sitelerim" className="button button-full">
+              Sitelerimi aç
+              <ChevronRight size={17} />
+            </Link>
+          </section>
+
           <section className="profile-card">
             <div className="profile-card-head">
               <Fingerprint />

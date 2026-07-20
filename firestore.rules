@@ -1459,6 +1459,93 @@ service cloud.firestore {
 
 
     // =========================================================
+    // CUSTOMER SITES
+    // =========================================================
+
+    match /customer_sites/{siteId} {
+
+      allow read: if signedIn()
+        && (
+          resource.data.ownerId == currentUid()
+          || isAdmin()
+        );
+
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly([
+          "ownerId",
+          "template",
+          "accent",
+          "businessName",
+          "headline",
+          "subdomain",
+          "pages",
+          "siteSettings",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ])
+        && request.resource.data.ownerId == currentUid()
+        && isNonEmptyString(request.resource.data.businessName, 120)
+        && isNonEmptyString(request.resource.data.headline, 300)
+        && isNonEmptyString(request.resource.data.subdomain, 80)
+        && isNonEmptyString(request.resource.data.accent, 20)
+        && isOptionalList(request.resource.data, "pages")
+        && isOptionalMap(request.resource.data, "siteSettings")
+        && (
+          request.resource.data.template == "studio"
+          || request.resource.data.template == "restaurant"
+          || request.resource.data.template == "portfolio"
+        )
+        && (
+          request.resource.data.status == "draft"
+          || request.resource.data.status == "published"
+        )
+        && hasValidCreatedAt(request.resource.data)
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow update: if signedIn()
+        && resource.data.ownerId == currentUid()
+        && request.resource.data.ownerId == resource.data.ownerId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.keys().hasOnly([
+          "ownerId",
+          "template",
+          "accent",
+          "businessName",
+          "headline",
+          "subdomain",
+          "pages",
+          "siteSettings",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ])
+        && isNonEmptyString(request.resource.data.businessName, 120)
+        && isNonEmptyString(request.resource.data.headline, 300)
+        && isNonEmptyString(request.resource.data.subdomain, 80)
+        && isNonEmptyString(request.resource.data.accent, 20)
+        && isOptionalList(request.resource.data, "pages")
+        && isOptionalMap(request.resource.data, "siteSettings")
+        && (
+          request.resource.data.template == "studio"
+          || request.resource.data.template == "restaurant"
+          || request.resource.data.template == "portfolio"
+        )
+        && (
+          request.resource.data.status == "draft"
+          || request.resource.data.status == "published"
+        )
+        && hasValidUpdatedAt(request.resource.data);
+
+      allow delete: if signedIn()
+        && (
+          resource.data.ownerId == currentUid()
+          || isSuperAdmin()
+        );
+    }
+
+
+    // =========================================================
     // MANAGED SITES
     // Browser: admin read only
     // Server Admin SDK bypasses these rules

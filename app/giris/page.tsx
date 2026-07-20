@@ -27,6 +27,7 @@ import {
 import {
   authMessage,
 } from "@/lib/auth-errors";
+import { importPendingSite } from "@/lib/customer-sites";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -90,6 +91,8 @@ export default function LoginPage() {
         String(formData.get("email")),
         String(formData.get("password"))
       );
+
+      await importPendingSite(credential.user.uid);
 
       router.push(
         credential.user.emailVerified

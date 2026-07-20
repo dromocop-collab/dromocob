@@ -4,6 +4,7 @@ import Link from "next/link";
 import { signOut } from "firebase/auth";
 import {
   ChevronDown,
+  LayoutDashboard,
   LogOut,
   ShieldCheck,
   UserRound,
@@ -201,6 +202,15 @@ export default function AccountMenu() {
               aria-hidden="true"
             />
             Profilim
+          </Link>
+
+          <Link
+            href="/sitelerim"
+            role="menuitem"
+            onClick={() => setOpenForUid(null)}
+          >
+            <LayoutDashboard size={16} aria-hidden="true" />
+            Sitelerim
           </Link>
 
           {!user.emailVerified && (
