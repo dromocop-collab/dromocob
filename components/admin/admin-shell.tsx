@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useState } from "react";
-import { Boxes, CircleGauge, Command, ExternalLink, FolderKanban, LogOut, Mail, Menu, MessageSquare, Package, RadioTower, Rocket, Settings2, Sparkles, X } from "lucide-react";
+import { Boxes, CircleGauge, Command, ExternalLink, FolderKanban, Globe2, LogOut, Mail, Menu, MessageSquare, Package, RadioTower, Rocket, Settings2, Sparkles, X } from "lucide-react";
 
 const nav = [
   [CircleGauge, "Genel Bakış", "/admin"],
@@ -14,6 +14,7 @@ const nav = [
   [Sparkles, "Teklif Motoru", "/admin/teklif"],
   [MessageSquare, "Canlı Destek", "/admin/destek"],
   [RadioTower, "Site Control Center", "/admin/siteler"],
+  [Globe2, "Müşteri Siteleri", "/admin/musteri-siteleri"],
   [Rocket, "Site Aktivasyonları", "/admin/site-aktivasyonlari"],
   [Boxes, "Form & Talepler", "/admin/talepler"],
   [Mail, "Aboneler & Mail", "/admin/aboneler"],

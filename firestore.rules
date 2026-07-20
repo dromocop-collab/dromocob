@@ -1503,7 +1503,9 @@ service cloud.firestore {
         && hasValidCreatedAt(request.resource.data)
         && hasValidUpdatedAt(request.resource.data);
 
-      allow update: if signedIn()
+      allow update: if isAdmin()
+        || (
+        signedIn()
         && resource.data.ownerId == currentUid()
         && request.resource.data.ownerId == resource.data.ownerId
         && request.resource.data.createdAt == resource.data.createdAt
@@ -1535,13 +1537,19 @@ service cloud.firestore {
           request.resource.data.status == "draft"
           || request.resource.data.status == "published"
         )
-        && hasValidUpdatedAt(request.resource.data);
+        && hasValidUpdatedAt(request.resource.data)
+        );
 
       allow delete: if signedIn()
         && (
           resource.data.ownerId == currentUid()
           || isSuperAdmin()
         );
+    }
+
+    match /customer_site_admin/{siteId} {
+      allow read, create, update: if isAdmin();
+      allow delete: if isSuperAdmin();
     }
 
 

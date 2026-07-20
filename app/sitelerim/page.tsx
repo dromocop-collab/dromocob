@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, deleteDoc, doc, onSnapshot, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ExternalLink, Globe2, LayoutDashboard, Loader2, Plus, Settings2, Sparkles } from "lucide-react";
+import { ArrowRight, ExternalLink, Globe2, LayoutDashboard, Loader2, Plus, Settings2, Sparkles, Trash2, X } from "lucide-react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { db } from "@/lib/firebase";
@@ -19,6 +19,8 @@ export default function MySitesPage() {
   const [sites, setSites] = useState<CustomerSiteRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<CustomerSiteRecord | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) router.replace("/giris");
@@ -41,6 +43,20 @@ export default function MySitesPage() {
     });
   }, [user]);
 
+  async function deleteSite() {
+    if (!deleteTarget || !user || deleteTarget.ownerId !== user.uid) return;
+    setDeleting(true);
+    setError("");
+    try {
+      await deleteDoc(doc(db, "customer_sites", deleteTarget.id));
+      setDeleteTarget(null);
+    } catch {
+      setError("Site silinemedi. Lütfen tekrar dene.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   if (authLoading || loading) return <div className="my-sites-loading"><Loader2 className="spin" /></div>;
 
   return <main className="my-sites-page section">
@@ -62,11 +78,12 @@ export default function MySitesPage() {
         <div className="my-site-info">
           <div><span className="my-site-status"><i /> YAYINDA</span><span>{templateNames[site.template]}</span></div>
           <h2>{site.businessName}</h2>
-          <a href={`https://${site.subdomain}.dromocob.tr`} target="_blank" rel="noreferrer"><Globe2 size={13} /> {site.subdomain}.dromocob.tr <ExternalLink size={12} /></a>
-          <div className="my-site-actions"><Link href={`/site-duzenle/${site.id}`}><Settings2 size={15} /> Siteyi düzenle</Link><Link href={`/site-duzenle/${site.id}`} aria-label={`${site.businessName} sitesini aç`}><ArrowRight size={16} /></Link></div>
+          <Link href={`/site-onizleme/${site.id}`} target="_blank"><Globe2 size={13} /> {site.subdomain}.dromocob.tr <ExternalLink size={12} /></Link>
+          <div className="my-site-actions"><Link href={`/site-duzenle/${site.id}`}><Settings2 size={15} /> Siteyi düzenle</Link><button onClick={() => setDeleteTarget(site)} aria-label={`${site.businessName} sitesini sil`}><Trash2 size={15} /></button><Link href={`/site-onizleme/${site.id}`} target="_blank" aria-label={`${site.businessName} sitesini önizle`}><ArrowRight size={16} /></Link></div>
         </div>
       </article>)}
       <Link href="/site-olustur" className="my-site-add"><Plus size={23} /><strong>Yeni site oluştur</strong><span>Yeni bir marka deneyimi başlat</span></Link>
     </section>}
+    {deleteTarget && <div className="site-delete-backdrop" onMouseDown={() => !deleting && setDeleteTarget(null)}><section className="site-delete-modal" onMouseDown={event => event.stopPropagation()}><button className="site-delete-close" onClick={() => setDeleteTarget(null)} disabled={deleting}><X size={17} /></button><div><Trash2 size={24} /></div><p>GERİ ALINAMAZ İŞLEM</p><h2>{deleteTarget.businessName} silinsin mi?</h2><span>Site tasarımı, sayfaları ve tüm düzenlemeler kalıcı olarak silinecek. Bu işlem geri alınamaz.</span><strong>Silmek için site adını kontrol et: {deleteTarget.businessName}</strong><section><button onClick={() => setDeleteTarget(null)} disabled={deleting}>Vazgeç</button><button onClick={deleteSite} disabled={deleting}>{deleting ? <Loader2 className="spin" size={16} /> : <Trash2 size={16} />}{deleting ? "Siliniyor" : "Siteyi kalıcı sil"}</button></section></section></div>}
   </main>;
 }

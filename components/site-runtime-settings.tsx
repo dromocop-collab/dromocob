@@ -98,7 +98,7 @@ function upsertMeta(name: string, content: string) {
 export default function SiteRuntimeSettings({ children, initialTracking }: { children: ReactNode; initialTracking?: PublicTrackingSettings }) {
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith("/admin");
-  const isWorkspaceRoute = isAdminRoute || pathname.startsWith("/site-olustur") || pathname.startsWith("/site-duzenle");
+  const isWorkspaceRoute = isAdminRoute || pathname.startsWith("/site-olustur") || pathname.startsWith("/site-duzenle") || pathname.startsWith("/site-onizleme");
   const [settings, setSettings] = useState<RuntimeSiteSettings>({ tracking: { ...environmentTracking, ...initialTracking } });
   const [consent, setConsent] = useState<ConsentChoice | null>(null);
   const initialPageView = useRef(true);

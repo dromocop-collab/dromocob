@@ -8,6 +8,8 @@ import {
   AlignLeft,
   ArrowLeft,
   ArrowRight,
+  ArrowDown,
+  ArrowUp,
   BarChart3,
   Blocks,
   Check,
@@ -82,7 +84,7 @@ const activationPlans = [
 export default function SiteEditorPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { user, profile, loading: authLoading } = useAuth();
+  const { user, profile, isAdmin, loading: authLoading } = useAuth();
   const [site, setSite] = useState<CustomerSiteRecord | null>(null);
   const [pages, setPages] = useState<CustomerSitePage[]>(defaultPages);
   const [settings, setSettings] = useState<CustomerSiteSettings>(defaultSettings);
@@ -96,7 +98,6 @@ export default function SiteEditorPage() {
   const [addPageOpen, setAddPageOpen] = useState(false);
   const [newPageTitle, setNewPageTitle] = useState("");
   const [retryKey, setRetryKey] = useState(0);
-  const [previewOnly, setPreviewOnly] = useState(false);
   const [draggingSection, setDraggingSection] = useState<number | null>(null);
   const [dragTargetSection, setDragTargetSection] = useState<number | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -106,6 +107,7 @@ export default function SiteEditorPage() {
   const [activationBusy, setActivationBusy] = useState(false);
   const [activationError, setActivationError] = useState("");
   const [activationReference, setActivationReference] = useState("");
+  const [sectionNotice, setSectionNotice] = useState("");
 
   const activePage = pages.find((page) => page.id === activePageId) ?? pages[0];
 
@@ -123,7 +125,7 @@ export default function SiteEditorPage() {
         setLoading(false);
         return;
       }
-      if (snapshot.data().ownerId !== user.uid) {
+      if (snapshot.data().ownerId !== user.uid && !isAdmin) {
         setError("Bu siteyi düzenleme yetkin bulunmuyor.");
         setLoading(false);
         return;
@@ -139,7 +141,7 @@ export default function SiteEditorPage() {
       setLoading(false);
     });
     return () => { active = false; };
-  }, [params.id, retryKey, user]);
+  }, [isAdmin, params.id, retryKey, user]);
 
   const pageSlug = useMemo(() => {
     const normalized = newPageTitle.toLocaleLowerCase("tr-TR").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ı/g, "i").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -157,25 +159,41 @@ export default function SiteEditorPage() {
   }
 
   function updateActivePage(update: Partial<CustomerSitePage>) {
-    setPages((current) => current.map((page) => page.id === activePage.id ? { ...page, ...update } : page));
+    setPages((current) => current.map((page) => page.id === activePageId ? { ...page, ...update } : page));
     setSaved(false);
   }
 
   function addSection(sectionId: string) {
-    updateActivePage({ sections: [...activePage.sections, sectionId] });
-    setPanel("pages");
+    const catalogItem = sectionCatalog.find((item) => item.id === sectionId);
+    setPages((current) => current.map((page) => page.id === activePageId
+      ? { ...page, sections: [...(page.sections || []), sectionId] }
+      : page));
+    setSaved(false);
+    setSectionNotice(`${catalogItem?.name || "Bölüm"} sayfaya eklendi.`);
+    window.setTimeout(() => setSectionNotice(""), 2200);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const canvas = document.querySelector<HTMLElement>(".studio-canvas");
+      canvas?.scrollTo({ top: canvas.scrollHeight, behavior: "smooth" });
+    }));
   }
 
   function removeSection(index: number) {
-    updateActivePage({ sections: activePage.sections.filter((_, itemIndex) => itemIndex !== index) });
+    setPages((current) => current.map((page) => page.id === activePageId
+      ? { ...page, sections: page.sections.filter((_, itemIndex) => itemIndex !== index) }
+      : page));
+    setSaved(false);
   }
 
   function moveSection(fromIndex: number, toIndex: number) {
     if (fromIndex === toIndex) return;
-    const reordered = [...activePage.sections];
-    const [moved] = reordered.splice(fromIndex, 1);
-    reordered.splice(toIndex, 0, moved);
-    updateActivePage({ sections: reordered });
+    setPages((current) => current.map((page) => {
+      if (page.id !== activePageId) return page;
+      const reordered = [...page.sections];
+      const [moved] = reordered.splice(fromIndex, 1);
+      reordered.splice(toIndex, 0, moved);
+      return { ...page, sections: reordered };
+    }));
+    setSaved(false);
   }
 
   function removePage() {
@@ -190,7 +208,7 @@ export default function SiteEditorPage() {
     setSaving(true);
     setError("");
     try {
-      await saveCustomerSite(user.uid, { template: site.template, accent: site.accent, businessName: site.businessName, headline: site.headline, subdomain: site.subdomain, pages, siteSettings: settings }, site.id);
+      await saveCustomerSite(site.ownerId || user.uid, { template: site.template, accent: site.accent, businessName: site.businessName, headline: site.headline, subdomain: site.subdomain, pages, siteSettings: settings }, site.id);
       setSite({ ...site, pages, siteSettings: settings });
       setSaved(true);
       window.setTimeout(() => setSaved(false), 2200);
@@ -242,10 +260,10 @@ export default function SiteEditorPage() {
     <header className="studio-topbar">
       <div className="studio-brand"><Link href="/sitelerim" aria-label="Sitelerime dön"><ArrowLeft size={17} /></Link><b>DC</b><span><strong>DROMOCOB</strong><small>SITES STUDIO · ENTERPRISE</small></span></div>
       <div className="studio-site-meta"><span><i /> YAYINDA</span><strong>{site.businessName}</strong><small>{site.subdomain}.dromocob.tr</small></div>
-      <div className="studio-actions"><Link className="studio-icon-button" href="/iletisim" title="Yardım"><CircleHelp size={17} /></Link><button className="studio-preview-button" onClick={() => setPreviewOnly((current) => !current)}><Eye size={16} /> {previewOnly ? "Düzenleyici" : "Önizle"}</button><button className="studio-save-button" onClick={saveChanges} disabled={saving}>{saving ? <Loader2 className="spin" size={16} /> : saved ? <Check size={16} /> : <Save size={16} />}{saving ? "Kaydediliyor" : saved ? "Kaydedildi" : "Kaydet"}</button><button className="studio-publish-button" onClick={() => setUpgradeOpen(true)}><Rocket size={16} /> Canlıya al</button></div>
+      <div className="studio-actions"><Link className="studio-icon-button" href="/iletisim" title="Yardım"><CircleHelp size={17} /></Link><Link className="studio-preview-button" href={`/site-onizleme/${site.id}`} target="_blank"><Eye size={16} /> Siteyi önizle</Link><button className="studio-save-button" onClick={saveChanges} disabled={saving}>{saving ? <Loader2 className="spin" size={16} /> : saved ? <Check size={16} /> : <Save size={16} />}{saving ? "Kaydediliyor" : saved ? "Kaydedildi" : "Kaydet"}</button><button className="studio-publish-button" onClick={() => setUpgradeOpen(true)}><Rocket size={16} /> Canlıya al</button></div>
     </header>
 
-    <div className={`studio-layout ${previewOnly ? "preview-only" : ""}`}>
+    <div className="studio-layout">
       <nav className="studio-rail" aria-label="Düzenleyici araçları">
         <button className={panel === "pages" ? "active" : ""} onClick={() => setPanel("pages")}><FileText /><span>Sayfalar</span></button>
         <button className={panel === "sections" ? "active" : ""} onClick={() => setPanel("sections")}><Blocks /><span>Bölümler</span></button>
@@ -270,7 +288,8 @@ export default function SiteEditorPage() {
         {panel === "sections" && <>
           <div className="studio-panel-head"><div><p>İÇERİK KÜTÜPHANESİ</p><h1>Bölüm ekle</h1></div><button onClick={() => setPanel("pages")}><X size={16} /></button></div>
           <p className="studio-panel-description">Hazır kurumsal blokları seçili sayfaya ekle.</p>
-          <div className="studio-section-library">{sectionCatalog.map(({ id, name, icon: Icon, detail }) => <button key={id} onClick={() => addSection(id)}><i><Icon size={18} /></i><span><strong>{name}</strong><small>{detail}</small></span><Plus size={15} /></button>)}</div>
+          <div className="studio-section-summary"><span><Blocks size={14} /> {activePage.sections.length} aktif bölüm</span>{sectionNotice && <strong><Check size={13} /> {sectionNotice}</strong>}</div>
+          <div className="studio-section-library">{sectionCatalog.map(({ id, name, icon: Icon, detail }) => { const count = activePage.sections.filter((section) => section === id).length; return <button type="button" key={id} onClick={() => addSection(id)}><i><Icon size={18} /></i><span><strong>{name}</strong><small>{detail}</small></span>{count > 0 && <b>{count}</b>}<Plus size={15} /></button>; })}</div>
         </>}
 
         {panel === "settings" && <>
@@ -295,7 +314,18 @@ export default function SiteEditorPage() {
       <section className="studio-canvas-shell">
         <div className="studio-canvas-toolbar"><div className="studio-breadcrumb"><Home size={14} /><ChevronRight size={13} /><strong>{activePage.title}</strong><ChevronDown size={13} /></div><div className="studio-device-toggle"><button className={device === "desktop" ? "active" : ""} onClick={() => setDevice("desktop")}><Monitor size={16} /></button><button className={device === "mobile" ? "active" : ""} onClick={() => setDevice("mobile")}><Smartphone size={16} /></button></div><span><i /> Otomatik kayıt aktif</span></div>
         <div className="studio-upgrade-bar"><div><span><Sparkles size={15} /></span><p><strong>Tasarımın hazır — şimdi gerçek müşterilerinle buluştur.</strong><small>Özel alan adı, SSL, yüksek hızlı yayın ve Dromocob desteğiyle siteni canlıya al.</small></p></div><button onClick={() => setUpgradeOpen(true)}>Siteyi canlıya al <ArrowRight size={15} /></button></div>
-        <div className={`studio-canvas ${device}`}>
+        <div className={`studio-canvas ${device}`} onWheel={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          event.currentTarget.scrollTop += event.deltaY;
+        }} onDragOver={(event) => {
+          if (draggingSection === null) return;
+          event.preventDefault();
+          const bounds = event.currentTarget.getBoundingClientRect();
+          const edge = 110;
+          if (event.clientY < bounds.top + edge) event.currentTarget.scrollBy({ top: -22, behavior: "auto" });
+          else if (event.clientY > bounds.bottom - edge) event.currentTarget.scrollBy({ top: 22, behavior: "auto" });
+        }}>
           <article className={`studio-site-preview studio-preview-${site.template}`} style={{ "--studio-accent": site.accent } as React.CSSProperties}>
             <nav><strong>{site.businessName}</strong><div>{pages.filter((page) => page.visible).map((page) => <span className={page.id === activePage.id ? "active" : ""} key={page.id}>{page.title}</span>)}</div><button>İletişime geç <ArrowRight size={11} /></button></nav>
             <div className="studio-preview-sections">
@@ -310,11 +340,12 @@ export default function SiteEditorPage() {
                   onDragEnd: () => { setDraggingSection(null); setDragTargetSection(null); },
                 };
                 const dragClass = `${draggingSection === index ? " is-dragging" : ""}${dragTargetSection === index && draggingSection !== index ? " is-drag-target" : ""}`;
-                if (sectionId === "hero") return <section className={`studio-preview-hero studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions onDelete={() => removeSection(index)} onEdit={() => setPanel("design")} /><small>{activePage.title.toUpperCase()} · DROMOCOB SITES</small><h2>{activePage.type === "home" ? site.headline : `${activePage.title}, markamızın hikâyesini anlatır.`}</h2><p>Strateji, tasarım ve teknolojiyle kalıcı dijital deneyimler oluşturuyoruz.</p><i /></section>;
-                if (sectionId === "features") return <section className={`studio-preview-features studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions onDelete={() => removeSection(index)} /><p>YETKİNLİKLERİMİZ</p><h3>İşinizi ileri taşıyan sistemler.</h3><div><span>01<br/><b>Strateji</b></span><span>02<br/><b>Tasarım</b></span><span>03<br/><b>Teknoloji</b></span></div></section>;
-                if (sectionId === "gallery") return <section className={`studio-preview-gallery studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions onDelete={() => removeSection(index)} /><div /><div /><div /></section>;
-                if (sectionId === "contact") return <section className={`studio-preview-contact studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions onDelete={() => removeSection(index)} /><div><p>BİRLİKTE ÇALIŞALIM</p><h3>Yeni bir şey<br/>başlatalım.</h3></div><div><span>Ad soyad</span><span>E-posta</span><span>Mesajınız</span><button>Gönder</button></div></section>;
-                return <section className={`studio-preview-generic studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions onDelete={() => removeSection(index)} /><section><SectionIcon size={23} /><span><small>{section.name.toUpperCase()}</small><h3>{sectionId === "testimonials" ? "İş ortaklarımız anlatıyor." : "Net fikirler, güçlü sonuçlar."}</h3><p>{section.detail}. Bu alan düzenleyicide özelleştirilebilir içeriklerle yayınlanır.</p></span></section></section>;
+                const actionProps = { onDelete: () => removeSection(index), onMoveUp: index > 0 ? () => moveSection(index, index - 1) : undefined, onMoveDown: index < activePage.sections.length - 1 ? () => moveSection(index, index + 1) : undefined };
+                if (sectionId === "hero") return <section className={`studio-preview-hero studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} onEdit={() => setPanel("design")} /><small>{activePage.title.toUpperCase()} · DROMOCOB SITES</small><h2>{activePage.type === "home" ? site.headline : `${activePage.title}, markamızın hikâyesini anlatır.`}</h2><p>Strateji, tasarım ve teknolojiyle kalıcı dijital deneyimler oluşturuyoruz.</p><i /></section>;
+                if (sectionId === "features") return <section className={`studio-preview-features studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} /><p>YETKİNLİKLERİMİZ</p><h3>İşinizi ileri taşıyan sistemler.</h3><div><span>01<br/><b>Strateji</b></span><span>02<br/><b>Tasarım</b></span><span>03<br/><b>Teknoloji</b></span></div></section>;
+                if (sectionId === "gallery") return <section className={`studio-preview-gallery studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} /><div /><div /><div /></section>;
+                if (sectionId === "contact") return <section className={`studio-preview-contact studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} /><div><p>BİRLİKTE ÇALIŞALIM</p><h3>Yeni bir şey<br/>başlatalım.</h3></div><div><span>Ad soyad</span><span>E-posta</span><span>Mesajınız</span><button>Gönder</button></div></section>;
+                return <section className={`studio-preview-generic studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} /><section><SectionIcon size={23} /><span><small>{section.name.toUpperCase()}</small><h3>{sectionId === "testimonials" ? "İş ortaklarımız anlatıyor." : "Net fikirler, güçlü sonuçlar."}</h3><p>{section.detail}. Bu alan düzenleyicide özelleştirilebilir içeriklerle yayınlanır.</p></span></section></section>;
               })}
               <button className="studio-inline-add" onClick={() => setPanel("sections")}><Plus size={16} /> Bu sayfaya bölüm ekle</button>
             </div>
@@ -334,6 +365,6 @@ function PaletteIcon() {
   return <span className="palette-custom-icon"><i /><i /><i /></span>;
 }
 
-function BlockActions({ onDelete, onEdit }: { onDelete: () => void; onEdit?: () => void }) {
-  return <div className="studio-block-actions"><button className="studio-drag-handle" title="Bölümü sürükleyerek taşı"><GripVertical size={14} /></button><button title="Bölümü düzenle" onClick={onEdit}><Settings size={14} /></button><button title="Bölümü sil" onClick={onDelete}><Trash2 size={14} /></button></div>;
+function BlockActions({ onDelete, onEdit, onMoveUp, onMoveDown }: { onDelete: () => void; onEdit?: () => void; onMoveUp?: () => void; onMoveDown?: () => void }) {
+  return <div className="studio-block-actions"><button className="studio-drag-handle" title="Bölümü sürükleyerek taşı"><GripVertical size={14} /></button><button title="Yukarı taşı" disabled={!onMoveUp} onClick={onMoveUp}><ArrowUp size={14} /></button><button title="Aşağı taşı" disabled={!onMoveDown} onClick={onMoveDown}><ArrowDown size={14} /></button>{onEdit && <button title="Bölümü düzenle" onClick={onEdit}><Settings size={14} /></button>}<button title="Bölümü sil" onClick={onDelete}><Trash2 size={14} /></button></div>;
 }
