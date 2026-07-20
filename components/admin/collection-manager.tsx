@@ -30,6 +30,8 @@ import {
 import {
   Check,
   ChevronRight,
+  Copy,
+  ExternalLink,
   FileVideo2,
   Grid2X2,
   ImageIcon,
@@ -43,6 +45,8 @@ import {
   UploadCloud,
   X,
 } from "lucide-react";
+
+import Link from "next/link";
 
 import {
   db,
@@ -83,6 +87,16 @@ type UploadState = {
 
   fileName: string;
 };
+
+function slugify(value: string) {
+  return value
+    .toLocaleLowerCase("tr-TR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ı/g, "i")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
 
 type MediaFieldProps = {
   field: Field;
@@ -395,10 +409,19 @@ export default function CollectionManager({
       (snapshot) => {
         setRows(
           snapshot.docs.map(
-            (document) => ({
-              id: document.id,
-              ...document.data(),
-            })
+            (document) => {
+              const data = document.data();
+              return {
+                id: document.id,
+                ...data,
+                ...(collectionName === "projects" ? {
+                  coverUrl: data.coverUrl || data.coverImage || "",
+                  videoUrl: data.videoUrl || data.showreel || "",
+                  summary: data.summary || data.subtitle || "",
+                  slug: data.slug || slugify(String(data.title || "")),
+                } : {}),
+              };
+            }
           )
         );
       },
@@ -473,7 +496,7 @@ export default function CollectionManager({
             normalized
           );
         }
-      );
+      ).sort((first, second) => Number(first.order || 0) - Number(second.order || 0));
     }, [
       rows,
       queryText,
@@ -528,6 +551,46 @@ export default function CollectionManager({
         [key]: value,
       })
     );
+  }
+
+  function updateField(field: Field, value: unknown) {
+    setFormValues((current) => {
+      const next = { ...current, [field.key]: value };
+      if (collectionName === "projects" && field.key === "title" && (!current.slug || !editing)) {
+        next.slug = slugify(String(value || ""));
+      }
+      return next;
+    });
+  }
+
+  async function togglePublished(row: Row) {
+    try {
+      await updateDoc(doc(db, collectionName, row.id), {
+        active: row.active === false,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (toggleError) {
+      console.error(toggleError);
+      setError("Yayın durumu değiştirilemedi.");
+    }
+  }
+
+  async function duplicateRow(row: Row) {
+    try {
+      const { id, ...copy } = row;
+      void id;
+      delete copy.createdAt;
+      delete copy.updatedAt;
+      copy.title = `${String(row.title || row.name || "İçerik")} — Kopya`;
+      if (collectionName === "projects") copy.slug = `${String(row.slug || slugify(String(row.title || "proje")))}-kopya-${Date.now().toString().slice(-5)}`;
+      copy.active = false;
+      copy.order = rows.length + 1;
+      await addDoc(collection(db, collectionName), { ...copy, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+      setSuccess("Kayıt taslak olarak çoğaltıldı.");
+    } catch (copyError) {
+      console.error(copyError);
+      setError("Kayıt çoğaltılamadı.");
+    }
   }
 
   async function uploadMedia(
@@ -906,6 +969,18 @@ export default function CollectionManager({
         payload.quoteService = quoteService;
       }
 
+      if (collectionName === "projects") {
+        const title = String(payload.title || "").trim();
+        const slug = slugify(String(payload.slug || title));
+        const summary = String(payload.summary || "").trim();
+        if (!title || !slug || summary.length < 20) {
+          throw new Error("Proje adı, sayfa adresi ve en az 20 karakterlik kısa açıklama zorunlu.");
+        }
+        payload.title = title;
+        payload.slug = slug;
+        payload.summary = summary;
+      }
+
       if (editing) {
         await updateDoc(
           doc(
@@ -950,9 +1025,7 @@ export default function CollectionManager({
         saveError
       );
 
-      setError(
-        "Kayıt işlemi tamamlanamadı."
-      );
+      setError(saveError instanceof Error ? saveError.message : "Kayıt işlemi tamamlanamadı.");
     } finally {
       setSaving(false);
     }
@@ -1137,10 +1210,7 @@ export default function CollectionManager({
           onChange={(
             event
           ) =>
-            updateValue(
-              field.key,
-              event.target.value
-            )
+            updateField(field, event.target.value)
           }
         />
       );
@@ -1213,6 +1283,13 @@ export default function CollectionManager({
     );
   }
 
+  const projectStats = collectionName === "projects" ? [
+    ["Toplam proje", rows.length],
+    ["Yayında", rows.filter(row => row.active !== false).length],
+    ["Öne çıkan", rows.filter(row => row.featured === true).length],
+    ["Medya hazır", rows.filter(row => Boolean(row.coverUrl || row.coverImage)).length],
+  ] : [];
+
   return (
     <>
       <div className="studio-page-head">
@@ -1274,6 +1351,17 @@ export default function CollectionManager({
 
           {success}
         </div>
+      )}
+
+      {projectStats.length > 0 && (
+        <section className="project-admin-metrics" aria-label="Proje özeti">
+          {projectStats.map(([label, value], index) => (
+            <article key={String(label)}>
+              <span>0{index + 1}</span>
+              <div><strong>{value}</strong><small>{label}</small></div>
+            </article>
+          ))}
+        </section>
       )}
 
       <section className="studio-toolbar">
@@ -1503,6 +1591,20 @@ export default function CollectionManager({
                   </code>
 
                   <div className="studio-row-actions">
+                    {collectionName === "projects" && Boolean(row.slug) && (
+                      <Link href={`/projeler/${String(row.slug)}`} target="_blank" aria-label="Projeyi görüntüle">
+                        <ExternalLink size={16} />
+                      </Link>
+                    )}
+
+                    <button title={passive ? "Yayınla" : "Taslağa al"} onClick={() => togglePublished(row)}>
+                      <i className={`quick-state-dot ${passive ? "is-passive" : ""}`} />
+                    </button>
+
+                    <button title="Çoğalt" onClick={() => duplicateRow(row)}>
+                      <Copy size={16} />
+                    </button>
+
                     <button
                       onClick={() =>
                         start(row)
@@ -1644,6 +1746,11 @@ export default function CollectionManager({
                     </p>
 
                     <div>
+                      <button onClick={() => togglePublished(row)}>
+                        <i className={`quick-state-dot ${passive ? "is-passive" : ""}`} />
+                        {passive ? "Yayınla" : "Taslak"}
+                      </button>
+
                       <button
                         onClick={() =>
                           start(row)
@@ -1654,6 +1761,10 @@ export default function CollectionManager({
                         />
 
                         Düzenle
+                      </button>
+
+                      <button title="Çoğalt" onClick={() => duplicateRow(row)}>
+                        <Copy size={15} />
                       </button>
 
                       <button

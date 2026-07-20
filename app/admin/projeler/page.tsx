@@ -7,7 +7,7 @@ export default function AdminProjectsPage() {
       title="Projeler"
       fields={[
         {
-          key: "coverImage",
+          key: "coverUrl",
           label: "Proje kapak görseli",
           type: "image",
           fullWidth: true,
@@ -16,7 +16,7 @@ export default function AdminProjectsPage() {
         },
 
         {
-          key: "showreel",
+          key: "videoUrl",
           label: "Proje videosu",
           type: "video",
           fullWidth: true,
@@ -28,21 +28,28 @@ export default function AdminProjectsPage() {
           key: "title",
           label: "Proje adı",
           placeholder:
-            "AKC Oto Kılıf",
+            "Dromocob Web & Grafik Deneyimi",
+        },
+
+        {
+          key: "slug",
+          label: "Sayfa adresi",
+          placeholder: "dromocob-web-grafik",
+          helpText: "Başlıktan otomatik oluşturulur; gerekirse düzenleyebilirsin.",
         },
 
         {
           key: "category",
           label: "Kategori",
           placeholder:
-            "Web Development",
+            "Web Tasarım & Grafik",
         },
 
         {
-          key: "subtitle",
+          key: "summary",
           label: "Kısa açıklama",
           placeholder:
-            "Otomotiv sektörüne özel dijital deneyim.",
+            "Markanın dijital kimliğini web ve grafik tasarımla birleştiren yaratıcı deneyim.",
         },
 
         {

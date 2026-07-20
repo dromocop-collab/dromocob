@@ -3,22 +3,72 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, MapPin } from "lucide-react";
-import { getProjectCaseStudy, projectCaseStudies } from "@/lib/project-case-studies";
+import { getProjectCaseStudy, projectCaseStudies, type ProjectCaseStudy } from "@/lib/project-case-studies";
+import { adminDb } from "@/lib/firebase-admin";
 import { absoluteUrl, pageMetadata, siteName } from "@/lib/seo";
 
 type ProjectPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return projectCaseStudies.map(project => ({ slug: project.slug }));
 }
 
+async function getProject(slug: string): Promise<ProjectCaseStudy | undefined> {
+  const fallback = getProjectCaseStudy(slug);
+  if (fallback) return fallback;
+
+  try {
+    const snapshot = await adminDb.collection("projects").where("slug", "==", slug).where("active", "==", true).limit(1).get();
+    const data = snapshot.docs[0]?.data();
+    if (!data) return undefined;
+    const list = (value: unknown) => Array.isArray(value) ? value.map(String).filter(Boolean) : [];
+    const title = String(data.title || "Proje");
+    const category = String(data.category || "Dromocob projesi");
+    const summary = String(data.summary || data.subtitle || data.description || "Dromocob tarafından tasarlanan ve üretilen proje.");
+    const services = list(data.services);
+
+    return {
+      id: snapshot.docs[0].id,
+      slug,
+      title,
+      seoTitle: String(data.seoTitle || `${title} | Dromocob Projesi`),
+      category,
+      eyebrow: String(data.eyebrow || `${category} · Dromocob`),
+      summary,
+      description: String(data.description || summary),
+      coverUrl: String(data.coverUrl || data.coverImage || "/images/projects/digital-commerce-system.jpg"),
+      coverAlt: String(data.coverAlt || `${title} proje kapak görseli`),
+      year: Number(data.year || new Date().getFullYear()),
+      service: String(data.service || services.join(", ") || category),
+      location: String(data.location || "Türkiye geneli"),
+      challenge: String(data.challenge || "Projenin hedeflerini net, güçlü ve sürdürülebilir bir dijital deneyime dönüştürmek."),
+      solution: String(data.solution || data.description || summary),
+      outcomes: list(data.outcomes).length ? list(data.outcomes) : ["Markaya özel yaratıcı yaklaşım", "Ölçeklenebilir ve yönetilebilir teslim sistemi", "Yayın sonrası kullanıma hazır proje çıktıları"],
+      services: services.length ? services : [category],
+      process: Array.isArray(data.process) ? data.process.map((item: Record<string, unknown>) => ({ title: String(item.title || "Proje adımı"), description: String(item.description || "Planlanan kapsam kontrollü biçimde tamamlandı.") })) : [
+        { title: "Keşif", description: "Hedefler, ihtiyaçlar ve proje kapsamı netleştirildi." },
+        { title: "Tasarım", description: "Yaratıcı ve teknik yön proje hedeflerine göre geliştirildi." },
+        { title: "Üretim", description: "Onaylanan sistem planlı üretim akışıyla tamamlandı." },
+        { title: "Yayın", description: "Son kontroller ve teslim süreci tamamlandı." },
+      ],
+      deliverables: list(data.deliverables).length ? list(data.deliverables) : services,
+      relatedServiceUrl: String(data.relatedServiceUrl || "/iletisim"),
+      relatedServiceLabel: String(data.relatedServiceLabel || "Benzer bir proje için iletişime geç"),
+      keywords: list(data.keywords).length ? list(data.keywords) : [title, category, "Dromocob"],
+      faq: Array.isArray(data.faq) ? data.faq.map((item: Record<string, unknown>) => ({ question: String(item.question || "Proje hakkında bilgi alabilir miyim?"), answer: String(item.answer || "Detaylı bilgi için bizimle iletişime geçebilirsiniz.") })) : [],
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 export async function generateMetadata({ params }: ProjectPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const project = getProjectCaseStudy(slug);
+  const project = await getProject(slug);
   if (!project) return {};
 
   const base = pageMetadata({
@@ -50,7 +100,7 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
 
 export default async function ProjectDetailPage({ params }: ProjectPageProps) {
   const { slug } = await params;
-  const project = getProjectCaseStudy(slug);
+  const project = await getProject(slug);
   if (!project) notFound();
 
   const pageUrl = absoluteUrl(`/projeler/${project.slug}`);

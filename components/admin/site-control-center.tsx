@@ -171,10 +171,10 @@ export default function SiteControlCenter() {
         <button type="button" className="modal-close icon-button" onClick={() => setOpen(false)}><X/></button>
         <p className="admin-kicker">SECURE FLEET REGISTRATION</p>
         <h2>Yeni site bağla</h2>
-        <label>Proje adı<input name="name" required placeholder="AKC Oto Kılıf"/></label>
-        <label>Domain<input name="domain" required placeholder="akcotokilif.com"/></label>
-        <label>Control endpoint<input name="controlEndpoint" required placeholder="https://akcotokilif.com/api/dromocob-control"/></label>
-        <label>Health endpoint<input name="healthEndpoint" required placeholder="https://akcotokilif.com/api/health"/></label>
+        <label>Proje adı<input name="name" required placeholder="Dromocob Web & Grafik"/></label>
+        <label>Domain<input name="domain" required placeholder="dromocob.tr"/></label>
+        <label>Control endpoint<input name="controlEndpoint" required placeholder="https://dromocob.tr/api/dromocob-control"/></label>
+        <label>Health endpoint<input name="healthEndpoint" required placeholder="https://dromocob.tr/api/health"/></label>
         <label>Site Control Secret<input name="secret" type="password" minLength={40} required placeholder="openssl rand -hex 48 ile üret"/></label>
         <div className="admin-note">Secret Firestore&apos;da public site kaydına yazılmaz. Server-only secret koleksiyonunda tutulur.</div>
         <button className="button button-full" disabled={busy === "register"}>{busy === "register" ? "Bağlanıyor..." : "Control Center&apos;a ekle"}</button>
