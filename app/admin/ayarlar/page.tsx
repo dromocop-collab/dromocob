@@ -117,7 +117,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
     title: "Kısa bir bakım molasındayız",
     message: "Seni daha iyi bir deneyimle karşılamak için sistemde güncelleme yapıyoruz.",
     estimatedBackAt: "",
-    contactEmail: "info@dromocob.com",
+    contactEmail: "info@dromocob.tr",
     allowPaths: ["/admin", "/giris"],
   },
   features: {
@@ -426,7 +426,7 @@ export default function Page() {
           </div>
           <aside className="seo-preview-rail">
             <div className="seo-score-card"><div><span style={{ "--seo-score": `${seoScore * 3.6}deg` } as CSSProperties}><b>{seoScore}</b></span><div><small>SEO HEALTH</small><strong>{seoScore >= 80 ? "Mükemmel" : seoScore >= 60 ? "İyi" : "Geliştirilmeli"}</strong></div></div><p>Başlık, açıklama, indeksleme, schema ve doğrulama sinyallerine göre hesaplandı.</p></div>
-            <div className="serp-preview"><p>GOOGLE PREVIEW</p><span>{settings.seo.canonicalUrl || "https://dromocob.com"}</span><h3>{settings.seo.defaultTitle || "Dromocob"}</h3><div>{settings.seo.defaultDescription || "Meta açıklaması burada görünecek."}</div><small>{settings.seo.defaultTitle.length}/60 başlık · {settings.seo.defaultDescription.length}/160 açıklama</small></div>
+            <div className="serp-preview"><p>GOOGLE PREVIEW</p><span>{settings.seo.canonicalUrl || "https://dromocob.tr"}</span><h3>{settings.seo.defaultTitle || "Dromocob"}</h3><div>{settings.seo.defaultDescription || "Meta açıklaması burada görünecek."}</div><small>{settings.seo.defaultTitle.length}/60 başlık · {settings.seo.defaultDescription.length}/160 açıklama</small></div>
             <div className="og-preview"><p>SOCIAL PREVIEW</p><div className="og-preview-image" style={settings.seo.ogImage ? { backgroundImage: `url(${settings.seo.ogImage})` } : undefined}><span>1200 × 630</span></div><strong>{settings.seo.defaultTitle}</strong><small>{settings.seo.defaultDescription}</small></div>
             <div className="seo-checklist"><p>YAYIN KONTROLÜ</p>{[["Canonical URL",!!settings.seo.canonicalUrl],["OG görsel",!!settings.seo.ogImage],["Organization schema",settings.seo.structuredDataEnabled],["Sitemap",settings.seo.sitemapEnabled],["Google doğrulama",!!settings.seo.googleSiteVerification]].map(([label, ok]) => <div key={String(label)} className={ok ? "ok" : ""}><i/>{String(label)}<b>{ok ? "Hazır" : "Eksik"}</b></div>)}</div>
           </aside>

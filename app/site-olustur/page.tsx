@@ -173,7 +173,7 @@ function SiteBuilderContent() {
             <div className="publish-checklist">
               {["Mobil görünüm optimize edildi", "SSL güvenlik sertifikası hazır", "SEO ve sosyal paylaşım ayarları tamam", "Dromocob CDN aktif"].map((item) => <div key={item}><i><Check size={13} /></i><span>{item}</span></div>)}
             </div>
-            <label className="domain-field"><span>Site adresin</span><div><input value={subdomain} onChange={(event) => setSubdomain(event.target.value)} /><b>.dromocob.com</b></div></label>
+            <label className="domain-field"><span>Site adresin</span><div><input value={subdomain} onChange={(event) => setSubdomain(event.target.value)} /><b>.dromocob.tr</b></div></label>
             <div className="plan-summary"><span><Rocket size={17} /> Launch Plan</span><strong>₺0 <small>/ demo</small></strong><p>Bu demo hiçbir ödeme almadan yayın deneyimini gösterir.</p></div>
           </div>}
 
@@ -186,7 +186,7 @@ function SiteBuilderContent() {
 
         <section className="preview-stage">
           <div className="preview-toolbar">
-            <div><span className="preview-live"><i /> CANLI ÖNİZLEME</span><span className="preview-url"><Globe2 size={13} /> {safeSubdomain || "markan"}.dromocob.com</span></div>
+            <div><span className="preview-live"><i /> CANLI ÖNİZLEME</span><span className="preview-url"><Globe2 size={13} /> {safeSubdomain || "markan"}.dromocob.tr</span></div>
             <div className="device-toggle"><button className={device === "desktop" ? "active" : ""} onClick={() => setDevice("desktop")} aria-label="Masaüstü görünümü"><Monitor size={16} /></button><button className={device === "mobile" ? "active" : ""} onClick={() => setDevice("mobile")} aria-label="Mobil görünüm"><Smartphone size={16} /></button></div>
           </div>
           <div className={`site-canvas-wrap ${device}`}>
@@ -211,7 +211,7 @@ function SiteBuilderContent() {
         <div className="launch-orbit"><span><Rocket size={25} /></span></div>
         <p>YAYINA HAZIR</p><h2 id="publish-title">Siten harika görünüyor.</h2>
         <span>Demo tamamlandı. Gerçek yayına geçmek, içeriklerini kaydetmek ve alan adını yönetmek için hesabını oluştur.</span>
-        <div className="published-address"><Globe2 size={17} /><strong>{safeSubdomain || "markan"}.dromocob.com</strong><i><Check size={13} /></i></div>
+        <div className="published-address"><Globe2 size={17} /><strong>{safeSubdomain || "markan"}.dromocob.tr</strong><i><Check size={13} /></i></div>
         <Link className="builder-primary" href="/kayit">Ücretsiz hesabı oluştur <ArrowRight size={16} /></Link>
         <button className="modal-secondary" onClick={() => setPublished(false)}>Tasarıma dön</button>
       </section></div>}

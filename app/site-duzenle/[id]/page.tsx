@@ -71,11 +71,18 @@ const defaultSettings: CustomerSiteSettings = {
 
 type Panel = "pages" | "sections" | "design" | "settings" | "analytics";
 type Device = "desktop" | "mobile";
+type ActivationPlan = "launch" | "business" | "scale";
+
+const activationPlans = [
+  { id: "launch" as const, name: "Launch", price: 1490, description: "Yeni markalar için güçlü başlangıç", features: [".dromocob.tr adresi", "SSL ve güvenlik", "Temel SEO", "Aylık yedekleme"] },
+  { id: "business" as const, name: "Business", price: 2490, description: "Büyüyen işletmeler için tam sistem", features: ["Launch planındaki her şey", "Analytics ve dönüşüm", "Form ve lead yönetimi", "Öncelikli destek"] },
+  { id: "scale" as const, name: "Scale", price: 4490, description: "Yoğun trafik ve kurumsal operasyon", features: ["Business planındaki her şey", "Gelişmiş performans", "Aylık optimizasyon", "Özel danışman"] },
+];
 
 export default function SiteEditorPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [site, setSite] = useState<CustomerSiteRecord | null>(null);
   const [pages, setPages] = useState<CustomerSitePage[]>(defaultPages);
   const [settings, setSettings] = useState<CustomerSiteSettings>(defaultSettings);
@@ -92,6 +99,13 @@ export default function SiteEditorPage() {
   const [previewOnly, setPreviewOnly] = useState(false);
   const [draggingSection, setDraggingSection] = useState<number | null>(null);
   const [dragTargetSection, setDragTargetSection] = useState<number | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [activationStep, setActivationStep] = useState<1 | 2 | 3>(1);
+  const [activationPlan, setActivationPlan] = useState<ActivationPlan>("business");
+  const [annualBilling, setAnnualBilling] = useState(true);
+  const [activationBusy, setActivationBusy] = useState(false);
+  const [activationError, setActivationError] = useState("");
+  const [activationReference, setActivationReference] = useState("");
 
   const activePage = pages.find((page) => page.id === activePageId) ?? pages[0];
 
@@ -187,6 +201,39 @@ export default function SiteEditorPage() {
     }
   }
 
+  async function requestActivation() {
+    if (!site || !user) return;
+    setActivationBusy(true);
+    setActivationError("");
+    const selected = activationPlans.find((plan) => plan.id === activationPlan) ?? activationPlans[1];
+    const total = annualBilling ? selected.price * 10 : selected.price;
+    try {
+      const response = await fetch("/api/public/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "quote",
+          service: "web",
+          serviceLabel: `Dromocob Sites Aktivasyonu — ${selected.name}`,
+          quoteVersion: "site-activation-v1",
+          estimatedPrice: total,
+          sourcePath: `/site-duzenle/${site.id}`,
+          contact: { name: profile?.displayName || user.displayName || "Dromocob müşterisi", company: profile?.company || site.businessName, email: user.email || "", phone: profile?.phone || "", city: profile?.city || "", preferredContact: "E-posta" },
+          answers: { siteId: site.id, subdomain: site.subdomain, plan: selected.name, billing: annualBilling ? "annual" : "monthly" },
+          notes: [`Site: ${site.businessName}`, `Adres: ${site.subdomain}.dromocob.tr`, `Plan: ${selected.name}`, `Dönem: ${annualBilling ? "Yıllık" : "Aylık"}`],
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.message || "Aktivasyon talebi oluşturulamadı.");
+      setActivationReference(String(payload?.referenceId || "DC-ACTIVE"));
+      setActivationStep(3);
+    } catch (activationRequestError) {
+      setActivationError(activationRequestError instanceof Error ? activationRequestError.message : "Aktivasyon talebi oluşturulamadı.");
+    } finally {
+      setActivationBusy(false);
+    }
+  }
+
   if (authLoading || loading) return <div className="studio-loading"><Loader2 className="spin" /><span>Kurumsal Site Studio hazırlanıyor</span></div>;
 
   if (!site) return <main className="studio-load-error"><div><ShieldCheck size={30} /><p>SITE STUDIO</p><h1>Editör açılamadı.</h1><span>{error || "Site kaydı yüklenemedi."}</span><div><button onClick={() => { setLoading(true); setError(""); setRetryKey((current) => current + 1); }}>Tekrar dene</button><Link href="/sitelerim">Sitelerime dön</Link></div></div></main>;
@@ -194,8 +241,8 @@ export default function SiteEditorPage() {
   return <main className="site-studio">
     <header className="studio-topbar">
       <div className="studio-brand"><Link href="/sitelerim" aria-label="Sitelerime dön"><ArrowLeft size={17} /></Link><b>DC</b><span><strong>DROMOCOB</strong><small>SITES STUDIO · ENTERPRISE</small></span></div>
-      <div className="studio-site-meta"><span><i /> YAYINDA</span><strong>{site.businessName}</strong><small>{site.subdomain}.dromocob.com</small></div>
-      <div className="studio-actions"><Link className="studio-icon-button" href="/iletisim" title="Yardım"><CircleHelp size={17} /></Link><button className="studio-preview-button" onClick={() => setPreviewOnly((current) => !current)}><Eye size={16} /> {previewOnly ? "Düzenleyici" : "Önizle"}</button><button className="studio-save-button" onClick={saveChanges} disabled={saving}>{saving ? <Loader2 className="spin" size={16} /> : saved ? <Check size={16} /> : <Save size={16} />}{saving ? "Kaydediliyor" : saved ? "Kaydedildi" : "Kaydet"}</button><button className="studio-publish-button" onClick={saveChanges} disabled={saving}><Rocket size={16} /> Yayınla</button></div>
+      <div className="studio-site-meta"><span><i /> YAYINDA</span><strong>{site.businessName}</strong><small>{site.subdomain}.dromocob.tr</small></div>
+      <div className="studio-actions"><Link className="studio-icon-button" href="/iletisim" title="Yardım"><CircleHelp size={17} /></Link><button className="studio-preview-button" onClick={() => setPreviewOnly((current) => !current)}><Eye size={16} /> {previewOnly ? "Düzenleyici" : "Önizle"}</button><button className="studio-save-button" onClick={saveChanges} disabled={saving}>{saving ? <Loader2 className="spin" size={16} /> : saved ? <Check size={16} /> : <Save size={16} />}{saving ? "Kaydediliyor" : saved ? "Kaydedildi" : "Kaydet"}</button><button className="studio-publish-button" onClick={() => setUpgradeOpen(true)}><Rocket size={16} /> Canlıya al</button></div>
     </header>
 
     <div className={`studio-layout ${previewOnly ? "preview-only" : ""}`}>
@@ -217,7 +264,7 @@ export default function SiteEditorPage() {
             {pages.map((page) => <button key={page.id} className={activePage.id === page.id ? "active" : ""} onClick={() => setActivePageId(page.id)}><GripVertical size={14} /><i>{page.type === "home" ? <Home size={15} /> : page.type === "contact" ? <Contact size={15} /> : <FileText size={15} />}</i><span><strong>{page.title}</strong><small>{page.slug}</small></span>{!page.visible && <Eye size={13} />}<MoreHorizontal size={15} /></button>)}
           </div>
           <button className="studio-add-page" onClick={() => setAddPageOpen(true)}><Plus size={16} /><span><strong>Yeni sayfa ekle</strong><small>Boş veya hazır şablondan</small></span><ChevronRight size={16} /></button>
-          <section className="studio-page-settings"><p>SAYFA AYARLARI</p><label>Sayfa adı<input value={activePage.title} onChange={(event) => updateActivePage({ title: event.target.value })} /></label><label>URL adresi<div><span>{site.subdomain}.dromocob.com</span><input value={activePage.slug} onChange={(event) => updateActivePage({ slug: event.target.value })} /></div></label><button onClick={() => updateActivePage({ visible: !activePage.visible })}>{activePage.visible ? <ToggleRight /> : <ToggleLeft />} Navigasyonda göster</button>{activePage.type !== "home" && <button className="studio-delete-page" onClick={removePage}><Trash2 size={15} /> Sayfayı sil</button>}</section>
+          <section className="studio-page-settings"><p>SAYFA AYARLARI</p><label>Sayfa adı<input value={activePage.title} onChange={(event) => updateActivePage({ title: event.target.value })} /></label><label>URL adresi<div><span>{site.subdomain}.dromocob.tr</span><input value={activePage.slug} onChange={(event) => updateActivePage({ slug: event.target.value })} /></div></label><button onClick={() => updateActivePage({ visible: !activePage.visible })}>{activePage.visible ? <ToggleRight /> : <ToggleLeft />} Navigasyonda göster</button>{activePage.type !== "home" && <button className="studio-delete-page" onClick={removePage}><Trash2 size={15} /> Sayfayı sil</button>}</section>
         </>}
 
         {panel === "sections" && <>
@@ -247,6 +294,7 @@ export default function SiteEditorPage() {
 
       <section className="studio-canvas-shell">
         <div className="studio-canvas-toolbar"><div className="studio-breadcrumb"><Home size={14} /><ChevronRight size={13} /><strong>{activePage.title}</strong><ChevronDown size={13} /></div><div className="studio-device-toggle"><button className={device === "desktop" ? "active" : ""} onClick={() => setDevice("desktop")}><Monitor size={16} /></button><button className={device === "mobile" ? "active" : ""} onClick={() => setDevice("mobile")}><Smartphone size={16} /></button></div><span><i /> Otomatik kayıt aktif</span></div>
+        <div className="studio-upgrade-bar"><div><span><Sparkles size={15} /></span><p><strong>Tasarımın hazır — şimdi gerçek müşterilerinle buluştur.</strong><small>Özel alan adı, SSL, yüksek hızlı yayın ve Dromocob desteğiyle siteni canlıya al.</small></p></div><button onClick={() => setUpgradeOpen(true)}>Siteyi canlıya al <ArrowRight size={15} /></button></div>
         <div className={`studio-canvas ${device}`}>
           <article className={`studio-site-preview studio-preview-${site.template}`} style={{ "--studio-accent": site.accent } as React.CSSProperties}>
             <nav><strong>{site.businessName}</strong><div>{pages.filter((page) => page.visible).map((page) => <span className={page.id === activePage.id ? "active" : ""} key={page.id}>{page.title}</span>)}</div><button>İletişime geç <ArrowRight size={11} /></button></nav>
@@ -272,11 +320,12 @@ export default function SiteEditorPage() {
             </div>
           </article>
         </div>
-        <footer className="studio-statusbar"><span><Globe2 size={13} /> {site.subdomain}.dromocob.com{activePage.slug === "/" ? "" : activePage.slug}</span><span><ShieldCheck size={13} /> SSL aktif</span><span><Users size={13} /> 1 düzenleyici</span><b>v1.0</b></footer>
+        <footer className="studio-statusbar"><span><Globe2 size={13} /> {site.subdomain}.dromocob.tr{activePage.slug === "/" ? "" : activePage.slug}</span><span><ShieldCheck size={13} /> SSL aktif</span><span><Users size={13} /> 1 düzenleyici</span><b>v1.0</b></footer>
       </section>
     </div>
 
-    {addPageOpen && <div className="studio-modal-backdrop" onMouseDown={() => setAddPageOpen(false)}><section className="studio-add-modal" onMouseDown={(event) => event.stopPropagation()}><button className="studio-modal-close" onClick={() => setAddPageOpen(false)}><X size={17} /></button><p>YENİ SAYFA</p><h2>Site mimarisini büyüt.</h2><span>Yeni sayfa navigasyona eklenir ve kurumsal bloklarla düzenlenebilir.</span><label>Sayfa adı<input autoFocus value={newPageTitle} onChange={(event) => setNewPageTitle(event.target.value)} placeholder="Örn. Hizmetlerimiz" /></label><div className="studio-slug-preview"><Globe2 size={14} /> {site.subdomain}.dromocob.com{pageSlug}</div><div className="studio-page-template-row"><button className="selected"><FileText size={19} /><strong>Standart sayfa</strong><small>Hero + içerik</small><Check size={14} /></button><button><LayoutGrid size={19} /><strong>Boş sayfa</strong><small>Sıfırdan oluştur</small></button></div><button className="studio-create-page" onClick={addPage} disabled={!newPageTitle.trim()}>Sayfayı oluştur <ArrowRight size={16} /></button></section></div>}
+    {addPageOpen && <div className="studio-modal-backdrop" onMouseDown={() => setAddPageOpen(false)}><section className="studio-add-modal" onMouseDown={(event) => event.stopPropagation()}><button className="studio-modal-close" onClick={() => setAddPageOpen(false)}><X size={17} /></button><p>YENİ SAYFA</p><h2>Site mimarisini büyüt.</h2><span>Yeni sayfa navigasyona eklenir ve kurumsal bloklarla düzenlenebilir.</span><label>Sayfa adı<input autoFocus value={newPageTitle} onChange={(event) => setNewPageTitle(event.target.value)} placeholder="Örn. Hizmetlerimiz" /></label><div className="studio-slug-preview"><Globe2 size={14} /> {site.subdomain}.dromocob.tr{pageSlug}</div><div className="studio-page-template-row"><button className="selected"><FileText size={19} /><strong>Standart sayfa</strong><small>Hero + içerik</small><Check size={14} /></button><button><LayoutGrid size={19} /><strong>Boş sayfa</strong><small>Sıfırdan oluştur</small></button></div><button className="studio-create-page" onClick={addPage} disabled={!newPageTitle.trim()}>Sayfayı oluştur <ArrowRight size={16} /></button></section></div>}
+    {upgradeOpen && <div className="studio-modal-backdrop" onMouseDown={() => setUpgradeOpen(false)}><section className={`studio-upgrade-modal activation-step-${activationStep}`} onMouseDown={(event) => event.stopPropagation()}><button className="studio-modal-close" onClick={() => setUpgradeOpen(false)}><X size={17} /></button>{activationStep === 1 && <><div className="studio-upgrade-orb"><Rocket size={25} /></div><p>YAYIN AKTİVASYON MERKEZİ</p><h2>Tasarımını gerçek bir<br/>iş aracına dönüştür.</h2><span>Demo adresini aktif yayına taşı; müşterilerin seni bulsun, formlar çalışsın ve markan profesyonel bir altyapıda büyüsün.</span><div className="studio-upgrade-benefits"><div><Check size={14} /><strong>{site.subdomain}.dromocob.tr</strong><small>Yayına hazır site adresi</small></div><div><ShieldCheck size={14} /><strong>SSL + Güvenlik</strong><small>Kurumsal koruma katmanı</small></div><div><BarChart3 size={14} /><strong>Analytics</strong><small>Ziyaretçi ve dönüşüm ölçümü</small></div></div><button className="studio-upgrade-cta" onClick={() => setActivationStep(2)}>Yayın planını yapılandır <ArrowRight size={16} /></button><button className="studio-upgrade-later" onClick={() => setUpgradeOpen(false)}>Şimdilik düzenlemeye devam et</button></>}{activationStep === 2 && <><div className="activation-head"><button onClick={() => setActivationStep(1)}><ArrowLeft size={15} /> Geri</button><p>02 / PLAN VE DÖNEM</p><h2>Yayın altyapını seç.</h2><span>İhtiyacına uygun kapasiteyi seç; ekibimiz aktivasyonu kontrol ederek başlatsın.</span></div><div className="activation-billing"><button className={!annualBilling ? "active" : ""} onClick={() => setAnnualBilling(false)}>Aylık</button><button className={annualBilling ? "active" : ""} onClick={() => setAnnualBilling(true)}>Yıllık <small>2 AY AVANTAJ</small></button></div><div className="activation-plans">{activationPlans.map((plan) => <button key={plan.id} className={activationPlan === plan.id ? "selected" : ""} onClick={() => setActivationPlan(plan.id)}><span>{plan.name === "Business" && "ÖNERİLEN"}</span><div><strong>{plan.name}</strong><small>{plan.description}</small></div><b>₺{(annualBilling ? plan.price * 10 : plan.price).toLocaleString("tr-TR")} <small>+ KDV / {annualBilling ? "yıl" : "ay"}</small></b><ul>{plan.features.map((feature) => <li key={feature}><Check size={12} /> {feature}</li>)}</ul><i>{activationPlan === plan.id ? <Check size={14} /> : null}</i></button>)}</div><div className="activation-summary"><span><Globe2 size={15} /> {site.subdomain}.dromocob.tr</span><strong>{activationPlans.find((plan) => plan.id === activationPlan)?.name} · {annualBilling ? "Yıllık" : "Aylık"}</strong></div>{activationError && <div className="activation-error">{activationError}</div>}<button className="studio-upgrade-cta" onClick={requestActivation} disabled={activationBusy}>{activationBusy ? <Loader2 className="spin" size={16} /> : <Rocket size={16} />}{activationBusy ? "Talep oluşturuluyor" : "Aktivasyon talebini onayla"}</button><small className="activation-legal">Bu adım doğrudan ödeme almaz. Dromocob ekibi kapsam ve ödeme bağlantısını hesabına iletir.</small></>}{activationStep === 3 && <div className="activation-success"><div><Check size={28} /></div><p>AKTİVASYON TALEBİ ALINDI</p><h2>Siten için yayın sırası oluşturuldu.</h2><span>Ekibimiz altyapı ve alan adı kontrollerini tamamlayıp hesabın üzerinden seninle iletişime geçecek.</span><section><small>TALEP REFERANSI</small><strong>{activationReference}</strong></section><button className="studio-upgrade-cta" onClick={() => { setUpgradeOpen(false); setActivationStep(1); }}>Studio&apos;ya dön <ArrowRight size={16} /></button></div>}</section></div>}
     {error && <div className="studio-error">{error}</div>}
   </main>;
 }

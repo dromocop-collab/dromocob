@@ -62,7 +62,7 @@ export default function MySitesPage() {
         <div className="my-site-info">
           <div><span className="my-site-status"><i /> YAYINDA</span><span>{templateNames[site.template]}</span></div>
           <h2>{site.businessName}</h2>
-          <a href={`https://${site.subdomain}.dromocob.com`} target="_blank" rel="noreferrer"><Globe2 size={13} /> {site.subdomain}.dromocob.com <ExternalLink size={12} /></a>
+          <a href={`https://${site.subdomain}.dromocob.tr`} target="_blank" rel="noreferrer"><Globe2 size={13} /> {site.subdomain}.dromocob.tr <ExternalLink size={12} /></a>
           <div className="my-site-actions"><Link href={`/site-duzenle/${site.id}`}><Settings2 size={15} /> Siteyi düzenle</Link><Link href={`/site-duzenle/${site.id}`} aria-label={`${site.businessName} sitesini aç`}><ArrowRight size={16} /></Link></div>
         </div>
       </article>)}
