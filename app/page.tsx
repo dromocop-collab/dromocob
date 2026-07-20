@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, Bot, Camera, Code2, Film, Gauge, Layers3, Play, Radar, Sparkles } from "lucide-react";
 import ProjectGrid from "@/components/project-grid";
 import PackageGrid from "@/components/package-grid";
+import GrowthDiagnostic from "@/components/growth-diagnostic";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -83,7 +84,9 @@ export default function Home() {
         <ProjectGrid />
       </section>
 
-      <section className="section dark-panel home-packages">
+      <GrowthDiagnostic />
+
+      <section className="section dark-panel home-packages" id="paket-sistemleri">
         <div className="section-head"><div><p className="eyebrow"><Sparkles size={15}/> Akıllı hizmet mimarisi</p><h2>Hazır paket değil.<br/><em>Doğru kombinasyon.</em></h2></div><p>İhtiyacına göre kapsamı şekillendir, dinamik teklif motoru yaklaşık bütçeyi anında hesaplasın.</p></div>
         <PackageGrid />
       </section>

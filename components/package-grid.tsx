@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { ArrowUpRight, Check, Clock3, Headphones, RefreshCw, ShieldCheck } from "lucide-react";
 import { fetchActivePackages, fallbackPackages } from "@/lib/data";
 import type { ServicePackage } from "@/lib/types";
@@ -10,19 +11,72 @@ export default function PackageGrid() {
   const [packages, setPackages] = useState<ServicePackage[]>(fallbackPackages);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteService, setQuoteService] = useState<ServicePackage["quoteService"]>();
+  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchActivePackages().then(setPackages);
   }, []);
 
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (!grid) return;
+
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>(".package-card"));
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      }),
+      { threshold: 0.14 }
+    );
+
+    cards.forEach(card => observer.observe(card));
+    return () => observer.disconnect();
+  }, [packages]);
+
+  const trackCardLight = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType === "touch") return;
+    const card = event.currentTarget;
+    const bounds = card.getBoundingClientRect();
+    const x = event.clientX - bounds.left;
+    const y = event.clientY - bounds.top;
+    const rotateY = ((x / bounds.width) - 0.5) * 4;
+    const rotateX = (0.5 - (y / bounds.height)) * 4;
+
+    card.style.setProperty("--pointer-x", `${x}px`);
+    card.style.setProperty("--pointer-y", `${y}px`);
+    card.style.setProperty("--rotate-x", `${rotateX}deg`);
+    card.style.setProperty("--rotate-y", `${rotateY}deg`);
+  };
+
+  const resetCardLight = (event: ReactPointerEvent<HTMLElement>) => {
+    event.currentTarget.style.setProperty("--rotate-x", "0deg");
+    event.currentTarget.style.setProperty("--rotate-y", "0deg");
+  };
+
   return (
     <>
-      <div className="package-grid">
+      <div className="package-grid" ref={gridRef}>
         {packages.map((item, index) => (
-          <article className={`package-card ${item.featured ? "featured-card" : ""} ${item.theme ? `theme-${item.theme}` : ""}`} key={item.id}>
-            <div className="package-card-topline"><span>0{index + 1}</span><i>DC / SYSTEM</i></div>
+          <article
+            className={`package-card ${item.featured ? "featured-card" : ""} ${item.theme ? `theme-${item.theme}` : ""}`}
+            key={item.id}
+            onPointerMove={trackCardLight}
+            onPointerLeave={resetCardLight}
+            style={{ "--card-order": index } as CSSProperties}
+          >
+            <div className="package-card-aurora" aria-hidden="true" />
+            <div className="package-card-orbit" aria-hidden="true"><i /><i /></div>
+            <div className="package-card-topline">
+              <span>0{index + 1}</span>
+              <span className="package-card-status">
+                {item.badge && <b className="badge">{item.badge}</b>}
+                <i>DC / SYSTEM</i>
+              </span>
+            </div>
             {item.image && <div className="package-visual" style={{ backgroundImage: `linear-gradient(180deg, transparent, rgba(0,0,0,.48)), url(${item.image})` }} />}
-            {item.badge && <span className="badge">{item.badge}</span>}
             <p className="eyebrow">{item.subtitle}</p>
             <h3>{item.title}</h3>
             <div className="package-price-label">Başlangıç yatırımı</div>

@@ -498,7 +498,7 @@ export default function LiveChat() {
        * Önce mesajı oluşturuyoruz.
        * Rules senderUid ile auth.uid eşleşmesini bekliyor.
        */
-      await addDoc(
+      const messageReference = await addDoc(
         collection(
           db,
           "chat_sessions",
@@ -527,6 +527,24 @@ export default function LiveChat() {
 
       setText("");
       setStatus("ready");
+
+      try {
+        const idToken = await currentUser.getIdToken();
+        const notificationResponse = await fetch("/api/public/chat-notification", {
+          method: "POST",
+          headers: {
+            authorization: `Bearer ${idToken}`,
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ sessionId, messageId: messageReference.id }),
+        });
+
+        if (!notificationResponse.ok) {
+          console.warn("[DROMOCOB CHAT] Email notification could not be queued.");
+        }
+      } catch (notificationError) {
+        console.warn("[DROMOCOB CHAT] Email notification error:", notificationError);
+      }
     } catch (error) {
       if (getErrorCode(error) !== "permission-denied") {
         console.warn(
@@ -585,9 +603,7 @@ export default function LiveChat() {
               <span>
                 <i aria-hidden="true" />
 
-                {status === "initializing"
-                  ? "Bağlanıyor..."
-                  : status === "error"
+                {status === "error"
                     ? "Bağlantı sorunu"
                     : "Çevrimiçi"}
               </span>
@@ -613,17 +629,6 @@ export default function LiveChat() {
               Selam 👋 Projen için buradayım. Ne inşa
               etmek istiyorsun?
             </div>
-
-            {status === "initializing" && (
-              <div className="chat-system-message">
-                <LoaderCircle
-                  size={17}
-                  className="chat-spinner"
-                  aria-hidden="true"
-                />
-                Canlı destek bağlantısı kuruluyor...
-              </div>
-            )}
 
             {messages.map((message) => (
               <div
@@ -681,7 +686,7 @@ export default function LiveChat() {
               placeholder={
                 isReady
                   ? "Mesajını yaz..."
-                  : "Bağlantı bekleniyor..."
+                  : "Mesaj alanı hazırlanıyor..."
               }
               maxLength={MAX_MESSAGE_LENGTH}
               disabled={!isReady || isSending}

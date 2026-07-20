@@ -21,7 +21,7 @@ export default function VideoProductionPage() {
     { src: "/images/services/gm-24-70-lens.webp", title: "Sony 24–70mm G Master", detail: "Keskin, hızlı ve çok yönlü profesyonel optik sistem.", alt: "Sony 24-70mm G Master profesyonel kamera lensi" },
     { src: "/images/services/atomos-field-monitor.webp", title: "Atomos Field Monitor", detail: "Sette hassas kadraj, pozlama ve renk takibi.", alt: "Atomos profesyonel saha monitörü ve video kayıt sistemi" },
     { src: "/images/services/dji-mic-2-wireless.webp", title: "DJI Mic 2", detail: "Röportaj ve hareketli çekimler için temiz kablosuz ses.", alt: "DJI Mic 2 kablosuz mikrofon prodüksiyon ses sistemi" },
-    { src: "/images/services/dji-rs3-gimbal.webp", title: "DJI RS 3 Gimbal", detail: "Akıcı kamera hareketleri ve kontrollü dinamik çekimler.", alt: "DJI RS 3 kamera gimbalı ile akıcı video çekimi" },
+    { src: "/images/services/dji-rs3-gimbal.webp", title: "DJI RS 4 Gimbal", detail: "Akıcı kamera hareketleri ve kontrollü dinamik çekimler.", alt: "DJI RS 4 kamera gimbalı ile akıcı video çekimi" },
     { src: "/images/services/cinema-lighting-system.webp", title: "Cinema Lighting System", detail: "COB, softbox ve RGB ışıklarla kontrollü sinematik atmosfer.", alt: "Profesyonel COB softbox RGB sinema ışık sistemi" },
     { src: "/images/services/dji-mini-5-pro-drone.webp", title: "DJI Mini 5 Pro", detail: "Kompakt yapıda yüksek kaliteli ve çevik hava görüntüleme.", alt: "DJI Mini 5 Pro drone ile profesyonel havadan video çekimi" },
     { src: "/images/services/dji-avata-2-fpv-drone.webp", title: "DJI Avata 2 FPV", detail: "Mekânın içine giren sürükleyici ve dinamik FPV planlar.", alt: "DJI Avata 2 FPV drone ile sinematik dinamik çekim" },
