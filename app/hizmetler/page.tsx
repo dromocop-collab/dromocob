@@ -4,10 +4,10 @@ import { ArrowRight } from "lucide-react";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
-  title: "Web Tasarım ve Video Prodüksiyon Hizmetleri",
+  title: "Web Sitesi, Web Yazılım ve Video Prodüksiyon Hizmetleri",
   description: "Türkiye genelinde kurumsal web tasarım, özel web yazılım, reklam filmi, tanıtım filmi, drone ve video prodüksiyon hizmetleri.",
   path: "/hizmetler",
-  keywords: ["web tasarım hizmetleri", "video prodüksiyon hizmetleri", "film yapım", "web yazılım"],
+  keywords: ["kurumsal web sitesi", "web sitesi yaptırma", "e-ticaret sitesi", "özel web yazılım", "kurumsal tanıtım filmi", "tanıtım videosu", "video prodüksiyon ajansı", "İstanbul"],
 });
 
 const services = [

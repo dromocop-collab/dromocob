@@ -6,7 +6,7 @@ export const metadata = pageMetadata({
   description:
     "Web, özel yazılım, e-ticaret, film prodüksiyonu ve dijital büyüme projeleri için Dromocob proje masasına ulaşın veya akıllı teklif oluşturun.",
   path: "/iletisim",
-  keywords: ["Dromocob iletişim", "kurumsal teklif al", "web tasarım teklifi", "film prodüksiyon teklifi", "proje başlat"],
+  keywords: ["web sitesi teklifi", "kurumsal web sitesi teklifi", "web tasarım fiyat teklifi", "tanıtım filmi teklifi", "video prodüksiyon teklifi", "kurumsal tanıtım videosu fiyat", "proje başlat"],
 });
 
 export default function ContactPage() {

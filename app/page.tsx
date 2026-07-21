@@ -8,11 +8,11 @@ import { pageMetadata } from "@/lib/seo";
 import QuoteLauncher from "@/components/quote-launcher";
 
 export const metadata = pageMetadata({
-  title: "Web Tasarım ve Video Prodüksiyon Ajansı | Türkiye",
+  title: "Kurumsal Web Sitesi ve Video Prodüksiyon",
   description:
-    "Markalar için sinematik film prodüksiyonu, yüksek dönüşümlü web deneyimleri, admin paneller ve dijital büyüme sistemleri.",
+    "Kurumsal web sitesi tasarımı, özel web yazılım, e-ticaret altyapısı, kurumsal tanıtım filmi ve video prodüksiyon hizmetleri.",
   path: "/",
-  keywords: ["film prodüksiyonu", "web tasarım", "büyüme sistemi"],
+  keywords: ["web sitesi yaptırma", "kurumsal web sitesi", "web tasarım ajansı", "kurumsal tanıtım filmi", "tanıtım videosu", "video prodüksiyon ajansı", "İstanbul web tasarım"],
 });
 
 export default function Home() {
@@ -23,7 +23,7 @@ export default function Home() {
         <div className="hero-copy">
           <div className="eyebrow"><span className="live-dot" /> İstanbul · Türkiye</div>
           <h1>Web tasarım & film.<br/><span>Hatırlananı</span> üret.</h1>
-          <p>Markalar için sinematik filmler, yüksek dönüşümlü web deneyimleri ve büyümeyi yöneten dijital sistemler tasarlıyorum.</p>
+          <p>Markalar için kurumsal web sitesi, e-ticaret ve özel yazılım altyapıları; sinematik tanıtım filmi ve video prodüksiyonları tasarlıyorum.</p>
           <div className="hero-actions">
             <Link className="button" href="/projeler">Projeleri İncele <ArrowRight size={18} /></Link>
             <Link className="text-link" href="/hakkimda"><Play size={15} /> Hikâyemi keşfet</Link>

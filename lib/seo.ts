@@ -5,21 +5,36 @@ export const siteName = "Dromocob";
 export const siteEmail = "info@dromocob.tr";
 export const sitePhone = "+905304788298";
 export const sitePhoneDisplay = "+90 530 478 82 98";
-export const defaultTitle = "Web Tasarım ve Video Prodüksiyon Ajansı | Türkiye";
+export const defaultTitle = "Kurumsal Web Sitesi ve Video Prodüksiyon | Türkiye";
 export const defaultDescription =
   "İstanbul merkezli Dromocob; markalar için sinematik film prodüksiyonu, yüksek performanslı web ürünleri, SEO ve ölçülebilir büyüme sistemleri geliştirir.";
 
 export const defaultKeywords = [
   "Dromocob",
   "Cihat Erdem",
+  "web sitesi",
+  "web sitesi tasarımı",
+  "web sitesi yaptırma",
   "kurumsal web sitesi",
+  "kurumsal web tasarım",
+  "kurumsal tanıtım sitesi",
+  "web tasarım ajansı",
+  "web yazılım ajansı",
+  "e-ticaret sitesi",
+  "özel web yazılım",
   "video prodüksiyon",
+  "kurumsal tanıtım filmi",
+  "kurumsal tanıtım videosu",
+  "reklam filmi çekimi",
+  "marka filmi",
+  "tanıtım filmi",
   "dijital büyüme",
   "Next.js web geliştirme",
   "Firebase admin panel",
-  "İstanbul yazılım",
-  "marka filmi",
+  "İstanbul web tasarım",
+  "İstanbul video prodüksiyon",
   "e-ticaret altyapısı",
+  "SEO uyumlu web sitesi",
 ];
 
 type SeoOptions = {

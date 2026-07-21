@@ -19,6 +19,17 @@ export default function SiteNav(){
     return ()=>window.removeEventListener("scroll",handleScroll);
   },[]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
+
   function isActive(href:string){
     return href==="/" ? pathname==="/" : pathname.startsWith(href);
   }

@@ -5,13 +5,13 @@ export const metadata = pageMetadata({
   title: "Video Prodüksiyon ve Film Yapım | Türkiye Geneli",
   description: "Türkiye genelinde reklam filmi, marka filmi, kurumsal tanıtım videosu, ürün çekimi ve sosyal medya video prodüksiyonu. Konseptten post prodüksiyona Dromocob.",
   path: "/hizmetler/video-film-produksiyon",
-  keywords: ["video prodüksiyon", "film yapım", "reklam filmi çekimi", "tanıtım filmi", "kurumsal video", "marka filmi", "Türkiye video prodüksiyon"],
+  keywords: ["video prodüksiyon", "video prodüksiyon ajansı", "kurumsal tanıtım filmi", "kurumsal tanıtım videosu", "tanıtım filmi çekimi", "reklam filmi çekimi", "marka filmi", "ürün tanıtım videosu", "sosyal medya video çekimi", "İstanbul video prodüksiyon", "Türkiye video prodüksiyon"],
 });
 
 const schema = { "@context": "https://schema.org", "@type": "Service", "@id": `${siteUrl}/hizmetler/video-film-produksiyon#service`, name: "Video Prodüksiyon ve Film Yapım", serviceType: "Video prodüksiyon, reklam filmi ve marka filmi yapımı", provider: { "@type": "ProfessionalService", "@id": `${siteUrl}/#organization`, name: siteName, url: siteUrl }, areaServed: { "@type": "Country", name: "Türkiye" }, url: absoluteUrl("/hizmetler/video-film-produksiyon"), description: "Reklam filmi, marka filmi, kurumsal tanıtım videosu, ürün çekimi ve sosyal medya içerik prodüksiyonu.", availableChannel: { "@type": "ServiceChannel", serviceUrl: absoluteUrl("/iletisim"), availableLanguage: "Turkish" } };
 
 export default function VideoProductionPage() {
-  return <ServiceLanding quoteService="video" path="/hizmetler/video-film-produksiyon" breadcrumbLabel="Video ve Film Prodüksiyon" eyebrow="Video prodüksiyon · Film yapım · Türkiye" title="İzlenen değil," accent="hatırlanan filmler." intro="Konsept ve senaryodan çekim, kurgu, renk ve ses tasarımına kadar markanızın hikâyesini sinematik, platforma uygun ve iş hedefiyle bağlantılı biçimde üretiyoruz." schema={schema} faqs={[
+  return <ServiceLanding quoteService="video" path="/hizmetler/video-film-produksiyon" breadcrumbLabel="Video ve Film Prodüksiyon" eyebrow="Kurumsal tanıtım filmi · Video prodüksiyon · Türkiye" title="İzlenen değil," accent="hatırlanan filmler." intro="Kurumsal tanıtım filmi, reklam filmi, ürün videosu ve sosyal medya içeriklerinde; konseptten çekim, kurgu, renk ve ses tasarımına kadar markanızın hikâyesini üretiyoruz." schema={schema} faqs={[
     { question: "Video prodüksiyon süreci nasıl ilerliyor?", answer: "Hedef ve dağıtım kanalları belirlendikten sonra konsept, senaryo, çekim planı, prodüksiyon ve post-prodüksiyon adımları yazılı kapsamla yürütülür." },
     { question: "Dikey ve yatay video teslim ediyor musunuz?", answer: "Evet. Ana filmin yanında ihtiyaca göre 16:9, 9:16 ve 1:1 platform adaptasyonları hazırlanabilir." },
     { question: "Drone ve FPV çekimi yapılabiliyor mu?", answer: "Projenin lokasyonu, hava koşulları ve yasal uçuş uygunluğu değerlendirildikten sonra sinematik drone veya FPV planları prodüksiyona eklenebilir." },
