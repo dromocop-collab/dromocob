@@ -83,15 +83,16 @@ export default async function RootLayout({children}:{children:React.ReactNode}) 
     getPublicSeoVerificationSettings(),
   ]);
 
-  return <html
-  lang="tr"
-  data-scroll-behavior="smooth"
-><head><Script
-  id="dromocob-consent-bootstrap"
-  strategy="beforeInteractive"
-  dangerouslySetInnerHTML={{ __html: getConsentBootstrapScript() }}
-/>{seoVerification.googleSiteVerification && <meta name="google-site-verification" content={seoVerification.googleSiteVerification}/>} {seoVerification.bingSiteVerification && <meta name="msvalidate.01" content={seoVerification.bingSiteVerification}/>} {seoVerification.yandexVerification && <meta name="yandex-verification" content={seoVerification.yandexVerification}/>}</head><body><script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": [organizationJsonLd, websiteJsonLd] }).replace(/</g, "\\u003c") }}
-/><AuthProvider><SiteRuntimeSettings initialTracking={initialTracking}>{children}</SiteRuntimeSettings></AuthProvider></body></html>;
+  return <html lang="tr" data-scroll-behavior="smooth">
+    <head>{[
+      <Script key="consent-bootstrap" id="dromocob-consent-bootstrap" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: getConsentBootstrapScript() }} />,
+      seoVerification.googleSiteVerification ? <meta key="google-verification" name="google-site-verification" content={seoVerification.googleSiteVerification} /> : null,
+      seoVerification.bingSiteVerification ? <meta key="bing-verification" name="msvalidate.01" content={seoVerification.bingSiteVerification} /> : null,
+      seoVerification.yandexVerification ? <meta key="yandex-verification" name="yandex-verification" content={seoVerification.yandexVerification} /> : null,
+    ]}</head>
+    <body>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": [organizationJsonLd, websiteJsonLd] }).replace(/</g, "\\u003c") }} />
+      <AuthProvider><SiteRuntimeSettings initialTracking={initialTracking}>{children}</SiteRuntimeSettings></AuthProvider>
+    </body>
+  </html>;
 }

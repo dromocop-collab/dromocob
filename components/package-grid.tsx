@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { ArrowUpRight, Check, Clock3, Headphones, RefreshCw, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { fetchActivePackages, fallbackPackages } from "@/lib/data";
+import { packageDetailPathById, packageQuoteServiceById } from "@/lib/package-details";
 import type { ServicePackage } from "@/lib/types";
 import QuoteWizard from "@/components/quote-wizard";
 
@@ -101,7 +103,8 @@ export default function PackageGrid() {
             </div>
             {item.guarantee && <p className="package-guarantee"><ShieldCheck size={17}/>{item.guarantee}</p>}
 
-            <button className="button button-full" onClick={() => { setQuoteService(item.quoteService); setQuoteOpen(true); }}>{item.cta || "Paketi Özelleştir"} <ArrowUpRight size={18} /></button>
+            {packageDetailPathById[item.id] && <Link className="package-detail-link" href={packageDetailPathById[item.id]}>Paket detaylarını incele <ArrowUpRight size={16}/></Link>}
+            <button className="button button-full" onClick={() => { setQuoteService(packageQuoteServiceById[item.id] || item.quoteService); setQuoteOpen(true); }}>{item.cta || "Paketi Özelleştir"} <ArrowUpRight size={18} /></button>
           </article>
         ))}
       </div>

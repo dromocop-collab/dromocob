@@ -284,8 +284,9 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
         </div>
       ) : (
         <>
+          {!isWorkspaceRoute && <a className="skip-link" href="#main-content">Ana içeriğe geç</a>}
           {!isWorkspaceRoute && <SiteNav />}
-          <main className={isWorkspaceRoute ? "admin-route-main" : undefined}>{children}</main>
+          <main id="main-content" className={isWorkspaceRoute ? "admin-route-main" : undefined}>{children}</main>
           {!isWorkspaceRoute && <SiteFooter />}
           {!isWorkspaceRoute && settings.features?.liveChatEnabled !== false && <LiveChat />}
           {!isWorkspaceRoute && trackingEnabled && <CookieConsent />}
