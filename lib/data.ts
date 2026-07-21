@@ -214,6 +214,26 @@ export const fallbackPackages: ServicePackage[] = [
     quoteService: "hybrid",
     active: true,
     order: 3
+  },
+  {
+    id: "emergency-drone",
+    title: "Acil Drone Operasyon",
+    subtitle: "Kurumsal hava görüntüleme · Hızlı planlama",
+    priceFrom: 18000,
+    description: "Etkinlik, tesis, şantiye, gayrimenkul ve kampanya ihtiyaçları için hızlı değerlendirme ve kontrollü drone çekim operasyonu.",
+    features: ["Hızlı proje ve lokasyon briefi", "Uçuş uygunluğu ve operasyon kontrolü", "Kurumsal hedef kare / rota planı", "Tesis, etkinlik ve proje çekimi", "Teslim formatı ve kanal adaptasyonu", "14 gün dosya erişim desteği"],
+    idealFor: ["Acil kurumsal çekim ihtiyacı", "Tesis ve şantiye sunumu", "Etkinlik ve lansman ekipleri"],
+    kpiFocus: ["Operasyon hızı", "Kullanılabilir hava görüntüsü", "Net teslim planı"],
+    deliveryTime: "Hızlı uygunluk",
+    supportWindow: "14 gün",
+    maxRevision: 1,
+    guarantee: "Çekim öncesi lokasyon, hava koşulları ve operasyon uygunluğunu teyit eden kontrollü planlama yaklaşımı.",
+    cta: "Acil Drone Çekimini Planla",
+    theme: "dark",
+    badge: "Hızlı operasyon",
+    quoteService: "video",
+    active: true,
+    order: 4
   }
 ];
 

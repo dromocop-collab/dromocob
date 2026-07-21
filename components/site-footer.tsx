@@ -97,7 +97,7 @@ export default function SiteFooter() {
           <div className="footer-status"><i/> Tüm sistemler aktif <small>UTC+3</small></div>
         </div>
 
-        <nav><p>Yetkinlikler</p><Link href="/hizmetler/web-tasarim">Web Tasarım <Code2/></Link><Link href="/hizmetler/video-film-produksiyon">Video & Film <Clapperboard/></Link><Link href="/paketler">Digital Flagship <Sparkles/></Link><Link href="/kurumsal">Growth Systems <ArrowUpRight/></Link></nav>
+        <nav><p>Yetkinlikler</p><Link href="/hizmetler/web-tasarim">Web Tasarım <Code2/></Link><Link href="/hizmetler/video-film-produksiyon">Video & Film <Clapperboard/></Link><Link href="/acil-drone-cekimi">Acil Drone Çekimi <ArrowUpRight/></Link><Link href="/paketler">Digital Flagship <Sparkles/></Link><Link href="/kurumsal">Growth Systems <ArrowUpRight/></Link></nav>
         <nav><p>Keşfet</p><Link href="/">Anasayfa</Link><Link href="/projeler">Projeler</Link><Link href="/hakkimda">Hakkımda</Link><Link href="/kurumsal">Kurumsal</Link><Link href="/iletisim">İletişim</Link></nav>
         <div className="footer-contact"><p>İletişim</p><a href={`mailto:${siteEmail}`}>{siteEmail} <ArrowUpRight/></a><a href={`tel:${sitePhone}`}>{sitePhoneDisplay} <ArrowUpRight/></a><span>İstanbul, Türkiye<br/>Türkiye geneli hizmet</span></div>
       </section>

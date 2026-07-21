@@ -11,6 +11,6 @@ export default function PackageQuoteLauncher({ packageId, children, className = 
 
   return <>
     <button type="button" className={className} aria-label={ariaLabel} onClick={() => setOpen(true)}>{children}</button>
-    {open && createPortal(<QuoteWizard open initialService={service} onClose={() => setOpen(false)} />, document.body)}
+    {open && createPortal(<QuoteWizard open initialService={service} initialPackageId={packageId} onClose={() => setOpen(false)} />, document.body)}
   </>;
 }

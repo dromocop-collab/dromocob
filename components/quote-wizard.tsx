@@ -93,14 +93,49 @@ const fallbackQuestions: QuoteQuestion[] = [
   ]}
 ];
 
-export default function QuoteWizard({ open, onClose, initialService }: { open: boolean; onClose(): void; initialService?: string }) {
-  const [questions, setQuestions] = useState<QuoteQuestion[]>(fallbackQuestions);
+const emergencyDroneQuestions: QuoteQuestion[] = [
+  { id: "drone-purpose", key: "dronePurpose", title: "Drone çekimini nerede kullanacaksınız?", subtitle: "Uçuş rotası, ekip ve teslim formatını kullanım alanına göre planlarız.", type: "single", active: true, order: 1, options: [
+    { label: "Tesis / fabrika / üretim sahası", value: "facility", priceDelta: 0 },
+    { label: "Şantiye / inşaat / proje takibi", value: "construction", priceDelta: 2000 },
+    { label: "Etkinlik / lansman / organizasyon", value: "event", priceDelta: 3000 },
+    { label: "Gayrimenkul / otel / turizm", value: "real-estate", priceDelta: 1500 },
+    { label: "Marka filmi / reklam / kampanya", value: "campaign", priceDelta: 4500 }
+  ]},
+  { id: "drone-timing", key: "droneTiming", title: "Çekim için zaman ihtiyacınız nedir?", subtitle: "Uygunluk, hava koşulları ve lokasyon değerlendirmesini buna göre önceliklendiririz.", type: "single", active: true, order: 2, options: [
+    { label: "Bugün / aynı gün uygunluk kontrolü", value: "same-day", priceDelta: 6000 },
+    { label: "1–3 gün içinde", value: "three-days", priceDelta: 3000 },
+    { label: "Bu hafta içinde", value: "this-week", priceDelta: 1000 },
+    { label: "Tarihi birlikte netleştirelim", value: "flexible", priceDelta: 0 }
+  ]},
+  { id: "drone-location", key: "droneLocation", title: "Çekim lokasyonu nasıl bir alan?", type: "single", active: true, order: 3, options: [
+    { label: "Tek lokasyon / erişimi kolay alan", value: "single", priceDelta: 0 },
+    { label: "Geniş tesis, şantiye veya açık saha", value: "large-site", priceDelta: 2500 },
+    { label: "Şehir içi yoğun alan / etkinlik alanı", value: "urban", priceDelta: 3500 },
+    { label: "Birden fazla lokasyon", value: "multi-location", priceDelta: 7000 }
+  ]},
+  { id: "drone-delivery", key: "droneDelivery", title: "Görüntüleri hangi amaçla teslim edelim?", subtitle: "Ham kayıt yerine, gerçekten kullanacağınız yayın düzenini baştan tanımlarız.", type: "multi", active: true, order: 4, options: [
+    { label: "Kurumsal film / sunum için seçili görüntüler", value: "corporate", priceDelta: 0 },
+    { label: "Web sitesi ve dijital kampanya kullanımı", value: "web", priceDelta: 1500 },
+    { label: "Dikey Reels / Shorts varyasyonları", value: "vertical", priceDelta: 3000 },
+    { label: "Kurgu ve renk düzenleme desteği", value: "post-production", priceDelta: 6500 }
+  ]},
+  { id: "drone-brief", key: "droneBrief", title: "Operasyon için hangi desteğe ihtiyacınız var?", type: "single", active: true, order: 5, options: [
+    { label: "Çekim planı ve rota önerisini siz hazırlayın", value: "full-plan", priceDelta: 2000 },
+    { label: "Ekibimizde brief ve çekim listesi hazır", value: "ready-brief", priceDelta: 0 },
+    { label: "Önce hızlı bir keşif görüşmesi yapalım", value: "discovery", priceDelta: 1000 }
+  ]}
+];
+
+export default function QuoteWizard({ open, onClose, initialService, initialPackageId }: { open: boolean; onClose(): void; initialService?: string; initialPackageId?: string }) {
+  const isEmergencyDrone = initialPackageId === "emergency-drone";
+  const [questions, setQuestions] = useState<QuoteQuestion[]>(isEmergencyDrone ? emergencyDroneQuestions : fallbackQuestions);
   const [rules, setRules] = useState<QuoteRule[]>([]);
-  const [step, setStep] = useState(initialService ? 1 : 0);
+  const [step, setStep] = useState(initialService && !isEmergencyDrone ? 1 : 0);
   const [answers, setAnswers] = useState<Record<string, string | string[] | number>>(
-    initialService ? { service: initialService } : {}
+    initialService ? { service: initialService, ...(isEmergencyDrone ? { package: "emergency-drone" } : {}) } : {}
   );
   const [result, setResult] = useState<{ price: number; notes: string[] } | null>(null);
+  const [contact, setContact] = useState({ name: "", company: "", email: "", phone: "", city: "", preferredContact: "Telefon" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -108,15 +143,23 @@ export default function QuoteWizard({ open, onClose, initialService }: { open: b
     fetchQuoteEngine().then(data => {
       const databaseKeys = new Set(data.questions.map(item => item.key));
       const isLegacyQuestionSet = data.questions.length <= 4 || (databaseKeys.has("service") && databaseKeys.has("extras"));
-      if (data.questions.length && !isLegacyQuestionSet) setQuestions(data.questions);
-      setRules(data.rules);
+      if (!isEmergencyDrone && data.questions.length && !isLegacyQuestionSet) setQuestions(data.questions);
+      if (!isEmergencyDrone) setRules(data.rules);
     }).catch(() => undefined);
-  }, []);
+  }, [isEmergencyDrone]);
+
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [open]);
 
   function closeWizard() {
-    setStep(0);
-    setAnswers({});
+    setStep(initialService && !isEmergencyDrone ? 1 : 0);
+    setAnswers(initialService ? { service: initialService, ...(isEmergencyDrone ? { package: "emergency-drone" } : {}) } : {});
     setResult(null);
+    setContact({ name: "", company: "", email: "", phone: "", city: "", preferredContact: "Telefon" });
     setError("");
     setSaving(false);
     onClose();
@@ -127,6 +170,7 @@ export default function QuoteWizard({ open, onClose, initialService }: { open: b
     !item.serviceTypes?.length || item.serviceTypes.includes(String(answers.service || ""))
   );
   const question = visibleQuestions[step];
+  const isContactStep = step === visibleQuestions.length;
 
   function choose(value: string) {
     if (question.type === "multi") {
@@ -143,7 +187,11 @@ export default function QuoteWizard({ open, onClose, initialService }: { open: b
 
   async function finish() {
     setError("");
-    const quote = calculateQuote(visibleQuestions, rules, answers);
+    const quote = calculateQuote(visibleQuestions, rules, answers, isEmergencyDrone ? 18000 : 15000);
+    const answerSelections = visibleQuestions.map(item => {
+      const values = Array.isArray(answers[item.key]) ? answers[item.key] as string[] : [String(answers[item.key] || "")];
+      return { key: item.key, title: item.title, values, labels: values.map(value => item.options?.find(option => option.value === value)?.label || value) };
+    }).filter(item => item.values[0]);
     setResult(quote);
     setSaving(true);
 
@@ -158,6 +206,12 @@ export default function QuoteWizard({ open, onClose, initialService }: { open: b
           answers,
           estimatedPrice: quote.price,
           notes: quote.notes,
+          service: initialService === "video" ? "video" : "web",
+          serviceLabel: isEmergencyDrone ? "Acil Drone Operasyon" : initialService === "video" ? "Video & Film" : "Web & Yazılım",
+          contact,
+          answerSelections,
+          quoteVersion: "advanced-v1",
+          sourcePath: isEmergencyDrone ? "/acil-drone-cekimi" : "/paketler",
         }),
       });
 
@@ -179,8 +233,8 @@ export default function QuoteWizard({ open, onClose, initialService }: { open: b
     const answer = answers[question.key];
     return Array.isArray(answer) ? answer.includes(value) : answer === value;
   };
-  const currentAnswer = answers[question.key];
-  const canContinue = question.type === "multi"
+  const currentAnswer = question ? answers[question.key] : undefined;
+  const canContinue = !question || question.type === "multi"
     ? Array.isArray(currentAnswer) && currentAnswer.length > 0
     : currentAnswer !== undefined && currentAnswer !== "";
 
@@ -190,22 +244,12 @@ export default function QuoteWizard({ open, onClose, initialService }: { open: b
         <button className="modal-close icon-button" onClick={closeWizard}><X /></button>
         {!result ? (
           <>
-            <div className="quote-progress"><span style={{ width: `${((step + 1) / visibleQuestions.length) * 100}%` }} /></div>
-            <div className="eyebrow">{answers.service === "video" ? "Video prodüksiyon planlayıcı" : "Akıllı teklif motoru"} · {step + 1}/{visibleQuestions.length}</div>
-            <h2>{question.title}</h2>
-            {question.subtitle && <p className="muted">{question.subtitle}</p>}
-            <div className={`option-grid ${question.key === "service" ? "service-option-grid" : ""}`}>
-              {question.options?.map(option => (
-                <button key={option.value} className={`quote-option ${selected(option.value) ? "selected" : ""}`} onClick={() => choose(option.value)}>
-                  <span>{option.label}</span>{selected(option.value) && <Check size={18} />}
-                </button>
-              ))}
-            </div>
+            <div className="quote-progress"><span style={{ width: `${((step + 1) / (visibleQuestions.length + 1)) * 100}%` }} /></div>
+            <div className="eyebrow">{isEmergencyDrone ? "Acil drone operasyon planlayıcı" : answers.service === "video" ? "Video prodüksiyon planlayıcı" : "Akıllı teklif motoru"} · {step + 1}/{visibleQuestions.length + 1}</div>
+            {isContactStep ? <div className="quote-contact-step"><h2>İletişim bilgilerini paylaş.</h2><p className="muted">Talebini ilgili ekibe iletelim; operasyon uygunluğu için sana dönüş yapalım.</p><div className="quote-contact-grid"><label>Ad soyad<input value={contact.name} onChange={event => setContact({ ...contact, name: event.target.value })} autoComplete="name" placeholder="Adınız soyadınız" /></label><label>Firma <small>Opsiyonel</small><input value={contact.company} onChange={event => setContact({ ...contact, company: event.target.value })} autoComplete="organization" placeholder="Firma adı" /></label><label>E-posta<input type="email" value={contact.email} onChange={event => setContact({ ...contact, email: event.target.value })} autoComplete="email" placeholder="ornek@firma.com" /></label><label>Telefon<input type="tel" value={contact.phone} onChange={event => setContact({ ...contact, phone: event.target.value })} autoComplete="tel" placeholder="05xx xxx xx xx" /></label><label>Şehir <small>Opsiyonel</small><input value={contact.city} onChange={event => setContact({ ...contact, city: event.target.value })} autoComplete="address-level2" placeholder="İstanbul" /></label><label>Tercih edilen dönüş<select value={contact.preferredContact} onChange={event => setContact({ ...contact, preferredContact: event.target.value })}><option>Telefon</option><option>WhatsApp</option><option>E-posta</option></select></label></div></div> : <><h2>{question.title}</h2>{question.subtitle && <p className="muted">{question.subtitle}</p>}<div className={`option-grid ${question.key === "service" ? "service-option-grid" : ""}`}>{question.options?.map(option => (<button key={option.value} className={`quote-option ${selected(option.value) ? "selected" : ""}`} onClick={() => choose(option.value)}><span>{option.label}</span>{selected(option.value) && <Check size={18} />}</button>))}</div></>}
             <div className="quote-actions">
               <button className="button button-ghost" disabled={step === 0} onClick={() => setStep(step - 1)}><ChevronLeft size={18} /> Geri</button>
-              {step < visibleQuestions.length - 1
-                ? <button className="button" disabled={!canContinue} onClick={() => setStep(step + 1)}>Devam <ChevronRight size={18} /></button>
-                : <button className="button" disabled={!canContinue || saving} onClick={finish}>{saving ? <Loader2 className="spin" /> : "Teklifimi Hesapla"}</button>}
+              {!isContactStep ? <button className="button" disabled={!canContinue} onClick={() => setStep(step + 1)}>Devam <ChevronRight size={18} /></button> : <button className="button" disabled={contact.name.trim().length < 2 || !/^\S+@\S+\.\S+$/.test(contact.email) || contact.phone.replace(/\D/g, "").length < 10 || saving} onClick={finish}>{saving ? <Loader2 className="spin" /> : "Talebi Gönder"}</button>}
             </div>
           </>
         ) : (

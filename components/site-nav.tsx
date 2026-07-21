@@ -6,7 +6,7 @@ import { ArrowUpRight, Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import AccountMenu from "@/components/auth/account-menu";
 
-const links=[["Anasayfa","/"],["Hizmetler","/hizmetler"],["Projeler","/projeler"],["Paketler","/paketler"],["Kurumsal","/kurumsal"],["İletişim","/iletisim"]];
+const links=[["Anasayfa","/"],["Hizmetler","/hizmetler"],["Acil Drone","/acil-drone-cekimi"],["Projeler","/projeler"],["Paketler","/paketler"],["Kurumsal","/kurumsal"],["İletişim","/iletisim"]];
 export default function SiteNav(){
   const [open,setOpen]=useState(false);
   const [scrolled,setScrolled]=useState(false);

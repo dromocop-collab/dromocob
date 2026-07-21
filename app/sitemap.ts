@@ -47,6 +47,7 @@ const publicRoutes: PublicRoute[] = [
   { path: "/hizmetler", priority: 0.93, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages, ...productionServiceImages] },
   { path: "/hizmetler/web-tasarim", priority: 0.97, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages] },
   { path: "/hizmetler/video-film-produksiyon", priority: 0.97, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...productionServiceImages] },
+  { path: "/acil-drone-cekimi", priority: 0.94, changeFrequency: "weekly", lastModified: updated.services, images: [openGraphImage, "/images/services/dji-mini-5-pro-drone.webp", "/images/services/dji-avata-2-fpv-drone.webp"] },
   { path: "/projeler", priority: 0.92, changeFrequency: "weekly", lastModified: updated.core, images: [openGraphImage, ...projectCaseStudies.map(project => project.coverUrl)] },
   { path: "/paketler", priority: 0.92, changeFrequency: "weekly", lastModified: updated.packages, images: [openGraphImage] },
   { path: "/kurumsal", priority: 0.84, changeFrequency: "monthly", lastModified: updated.core, images: [openGraphImage] },
