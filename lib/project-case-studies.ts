@@ -22,9 +22,84 @@ export type ProjectCaseStudy = {
   relatedServiceLabel: string;
   keywords: string[];
   faq: { question: string; answer: string }[];
+  liveUrl?: string;
 };
 
+const websiteCaseStudies: ProjectCaseStudy[] = [
+  {
+    id: "6nci-kuyumculuk", slug: "6nci-kuyumculuk-e-ticaret", title: "6'ncı Kuyumculuk", seoTitle: "6'ncı Kuyumculuk Premium E-Ticaret Projesi", category: "Luxury E-Commerce", eyebrow: "Premium kuyumculuk · E-ticaret · Fethiye", year: 2026,
+    summary: "Altın ve mücevher alışverişini güven, zarafet ve kişisel danışmanlık ekseninde yeniden kurgulayan premium e-ticaret deneyimi.",
+    description: "Sertifikalı ürün, güvenli ödeme, sigortalı gönderim ve uzman danışmanlık katmanlarını modern bir dijital mağazada birleştiren 6'ncı Kuyumculuk web projesi.",
+    coverUrl: "/images/projects/6nci-kuyumculuk.jpg", coverAlt: "6'ncı Kuyumculuk premium altın ve mücevher e-ticaret deneyimi", service: "E-ticaret, UX/UI ve özel web geliştirme", location: "Fethiye, Muğla",
+    challenge: "Yüksek değerli ürünlerde fiziksel mağaza güvenini dijital ortama taşırken geniş koleksiyonu mobilde hızlı, anlaşılır ve satın almaya hazır hâle getirmek.",
+    solution: "Lüks görsel dil; bütçe bazlı keşif, koleksiyon filtreleri, ürün güvence katmanları, randevu ve WhatsApp danışmanlığıyla tek bir müşteri yolculuğunda birleştirildi.",
+    outcomes: ["Premium marka algısını taşıyan dijital vitrin", "Güven unsurlarıyla güçlendirilmiş satın alma akışı", "Mağaza, randevu ve danışmanlığı bağlayan çok kanallı deneyim"],
+    services: ["E-ticaret bilgi mimarisi", "Premium UI tasarım sistemi", "Ürün ve koleksiyon deneyimi", "Güvenli ödeme akışı", "Üyelik, favoriler ve randevu", "Teknik SEO ve performans"],
+    process: [{ title: "Marka keşfi", description: "Kuyumculukta güven, ürün keşfi ve mağaza deneyiminin dijital karşılıkları tanımlandı." }, { title: "Deneyim tasarımı", description: "Mobil öncelikli katalog, filtre, ürün ve danışmanlık akışları prototiplendi." }, { title: "E-ticaret geliştirme", description: "Yönetilebilir ürün altyapısı, ödeme ve müşteri özellikleri geliştirildi." }, { title: "Yayın ve optimizasyon", description: "Performans, SEO, yasal sayfalar ve dönüşüm temasları yayına hazırlandı." }],
+    deliverables: ["Responsive premium mağaza", "Ürün ve koleksiyon yönetimi", "Bütçeye göre alışveriş", "Güvenli ödeme altyapısı", "Randevu ve canlı destek", "SEO ve analitik katmanı"],
+    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "E-ticaret ve web sistemlerini incele", liveUrl: "https://6nci.com", keywords: ["6'ncı Kuyumculuk", "kuyumculuk e-ticaret", "premium web tasarım", "mücevher e-ticaret sitesi"],
+    faq: [{ question: "Bu projede hangi deneyimler öne çıkıyor?", answer: "Koleksiyon keşfi, bütçe bazlı yönlendirme, güvenli ödeme, sertifika ve sigortalı gönderim bilgileri ile kişisel danışmanlık tek yapıda buluşuyor." }, { question: "Siteyi canlı inceleyebilir miyim?", answer: "Evet. Sayfadaki Canlı Site bağlantısıyla 6nci.com deneyimini doğrudan açabilirsiniz." }],
+  },
+  {
+    id: "kilic-spot", slug: "kilic-spot-dijital-donusum", title: "Kılıç Spot", seoTitle: "Kılıç Spot İkinci El Eşya Dijital Dönüşüm Projesi", category: "Local Commerce", eyebrow: "İkinci el · Lead sistemi · İstanbul", year: 2025,
+    summary: "İkinci el eşya alım-satımını üç net adıma indiren; arama, WhatsApp ve yerel güven sinyallerini birleştiren dönüşüm odaklı web deneyimi.",
+    description: "Kılıç Spot'un İstanbul'daki alım-satım ve nakliye operasyonunu müşterinin hızlı teklif alabileceği sade bir dijital akışa dönüştüren web projesi.",
+    coverUrl: "/images/projects/kilic-spot.jpg", coverAlt: "Kılıç Spot mobilya ve beyaz eşya dijital teklif sistemi", service: "Kurumsal web, yerel SEO ve lead tasarımı", location: "Büyükçekmece, İstanbul",
+    challenge: "Farklı ürün kategorileri ve geniş hizmet bölgesini ziyaretçiyi yormadan anlatmak; fotoğraf gönderme ve teklif alma aksiyonunu hızlandırmak.",
+    solution: "Fotoğraf gönder, teklif al ve ücretsiz teslimat adımlarını merkeze alan; kategori, WhatsApp ve bölgesel arama niyetlerini aynı yapıda buluşturan bir deneyim tasarlandı.",
+    outcomes: ["Üç adımda anlaşılır eşya satış yolculuğu", "Mobilde tek dokunuşla WhatsApp ve arama", "Yerel arama görünürlüğünü destekleyen içerik mimarisi"],
+    services: ["Dönüşüm odaklı UX", "Mobil web tasarımı", "WhatsApp teklif akışı", "Hizmet kategorileri", "Yerel SEO altyapısı", "İletişim ve harita entegrasyonu"],
+    process: [{ title: "Arama niyeti", description: "Bölgesel müşteri sorguları ve en hızlı iletişim senaryoları haritalandı." }, { title: "Akış tasarımı", description: "Alım süreci üç basit adım ve güçlü aksiyonlarla sadeleştirildi." }, { title: "İçerik sistemi", description: "Mobilya, beyaz eşya ve ev aletleri kategorileri yönetilebilir yapıya alındı." }, { title: "Yerel yayın", description: "Mobil hız, harita, iletişim ve yerel SEO kontrolleri tamamlandı." }],
+    deliverables: ["Responsive kurumsal site", "WhatsApp teklif yönlendirmesi", "Kategori landing alanları", "Yerel SEO sayfa yapısı", "İletişim formu ve harita", "Performans optimizasyonu"],
+    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "Dönüşüm odaklı web hizmetini incele", liveUrl: "https://kilicspot.tr", keywords: ["Kılıç Spot", "spotçu web sitesi", "yerel SEO", "ikinci el eşya web tasarım"],
+    faq: [{ question: "Projenin ana dönüşüm hedefi neydi?", answer: "Ziyaretçinin eşya fotoğraflarını WhatsApp üzerinden hızla iletmesi, teklif alması ve nakliye sürecini net biçimde anlamasıydı." }, { question: "Site hangi bölgeye odaklanıyor?", answer: "Büyükçekmece, Esenyurt, Beylikdüzü ve İstanbul çevresindeki yerel müşteri taleplerine odaklanıyor." }],
+  },
+  {
+    id: "mase-group", slug: "mase-group-kurumsal-platform", title: "Mase Group", seoTitle: "Mase Group Kurumsal Web ve Ürün Katalog Projesi", category: "Corporate Platform", eyebrow: "Dekoratif boya · Katalog · Kurumsal", year: 2025,
+    summary: "Dekoratif boya, gayrimenkul, medya ve turizm yetkinliklerini güçlü bir malzeme dili ve kapsamlı ürün kataloğuyla buluşturan kurumsal platform.",
+    description: "Mase Group'un çok disiplinli yapısını, dekoratif boya uzmanlığını ve teknik ürün bilgisini tek bir keşif ve teklif ekosisteminde birleştiren web deneyimi.",
+    coverUrl: "/images/projects/mase-group.jpg", coverAlt: "Mase Group dekoratif boya ve çok disiplinli kurumsal web platformu", service: "Kurumsal web, ürün kataloğu ve içerik mimarisi", location: "İstanbul · Muğla",
+    challenge: "Birden fazla faaliyet alanını marka bütünlüğünü bozmadan anlatmak ve teknik boya ürünlerini hem profesyonellere hem son kullanıcıya anlaşılır sunmak.",
+    solution: "Faaliyet alanları güçlü bir kurumsal anlatıda toplandı; ürün kategorileri, teknik detaylar, uygulama süreçleri ve teklif temasları modüler katalog yapısına bağlandı.",
+    outcomes: ["Çok disiplinli yapıyı birleştiren marka mimarisi", "Detaylı ve ölçeklenebilir dijital ürün kataloğu", "Keşiften teklife uzanan yönetilebilir içerik sistemi"],
+    services: ["Kurumsal bilgi mimarisi", "Özgün görsel yön", "Ürün katalog sistemi", "Teknik ürün detayları", "Lead ve teklif formları", "SEO içerik altyapısı"],
+    process: [{ title: "Marka mimarisi", description: "Gayrimenkul, dekoratif boya, medya ve turizm alanlarının dijital hiyerarşisi kuruldu." }, { title: "Malzeme dili", description: "Renk, doku ve uygulama uzmanlığını taşıyan görsel sistem geliştirildi." }, { title: "Katalog", description: "Kategori, ürün, teknik bilgi ve benzer ürün ilişkileri yapılandırıldı." }, { title: "Büyüme altyapısı", description: "Teklif, iletişim, SEO içerikleri ve ölçüm temasları yayına alındı." }],
+    deliverables: ["Kurumsal marka sitesi", "Dinamik ürün kataloğu", "Teknik ürün sayfaları", "Hizmet ve süreç anlatımı", "Teklif ve iletişim formları", "SEO içerik şablonları"],
+    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "Kurumsal platform hizmetini incele", liveUrl: "https://masegroup.com.tr", keywords: ["Mase Group", "dekoratif boya web sitesi", "ürün katalog yazılımı", "kurumsal web tasarım"],
+    faq: [{ question: "Platform hangi alanları bir araya getiriyor?", answer: "Gayrimenkul, dekoratif boya, medya ve turizm faaliyetleri tek kurumsal yapı altında sunuluyor." }, { question: "Ürün kataloğu yönetilebilir mi?", answer: "Evet. Kategori, ürün, açıklama, uygulama bilgisi ve benzer ürün ilişkileri genişleyebilen bir içerik yapısıyla kurgulandı." }],
+  },
+  {
+    id: "ugurbey-spot", slug: "ugurbey-spot-web-platformu", title: "Uğurbey Spot", seoTitle: "Uğurbey Spot İkinci El Eşya Web Platformu", category: "Circular Commerce", eyebrow: "Spot eşya · Mobil deneyim · Dönüşüm", year: 2025,
+    summary: "Mobilya, beyaz eşya ve elektronik ürünlerin ikinci yaşamını güvenilir, hızlı ve mobil öncelikli bir müşteri deneyimine dönüştüren web platformu.",
+    description: "Uğurbey Spot için ürün keşfi ile eşya satma talebini aynı sade arayüzde buluşturan, iletişim odaklı dijital mağaza deneyimi.",
+    coverUrl: "/images/projects/ugurbey-spot.jpg", coverAlt: "Uğurbey Spot ikinci el mobilya ve beyaz eşya web deneyimi", service: "Web tasarım, içerik sistemi ve lead akışları", location: "Türkiye",
+    challenge: "Hızla değişen ürün envanterini yönetilebilir kılarken satın almak ve eşya satmak isteyen iki farklı kullanıcı grubuna net yol sunmak.",
+    solution: "Kategori odaklı ürün keşfi, mobil iletişim aksiyonları ve hızlı değerlendirme talebi; sıcak, güvenilir ve yalın bir tasarım sistemi içinde birleştirildi.",
+    outcomes: ["Alıcı ve satıcı için ayrışan net kullanıcı yolları", "Mobil öncelikli hızlı iletişim deneyimi", "Değişken envantere uyumlu içerik mimarisi"],
+    services: ["UX stratejisi", "Responsive UI tasarımı", "Ürün kategori sistemi", "Eşya satma akışı", "WhatsApp entegrasyonu", "Teknik SEO"],
+    process: [{ title: "Kullanıcı yolları", description: "Ürün arayan ve eşya satmak isteyen kullanıcıların ihtiyaçları ayrıştırıldı." }, { title: "Mobil tasarım", description: "Kategori keşfi ve hızlı iletişim küçük ekranlar için önceliklendirildi." }, { title: "Yönetim sistemi", description: "Değişken ürün ve içeriklerin güncellenebileceği yapı kuruldu." }, { title: "Yayın", description: "SEO, performans ve dönüşüm noktaları doğrulanarak canlıya alındı." }],
+    deliverables: ["Mobil öncelikli web sitesi", "Ürün kategori yapısı", "Hızlı teklif akışı", "WhatsApp ve telefon aksiyonları", "Yönetilebilir içerik alanları", "SEO temel kurulumu"],
+    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "Web tasarım sistemlerini incele", liveUrl: "https://ugurbeyspot.com", keywords: ["Uğurbey Spot", "ikinci el eşya sitesi", "spot mağaza web tasarım", "mobil web deneyimi"],
+    faq: [{ question: "Platform kimlere hitap ediyor?", answer: "İkinci el ürün satın almak isteyenlerle elindeki mobilya, beyaz eşya veya elektroniği değerlendirmek isteyen kullanıcıları aynı platformda buluşturuyor." }, { question: "Mobil iletişim nasıl kolaylaştırıldı?", answer: "Telefon ve WhatsApp gibi yüksek niyetli aksiyonlar sayfa akışında görünür ve kolay erişilebilir konumlandırıldı." }],
+  },
+  {
+    id: "akc-oto-kilif", slug: "akc-oto-kilif-dijital-katalog", title: "AKC Oto Kılıf", seoTitle: "AKC Oto Kılıf Otomotiv Dijital Katalog Projesi", category: "Automotive Commerce", eyebrow: "Otomotiv · Ürün kataloğu · Özel üretim", year: 2025,
+    summary: "Araç içi işçilik, malzeme kalitesi ve model uyumluluğunu güçlü ürün keşfiyle birleştiren performans odaklı otomotiv web deneyimi.",
+    description: "AKC Oto Kılıf'ın ürün çeşitliliğini, özel dikim yaklaşımını ve araç uyumluluğunu dijital katalog ve hızlı teklif akışına dönüştüren proje.",
+    coverUrl: "/images/projects/akc-oto-kilif.jpg", coverAlt: "AKC Oto Kılıf özel dikim otomotiv koltuk tasarımı ve dijital katalog", service: "Otomotiv e-ticaret, katalog ve UX/UI", location: "Türkiye",
+    challenge: "Araç marka-model çeşitliliği içinde doğru ürünü bulmayı kolaylaştırmak; malzeme ve dikiş kalitesini dijital ekranda güven verici biçimde hissettirmek.",
+    solution: "Araç uyumluluğu, kategori ve ürün keşfi; detay odaklı otomotiv görsel dili, teklif aksiyonları ve teknik güven bilgileriyle tek sistemde toplandı.",
+    outcomes: ["Araç uyumluluğuna göre hızlanan ürün keşfi", "İşçilik ve malzeme kalitesini öne çıkaran sunum", "Katalogdan teklife kesintisiz müşteri yolculuğu"],
+    services: ["Otomotiv UX araştırması", "Ürün katalog mimarisi", "Marka-model filtreleme", "Ürün detay tasarımı", "Teklif ve iletişim akışı", "Mobil performans"],
+    process: [{ title: "Katalog analizi", description: "Araç, model, malzeme ve ürün varyasyonlarının ilişki yapısı çıkarıldı." }, { title: "Ürün deneyimi", description: "Uyumluluk ve işçilik detaylarını öne çıkaran arayüz tasarlandı." }, { title: "Teklif sistemi", description: "Ürün keşfinden talebe geçişi hızlandıran temas noktaları geliştirildi." }, { title: "Optimizasyon", description: "Mobil hız, taranabilirlik ve katalog kullanılabilirliği doğrulandı." }],
+    deliverables: ["Responsive otomotiv kataloğu", "Marka-model filtreleri", "Ürün detay şablonları", "Teklif alma akışı", "Yönetilebilir kategori sistemi", "Teknik SEO altyapısı"],
+    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "Katalog ve e-ticaret hizmetini incele", liveUrl: "https://akcotokilif.com", keywords: ["AKC Oto Kılıf", "oto kılıf web sitesi", "otomotiv ürün kataloğu", "araç uyumluluk filtresi"],
+    faq: [{ question: "Dijital katalog nasıl çalışıyor?", answer: "Ürünler araç ve kategori mantığıyla ayrıştırılarak ziyaretçinin uyumlu seçeneğe daha hızlı ulaşması hedefleniyor." }, { question: "Teklif süreci katalogla bağlantılı mı?", answer: "Evet. Kullanıcı incelediği kapsamdan kopmadan uygun iletişim veya teklif kanalına ilerleyebiliyor." }],
+  },
+];
+
 export const projectCaseStudies: ProjectCaseStudy[] = [
+  ...websiteCaseStudies,
   {
     id: "cinematic-brand",
     slug: "cinematic-brand-film",

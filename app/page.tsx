@@ -1,9 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight, Bot, Camera, Code2, Film, Gauge, Layers3, Play, Radar, Sparkles } from "lucide-react";
 import ProjectGrid from "@/components/project-grid";
 import PackageGrid from "@/components/package-grid";
 import GrowthDiagnostic from "@/components/growth-diagnostic";
 import { pageMetadata } from "@/lib/seo";
+import QuoteLauncher from "@/components/quote-launcher";
 
 export const metadata = pageMetadata({
   title: "Web Tasarım ve Video Prodüksiyon Ajansı | Türkiye",
@@ -34,7 +36,7 @@ export default function Home() {
           <div className="system-orbit orbit-one"><i/><i/></div>
           <div className="system-orbit orbit-two"><i/></div>
           <div className="system-core">
-            <span>DC</span>
+            <span><Image className="brand-round-logo" src="/logo.svg" alt="Dromocob" width={512} height={512} /></span>
             <small>DIGITAL FLAGSHIP</small>
             <b><i/> ALL SYSTEMS ACTIVE</b>
           </div>
@@ -80,7 +82,7 @@ export default function Home() {
       </section>
 
       <section className="section home-projects">
-        <div className="section-head"><div><p className="eyebrow">Seçili çalışmalar</p><h2>Projeler / <span>01—03</span></h2></div><Link className="text-link" href="/projeler">Tümünü gör <ArrowRight size={16}/></Link></div>
+        <div className="section-head"><div><p className="eyebrow">Seçili çalışmalar</p><h2>Projeler / <span>01—08</span></h2></div><Link className="text-link" href="/projeler">Tümünü gör <ArrowRight size={16}/></Link></div>
         <ProjectGrid />
       </section>
 
@@ -94,7 +96,7 @@ export default function Home() {
       <section className="section mega-cta">
         <p className="eyebrow">Sıradaki proje seninki olabilir</p>
         <h2>Birlikte dikkat<br/><span>çekelim.</span></h2>
-        <Link className="round-link" href="/iletisim"><ArrowRight /></Link>
+        <QuoteLauncher className="round-link" ariaLabel="Yeni proje teklif motorunu aç"><ArrowRight /></QuoteLauncher>
       </section>
     </div>
   );

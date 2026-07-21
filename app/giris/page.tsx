@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   FormEvent,
   useState,
@@ -214,7 +215,7 @@ export default function LoginPage() {
   return (
     <section className="auth-page">
       <div className="auth-art">
-        <span className="auth-mark">DC</span>
+        <span className="auth-mark"><Image className="brand-round-logo" src="/logo.svg" alt="Dromocob" width={512} height={512} /></span>
         <div>
           <p className="eyebrow">Dromocob Account</p>
           <h2>

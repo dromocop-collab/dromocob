@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -29,7 +30,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
   return (
     <div className="admin-os">
       <aside className="admin-sidebar">
-        <Link href="/admin" className="admin-brand"><span>DC</span><div>DROMOCOB<small>CONTROL OS</small></div></Link>
+        <Link href="/admin" className="admin-brand"><span><Image className="brand-round-logo" src="/logo.svg" alt="Dromocob" width={512} height={512} /></span><div>DROMOCOB<small>CONTROL OS</small></div></Link>
         <nav>
           {nav.map(([Icon, label, href]) => {
             const C = Icon as typeof CircleGauge;

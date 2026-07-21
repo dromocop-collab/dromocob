@@ -1,8 +1,8 @@
 import ProjectGrid from "@/components/project-grid";
-import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { projectCaseStudies } from "@/lib/project-case-studies";
 import { absoluteUrl, pageMetadata } from "@/lib/seo";
+import QuoteLauncher from "@/components/quote-launcher";
 
 export const metadata = pageMetadata({
   title: "Web Tasarım, Film Prodüksiyon ve Growth Projeleri",
@@ -36,9 +36,9 @@ export default function ProjectsPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(projectListJsonLd).replace(/</g, "\\u003c") }} />
       <section className="page-hero section">
-        <p className="eyebrow">Seçili işler / 2024—2026</p>
+        <p className="eyebrow">Canlı işler / 2025—2026</p>
         <h1>İşler konuşsun.<br/><span>Biz sonucu ölçelim.</span></h1>
-        <p className="hero-description">Film prodüksiyonu, web tasarım, özel yazılım ve dijital büyüme alanlarında stratejiyle üretimi birleştiren seçili proje sistemleri.</p>
+        <p className="hero-description">Yayında olan marka platformları, e-ticaret sistemleri ve dönüşüm odaklı web deneyimleriyle birlikte film ve dijital büyüme alanlarından seçili işler.</p>
       </section>
       <section className="section"><ProjectGrid /></section>
       <section className="section project-index-seo">
@@ -49,7 +49,7 @@ export default function ProjectsPage() {
         <div>
           <p>Her projeyi yalnızca görünen tasarım veya film olarak değil; markanın hedefi, müşterinin yolculuğu, teknik altyapı, içerik üretimi ve yayın sonrası ölçüm katmanlarıyla birlikte ele alıyoruz.</p>
           <p>İstanbul merkezli çalışma modelimizle web ve strateji projelerini Türkiye genelinde uzaktan; prodüksiyonları ise ihtiyaca göre farklı şehirlerde yerinde yürütebiliyoruz.</p>
-          <Link className="button" href="/iletisim">Projenin kapsamını konuşalım <ArrowRight size={18}/></Link>
+          <QuoteLauncher>Projenin kapsamını konuşalım <ArrowRight size={18}/></QuoteLauncher>
         </div>
       </section>
     </>

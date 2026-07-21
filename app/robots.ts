@@ -7,6 +7,10 @@ const privatePaths = [
   "/giris",
   "/kayit",
   "/hesap-dogrulama",
+  "/site-duzenle",
+  "/site-onizleme",
+  "/site-olustur",
+  "/sitelerim",
   "/api",
 ];
 

@@ -1,5 +1,6 @@
 import MetricCards from "@/components/admin/metric-cards";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Cpu, Mail, MessageSquare, Package, Radar, Settings2, Zap } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -17,7 +18,7 @@ export default function AdminDashboard() {
       <div className="admin-dashboard-grid">
         <section className="admin-panel wide">
           <div className="panel-head"><div><span className="panel-icon"><Radar/></span><div><h2>Operations Radar</h2><p>Kontrol merkezi özeti</p></div></div><button>Detay <ArrowUpRight size={16}/></button></div>
-          <div className="radar-visual"><div className="radar-ring r1"/><div className="radar-ring r2"/><div className="radar-ring r3"/><div className="radar-sweep"/><span className="blip b1"/><span className="blip b2"/><span className="blip b3"/><div className="radar-center">DC</div></div>
+          <div className="radar-visual"><div className="radar-ring r1"/><div className="radar-ring r2"/><div className="radar-ring r3"/><div className="radar-sweep"/><span className="blip b1"/><span className="blip b2"/><span className="blip b3"/><div className="radar-center"><Image className="brand-round-logo" src="/logo.svg" alt="Dromocob" width={512} height={512} /></div></div>
         </section>
         <section className="admin-panel">
           <div className="panel-head"><div><span className="panel-icon"><Cpu/></span><div><h2>System health</h2><p>Core services</p></div></div></div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { useParams, useRouter } from "next/navigation";
@@ -258,7 +259,7 @@ export default function SiteEditorPage() {
 
   return <main className="site-studio">
     <header className="studio-topbar">
-      <div className="studio-brand"><Link href="/sitelerim" aria-label="Sitelerime dön"><ArrowLeft size={17} /></Link><b>DC</b><span><strong>DROMOCOB</strong><small>SITES STUDIO · ENTERPRISE</small></span></div>
+      <div className="studio-brand"><Link href="/sitelerim" aria-label="Sitelerime dön"><ArrowLeft size={17} /></Link><b><Image className="brand-round-logo" src="/logo.svg" alt="Dromocob" width={512} height={512} /></b><span><strong>DROMOCOB</strong><small>SITES STUDIO · ENTERPRISE</small></span></div>
       <div className="studio-site-meta"><span><i /> YAYINDA</span><strong>{site.businessName}</strong><small>{site.subdomain}.dromocob.tr</small></div>
       <div className="studio-actions"><Link className="studio-icon-button" href="/iletisim" title="Yardım"><CircleHelp size={17} /></Link><Link className="studio-preview-button" href={`/site-onizleme/${site.id}`} target="_blank"><Eye size={16} /> Siteyi önizle</Link><button className="studio-save-button" onClick={saveChanges} disabled={saving}>{saving ? <Loader2 className="spin" size={16} /> : saved ? <Check size={16} /> : <Save size={16} />}{saving ? "Kaydediliyor" : saved ? "Kaydedildi" : "Kaydet"}</button><button className="studio-publish-button" onClick={() => setUpgradeOpen(true)}><Rocket size={16} /> Canlıya al</button></div>
     </header>

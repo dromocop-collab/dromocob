@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, CircleCheck, Loader2, Send, X } from "lucide-react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
@@ -12,9 +12,9 @@ type Contact = { name: string; company: string; email: string; phone: string; ci
 
 const emptyContact: Contact = { name: "", company: "", email: "", phone: "", city: "", preferredContact: "Telefon / WhatsApp" };
 
-export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen için teklif al" }: { service: AdvancedQuoteService; buttonLabel?: string }) {
+export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen için teklif al", initiallyOpen = false, hideTrigger = false, onClose }: { service: AdvancedQuoteService; buttonLabel?: string; initiallyOpen?: boolean; hideTrigger?: boolean; onClose?: () => void }) {
   const [questionOverrides, setQuestionOverrides] = useState<Array<AdvancedQuoteQuestion & { storedKey: string }>>([]);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [contact, setContact] = useState<Contact>(emptyContact);
@@ -71,6 +71,12 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
   const question = config.questions[step];
   const totalSteps = config.questions.length + 1;
 
+  const close = useCallback(() => {
+    setOpen(false);
+    onClose?.();
+    window.setTimeout(() => { setStep(0); setAnswers({}); setContact(emptyContact); setConsent(false); setSent(false); setReferenceId(""); setError(""); setSaving(false); }, 250);
+  }, [onClose]);
+
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
@@ -78,7 +84,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
     const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && close();
     window.addEventListener("keydown", onKeyDown);
     return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", onKeyDown); };
-  }, [open]);
+  }, [open, close]);
 
   const estimatedPrice = useMemo(() => config.basePrice + config.questions.reduce((total, item) => {
     const answer = answers[item.key];
@@ -90,11 +96,6 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
     const value = answers[item.key];
     return Array.isArray(value) ? value.length > 0 : Boolean(value?.trim());
   }).length;
-
-  function close() {
-    setOpen(false);
-    window.setTimeout(() => { setStep(0); setAnswers({}); setContact(emptyContact); setConsent(false); setSent(false); setReferenceId(""); setError(""); setSaving(false); }, 250);
-  }
 
   function select(value: string) {
     if (!question) return;
@@ -162,7 +163,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
   }
 
   return <>
-    <button type="button" className="button" onClick={() => setOpen(true)}>{buttonLabel} <ArrowRight size={18}/></button>
+    {!hideTrigger && <button type="button" className="button" onClick={() => setOpen(true)}>{buttonLabel} <ArrowRight size={18}/></button>}
     {open && <div className="advanced-quote-backdrop" role="dialog" aria-modal="true" aria-label={config.label}>
       <div className={`advanced-quote-shell quote-${service}`}>
         <header className="advanced-quote-head"><div><Image className="advanced-quote-logo" src="/logo.svg" alt="" width={34} height={34}/><div><small>DROMOCOB / SCOPE INTELLIGENCE</small><strong>{config.label}</strong></div></div><button type="button" onClick={close} aria-label="Teklif motorunu kapat"><X/></button></header>

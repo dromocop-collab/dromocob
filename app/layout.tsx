@@ -12,7 +12,7 @@ import {
   siteName,
   siteUrl,
 } from "@/lib/seo";
-import { getPublicTrackingSettings } from "@/lib/runtime-tracking";
+import { getPublicSeoVerificationSettings, getPublicTrackingSettings } from "@/lib/runtime-tracking";
 import { getConsentBootstrapScript } from "@/lib/google-consent";
 
 export const revalidate = 60;
@@ -78,7 +78,10 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({children}:{children:React.ReactNode}) {
-  const initialTracking = await getPublicTrackingSettings();
+  const [initialTracking, seoVerification] = await Promise.all([
+    getPublicTrackingSettings(),
+    getPublicSeoVerificationSettings(),
+  ]);
 
   return <html
   lang="tr"
@@ -87,7 +90,7 @@ export default async function RootLayout({children}:{children:React.ReactNode}) 
   id="dromocob-consent-bootstrap"
   strategy="beforeInteractive"
   dangerouslySetInnerHTML={{ __html: getConsentBootstrapScript() }}
-/></head><body><script
+/>{seoVerification.googleSiteVerification && <meta name="google-site-verification" content={seoVerification.googleSiteVerification}/>} {seoVerification.bingSiteVerification && <meta name="msvalidate.01" content={seoVerification.bingSiteVerification}/>} {seoVerification.yandexVerification && <meta name="yandex-verification" content={seoVerification.yandexVerification}/>}</head><body><script
   type="application/ld+json"
   dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": [organizationJsonLd, websiteJsonLd] }).replace(/</g, "\\u003c") }}
 /><AuthProvider><SiteRuntimeSettings initialTracking={initialTracking}>{children}</SiteRuntimeSettings></AuthProvider></body></html>;

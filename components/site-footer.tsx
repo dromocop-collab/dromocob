@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { siteEmail, sitePhone, sitePhoneDisplay } from "@/lib/seo";
+import QuoteLauncher from "@/components/quote-launcher";
 
 type SubscribeState = "idle" | "loading" | "success" | "error";
 
@@ -71,7 +72,7 @@ export default function SiteFooter() {
           <p className="eyebrow"><Sparkles size={15}/> Sıradaki büyük fikir</p>
           <h2>Markanı birlikte<br/><em>ileri taşıyalım.</em></h2>
         </div>
-        <Link href="/iletisim" className="footer-cta-link"><span>Projeyi<br/>başlat</span><ArrowUpRight/></Link>
+        <QuoteLauncher className="footer-cta-link" ariaLabel="Yeni proje teklif motorunu aç"><span>Projeyi<br/>başlat</span><ArrowUpRight/></QuoteLauncher>
       </section>
 
       <section className="footer-newsletter">

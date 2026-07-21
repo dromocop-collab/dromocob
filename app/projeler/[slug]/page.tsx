@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ExternalLink, MapPin } from "lucide-react";
 import { getProjectCaseStudy, projectCaseStudies, type ProjectCaseStudy } from "@/lib/project-case-studies";
 import { adminDb } from "@/lib/firebase-admin";
 import { absoluteUrl, pageMetadata, siteName } from "@/lib/seo";
+import QuoteLauncher from "@/components/quote-launcher";
 
 type ProjectPageProps = {
   params: Promise<{ slug: string }>;
@@ -60,6 +61,7 @@ async function getProject(slug: string): Promise<ProjectCaseStudy | undefined> {
       relatedServiceLabel: String(data.relatedServiceLabel || "Benzer bir proje için iletişime geç"),
       keywords: list(data.keywords).length ? list(data.keywords) : [title, category, "Dromocob"],
       faq: Array.isArray(data.faq) ? data.faq.map((item: Record<string, unknown>) => ({ question: String(item.question || "Proje hakkında bilgi alabilir miyim?"), answer: String(item.answer || "Detaylı bilgi için bizimle iletişime geçebilirsiniz.") })) : [],
+      liveUrl: String(data.liveUrl || "") || undefined,
     };
   } catch {
     return undefined;
@@ -158,6 +160,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
             <div><dt>Hizmet</dt><dd>{project.service}</dd></div>
             <div><dt>Üretim alanı</dt><dd><MapPin size={14}/>{project.location}</dd></div>
             <div><dt>Yıl</dt><dd>{project.year}</dd></div>
+            {project.liveUrl && <div><dt>Canlı proje</dt><dd><a href={project.liveUrl} target="_blank" rel="noreferrer">Siteyi incele <ExternalLink size={14}/></a></dd></div>}
           </dl>
         </div>
       </header>
@@ -208,7 +211,7 @@ export default async function ProjectDetailPage({ params }: ProjectPageProps) {
         <Link className="case-back" href="/projeler"><ArrowLeft size={17}/> Tüm projeler</Link>
         <p className="eyebrow">Benzer bir proje mi planlıyorsunuz?</p>
         <h2>Bir sonraki güçlü işi<br/><em>birlikte tasarlayalım.</em></h2>
-        <div><Link className="button" href="/iletisim">Projenizi anlatın <ArrowRight size={18}/></Link><Link className="text-link" href={project.relatedServiceUrl}>{project.relatedServiceLabel}</Link></div>
+        <div><QuoteLauncher>Projenizi anlatın <ArrowRight size={18}/></QuoteLauncher><Link className="text-link" href={project.relatedServiceUrl}>{project.relatedServiceLabel}</Link></div>
       </section>
     </article>
   );

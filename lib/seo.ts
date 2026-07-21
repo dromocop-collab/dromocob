@@ -96,8 +96,8 @@ export const organizationJsonLd = {
   url: siteUrl,
   logo: {
     "@type": "ImageObject",
-    url: absoluteUrl("/logo.svg"),
-    contentUrl: absoluteUrl("/logo.svg"),
+    url: absoluteUrl("/icon.png"),
+    contentUrl: absoluteUrl("/icon.png"),
     width: 512,
     height: 512,
   },
@@ -106,6 +106,11 @@ export const organizationJsonLd = {
   areaServed: {
     "@type": "Country",
     name: "Türkiye",
+  },
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "İstanbul",
+    addressCountry: "TR",
   },
   founder: {
     "@type": "Person",
@@ -117,6 +122,17 @@ export const organizationJsonLd = {
     "Digital growth systems",
     "SEO",
   ],
+  knowsLanguage: ["tr-TR"],
+  priceRange: "₺₺₺",
+  hasOfferCatalog: {
+    "@type": "OfferCatalog",
+    name: "Dromocob hizmetleri",
+    itemListElement: [
+      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Kurumsal web tasarım ve web yazılım" } },
+      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Video prodüksiyon ve film yapım" } },
+      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Teknik SEO ve dijital büyüme" } },
+    ],
+  },
   email: siteEmail,
   telephone: sitePhone,
   contactPoint: {

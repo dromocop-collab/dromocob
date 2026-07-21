@@ -14,7 +14,11 @@ type LeadPayload = {
   name?: string;
   email?: string;
   phone?: string;
+  company?: string;
   subject?: string;
+  budget?: string;
+  timeline?: string;
+  preferredContact?: string;
   message?: string;
   answers?: Record<string, unknown>;
   estimatedPrice?: number;
@@ -153,6 +157,11 @@ export async function POST(
         40
       );
 
+      const company = normalizeText(body.company, 160);
+      const budget = normalizeText(body.budget, 100);
+      const timeline = normalizeText(body.timeline, 100);
+      const preferredContact = normalizeText(body.preferredContact, 80);
+
       const subject = normalizeText(
         body.subject,
         120
@@ -180,12 +189,27 @@ export async function POST(
           name,
           email,
           phone,
+          company,
           subject,
+          budget,
+          timeline,
+          preferredContact,
           message,
           status: "new",
           source: "website_contact_form",
           createdAt: new Date(),
         });
+
+      const mailSubject = `Yeni iletişim formu — ${name}${company ? ` / ${company}` : ""}`;
+      const mailText = `Yeni iletişim formu\n\nAd: ${name}\nFirma: ${company || "Belirtilmedi"}\nE-posta: ${email}\nTelefon: ${phone || "Belirtilmedi"}\nProje türü: ${subject || "Belirtilmedi"}\nYatırım: ${budget || "Belirtilmedi"}\nBaşlangıç: ${timeline || "Belirtilmedi"}\nTercih edilen dönüş: ${preferredContact || "Belirtilmedi"}\n\nProje özeti:\n${message}`;
+      const mailHtml = `<!doctype html><html lang="tr"><body style="margin:0;background:#eef1e9;font-family:Arial,Helvetica,sans-serif;color:#11140f;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 14px;"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#fff;border:1px solid #dce2d5;border-radius:22px;overflow:hidden;"><tr><td style="padding:22px 28px;background:#10140f;color:#d9ff43;font-size:12px;font-weight:900;letter-spacing:.14em;">DROMOCOB / NEW PROJECT BRIEF</td></tr><tr><td style="padding:30px 28px;"><p style="margin:0 0 8px;color:#7b8375;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;">İletişim formu</p><h1 style="margin:0 0 22px;font-size:30px;line-height:1.1;">${escapeHtml(name)}${company ? ` / ${escapeHtml(company)}` : ""}</h1><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:22px;background:#f3f5ef;border-radius:12px;"><tr><td style="padding:14px;line-height:1.75;font-size:13px;"><strong>E-posta:</strong> ${escapeHtml(email)}<br/><strong>Telefon:</strong> ${escapeHtml(phone || "Belirtilmedi")}<br/><strong>Proje türü:</strong> ${escapeHtml(subject || "Belirtilmedi")}<br/><strong>Yatırım:</strong> ${escapeHtml(budget || "Belirtilmedi")}<br/><strong>Başlangıç:</strong> ${escapeHtml(timeline || "Belirtilmedi")}<br/><strong>Tercih:</strong> ${escapeHtml(preferredContact || "Belirtilmedi")}</td></tr></table><h2 style="margin:0 0 9px;font-size:15px;">Proje özeti</h2><p style="margin:0;color:#4f584d;font-size:14px;line-height:1.7;white-space:pre-wrap;">${escapeHtml(message)}</p></td></tr></table></td></tr></table></body></html>`;
+
+      await enqueueMail({
+        to: siteEmail,
+        subject: mailSubject,
+        text: mailText,
+        html: mailHtml,
+      });
 
       return NextResponse.json({ ok: true });
     }

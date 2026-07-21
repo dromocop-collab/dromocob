@@ -221,7 +221,12 @@ export async function fetchActiveProjects() {
   try {
     const snap = await getDocs(query(collection(db, "projects"), where("active", "==", true), orderBy("order")));
     const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as Project));
-    return data.length ? data : fallbackProjects;
+    if (!data.length) return fallbackProjects;
+
+    const dynamicBySlug = new Map(data.map(project => [project.slug, project]));
+    const bundled = fallbackProjects.map(project => dynamicBySlug.get(project.slug) || project);
+    const bundledSlugs = new Set(fallbackProjects.map(project => project.slug));
+    return [...bundled, ...data.filter(project => !bundledSlugs.has(project.slug))];
   } catch {
     return fallbackProjects;
   }

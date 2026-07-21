@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import AdvancedQuoteWizard from "@/components/advanced-quote-wizard";
 import type { AdvancedQuoteService } from "@/lib/advanced-quote-config";
 
@@ -28,10 +28,16 @@ export default function ServiceLanding({ eyebrow, title, accent, intro, services
     { "@type": "ListItem", position: 2, name: "Hizmetler", item: "https://dromocob.tr/hizmetler" },
     { "@type": "ListItem", position: 3, name: breadcrumbLabel, item: `https://dromocob.tr${path}` },
   ] };
+  const faqSchema = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map(item => ({
+    "@type": "Question",
+    name: item.question,
+    acceptedAnswer: { "@type": "Answer", text: item.answer },
+  })) };
 
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}/>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema).replace(/</g, "\\u003c") }}/>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c") }}/>
     <section className="service-hero section">
       <nav className="service-breadcrumb" aria-label="Sayfa yolu"><Link href="/">Ana Sayfa</Link><span>/</span><Link href="/hizmetler">Hizmetler</Link><span>/</span><strong>{breadcrumbLabel}</strong></nav>
       <p className="eyebrow">{eyebrow}</p>
@@ -49,6 +55,6 @@ export default function ServiceLanding({ eyebrow, title, accent, intro, services
     </section>
     <section className="service-process section"><p className="eyebrow">Nasıl çalışıyoruz?</p><h2>Net kapsam. Şeffaf süreç.<br/>Ölçülebilir sonuç.</h2><div>{process.map((step, index) => <article key={step.title}><CheckCircle2/><span>0{index + 1}</span><h3>{step.title}</h3><p>{step.description}</p></article>)}</div></section>
     <section className="service-faq section"><div><p className="eyebrow">Sık sorulan sorular</p><h2>Başlamadan önce<br/>netleşmesi gerekenler.</h2></div><div>{faqs.map(item => <details key={item.question}><summary>{item.question}<span>+</span></summary><p>{item.answer}</p></details>)}</div></section>
-    <section className="service-turkiye section"><div><p className="eyebrow">Türkiye geneli hizmet</p><h2>İstanbul&apos;dan<br/>81 ile üretim.</h2></div><div><p>Keşif, strateji ve proje yönetimini çevrim içi; çekim ve saha üretimini ihtiyaca göre yerinde yürütüyoruz. Türkiye&apos;nin her yerindeki markalarla çalışabilecek üretim ve teslim altyapısına sahibiz.</p><p className="city-list">{cities.join(" · ")} ve tüm Türkiye</p><Link className="button button-ghost" href="/iletisim">Projenin kapsamını konuşalım <ArrowRight size={18}/></Link></div></section>
+    <section className="service-turkiye section"><div><p className="eyebrow">Türkiye geneli hizmet</p><h2>İstanbul&apos;dan<br/>81 ile üretim.</h2></div><div><p>Keşif, strateji ve proje yönetimini çevrim içi; çekim ve saha üretimini ihtiyaca göre yerinde yürütüyoruz. Türkiye&apos;nin her yerindeki markalarla çalışabilecek üretim ve teslim altyapısına sahibiz.</p><p className="city-list">{cities.join(" · ")} ve tüm Türkiye</p><AdvancedQuoteWizard service={quoteService} buttonLabel="Projenin kapsamını konuşalım"/></div></section>
   </>;
 }

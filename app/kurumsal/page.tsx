@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowUpRight,
   Blocks,
@@ -12,6 +13,7 @@ import {
   Workflow,
 } from "lucide-react";
 import { pageMetadata } from "@/lib/seo";
+import QuoteLauncher from "@/components/quote-launcher";
 
 export const metadata = pageMetadata({
   title: "Kurumsal",
@@ -52,7 +54,7 @@ export default function CorporatePage() {
         <div className="corporate-orbit" aria-hidden="true">
           <div className="corporate-orbit-ring ring-one"/>
           <div className="corporate-orbit-ring ring-two"/>
-          <div className="corporate-orbit-core"><span>DC</span><small>Strategy × Craft × Technology</small></div>
+          <div className="corporate-orbit-core"><span><Image className="brand-round-logo" src="/logo.svg" alt="Dromocob" width={512} height={512} /></span><small>Strategy × Craft × Technology</small></div>
           <i className="orbit-node node-one">WEB</i>
           <i className="orbit-node node-two">FILM</i>
           <i className="orbit-node node-three">GROWTH</i>
@@ -108,7 +110,7 @@ export default function CorporatePage() {
         <p className="eyebrow">Built for ambitious brands</p>
         <h2>Tek bir kampanya değil.<br/><span>Uzun vadeli dijital değer.</span></h2>
         <p>Yeni bir marka kuruyor, mevcut operasyonunu dijitalleştiriyor veya kategorinde daha güçlü bir konuma hazırlanıyorsan; doğru kapsamı birlikte tasarlayalım.</p>
-        <Link className="button" href="/iletisim">Kurumsal görüşme planla <ArrowUpRight size={18}/></Link>
+        <QuoteLauncher>Kurumsal görüşme planla <ArrowUpRight size={18}/></QuoteLauncher>
       </section>
     </>
   );
