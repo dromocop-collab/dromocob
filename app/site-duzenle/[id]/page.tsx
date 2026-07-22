@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
 import { useParams, useRouter } from "next/navigation";
 import {
   AlignLeft,
@@ -17,6 +18,7 @@ import {
   ChevronDown,
   ChevronRight,
   CircleHelp,
+  CirclePlay,
   Contact,
   Eye,
   FileText,
@@ -41,20 +43,30 @@ import {
   ToggleLeft,
   ToggleRight,
   Trash2,
+  Upload,
   Users,
   X,
 } from "lucide-react";
 
 import { useAuth } from "@/components/auth/auth-provider";
-import { db } from "@/lib/firebase";
-import { saveCustomerSite, type CustomerSitePage, type CustomerSiteRecord, type CustomerSiteSettings } from "@/lib/customer-sites";
+import { db, storage } from "@/lib/firebase";
+import { createCustomerSection, getCustomerSectionType, resolveCustomerSection, saveCustomerSite, type CustomerSitePage, type CustomerSiteRecord, type CustomerSiteSection, type CustomerSiteSettings } from "@/lib/customer-sites";
 
 const sectionCatalog = [
   { id: "hero", name: "Hero / Karşılama", icon: Sparkles, detail: "Başlık, mesaj ve CTA" },
   { id: "text", name: "Zengin metin", icon: AlignLeft, detail: "Editoryal içerik alanı" },
   { id: "features", name: "Özellikler", icon: LayoutGrid, detail: "3–6 özellik kartı" },
+  { id: "services", name: "Hizmetler", icon: Blocks, detail: "Uzmanlık ve hizmet kartları" },
   { id: "gallery", name: "Galeri / Projeler", icon: GalleryHorizontal, detail: "Görsel koleksiyonu" },
   { id: "testimonials", name: "Referanslar", icon: Star, detail: "Müşteri görüşleri" },
+  { id: "stats", name: "Rakamlar / KPI", icon: BarChart3, detail: "Ölçülebilir sonuçlar" },
+  { id: "pricing", name: "Fiyat / Planlar", icon: ShieldCheck, detail: "Paket ve plan karşılaştırması" },
+  { id: "faq", name: "Sık sorulanlar", icon: CircleHelp, detail: "Açılır soru ve yanıtlar" },
+  { id: "team", name: "Ekip", icon: Users, detail: "Uzmanlar ve roller" },
+  { id: "logos", name: "Logo bulutu", icon: Globe2, detail: "Markalar ve iş ortakları" },
+  { id: "timeline", name: "Süreç / Timeline", icon: ArrowRight, detail: "Adım adım çalışma süreci" },
+  { id: "video", name: "Video / Showreel", icon: Eye, detail: "Video ve medya alanı" },
+  { id: "cta", name: "Güçlü çağrı", icon: Rocket, detail: "Dönüşüm odaklı kapanış" },
   { id: "contact", name: "İletişim formu", icon: Contact, detail: "Lead toplama formu" },
 ];
 
@@ -109,8 +121,12 @@ export default function SiteEditorPage() {
   const [activationError, setActivationError] = useState("");
   const [activationReference, setActivationReference] = useState("");
   const [sectionNotice, setSectionNotice] = useState("");
+  const [editingSectionIndex, setEditingSectionIndex] = useState<number | null>(null);
+  const [sectionUpload, setSectionUpload] = useState<{ index: number; progress: number; fileName: string } | null>(null);
+  const [sectionUploadError, setSectionUploadError] = useState("");
 
   const activePage = pages.find((page) => page.id === activePageId) ?? pages[0];
+  const editingSection = editingSectionIndex === null || !activePage.sections[editingSectionIndex] ? null : resolveCustomerSection(activePage.sections[editingSectionIndex], `${activePage.id}-${editingSectionIndex}`);
 
   useEffect(() => {
     if (!authLoading && !user) router.replace("/giris");
@@ -155,6 +171,7 @@ export default function SiteEditorPage() {
     const page: CustomerSitePage = { id: `${Date.now()}`, title, slug: pageSlug, type: "standard", visible: true, sections: ["hero", "text"] };
     setPages((current) => [...current, page]);
     setActivePageId(page.id);
+    setEditingSectionIndex(null);
     setNewPageTitle("");
     setAddPageOpen(false);
   }
@@ -167,7 +184,7 @@ export default function SiteEditorPage() {
   function addSection(sectionId: string) {
     const catalogItem = sectionCatalog.find((item) => item.id === sectionId);
     setPages((current) => current.map((page) => page.id === activePageId
-      ? { ...page, sections: [...(page.sections || []), sectionId] }
+      ? { ...page, sections: [...(page.sections || []), createCustomerSection(sectionId)] }
       : page));
     setSaved(false);
     setSectionNotice(`${catalogItem?.name || "Bölüm"} sayfaya eklendi.`);
@@ -178,11 +195,65 @@ export default function SiteEditorPage() {
     }));
   }
 
+  function editSection(index: number) {
+    setEditingSectionIndex(index);
+    setPanel("sections");
+  }
+
+  function updateSection(index: number, update: Partial<CustomerSiteSection>) {
+    setPages((current) => current.map((page) => {
+      if (page.id !== activePageId) return page;
+      return { ...page, sections: page.sections.map((section, sectionIndex) => sectionIndex === index ? { ...resolveCustomerSection(section, `${page.id}-${index}`), ...update } : section) };
+    }));
+    setSaved(false);
+  }
+
+  async function uploadSectionImages(index: number, files: FileList | null) {
+    if (!site || !files?.length) return;
+    const section = resolveCustomerSection(activePage.sections[index], `${activePage.id}-${index}`);
+    const availableSlots = Math.max(0, 8 - (section.images?.length || 0));
+    const accepted = Array.from(files).filter((file) => file.type.startsWith("image/")).slice(0, availableSlots);
+    if (!accepted.length) {
+      setSectionUploadError(availableSlots === 0 ? "Bu bölümde en fazla 8 görsel kullanılabilir." : "JPG, PNG, WebP, AVIF veya GIF formatında bir görsel seç.");
+      return;
+    }
+    if (accepted.some((file) => file.size > 12 * 1024 * 1024)) {
+      setSectionUploadError("Her görsel en fazla 12 MB olabilir.");
+      return;
+    }
+
+    setSectionUploadError("");
+    const uploaded: string[] = [];
+    try {
+      for (const file of accepted) {
+        const safeName = file.name.normalize("NFKD").replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
+        const storageRef = ref(storage, `customer-sites/${site.id}/sections/${section.id}/${Date.now()}-${crypto.randomUUID()}-${safeName}`);
+        const task = uploadBytesResumable(storageRef, file, { contentType: file.type, customMetadata: { siteId: site.id, sectionId: section.id, ownerId: site.ownerId } });
+        const url = await new Promise<string>((resolve, reject) => task.on("state_changed", (snapshot) => {
+          setSectionUpload({ index, progress: Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100), fileName: file.name });
+        }, reject, async () => resolve(await getDownloadURL(task.snapshot.ref))));
+        uploaded.push(url);
+      }
+      updateSection(index, { images: [...(section.images || []), ...uploaded] });
+    } catch (uploadError) {
+      console.error(uploadError);
+      setSectionUploadError("Görsel yüklenemedi. Firebase Storage yetkisini ve bağlantını kontrol et.");
+    } finally {
+      setSectionUpload(null);
+    }
+  }
+
+  function removeSectionImage(index: number, imageUrl: string) {
+    const section = resolveCustomerSection(activePage.sections[index], `${activePage.id}-${index}`);
+    updateSection(index, { images: (section.images || []).filter((url) => url !== imageUrl) });
+  }
+
   function removeSection(index: number) {
     setPages((current) => current.map((page) => page.id === activePageId
       ? { ...page, sections: page.sections.filter((_, itemIndex) => itemIndex !== index) }
       : page));
     setSaved(false);
+    setEditingSectionIndex((current) => current === index ? null : current !== null && current > index ? current - 1 : current);
   }
 
   function moveSection(fromIndex: number, toIndex: number) {
@@ -195,6 +266,7 @@ export default function SiteEditorPage() {
       return { ...page, sections: reordered };
     }));
     setSaved(false);
+    setEditingSectionIndex((current) => current === fromIndex ? toIndex : current);
   }
 
   function removePage() {
@@ -280,17 +352,38 @@ export default function SiteEditorPage() {
           <div className="studio-search"><Search size={15} /><input placeholder="Sayfa ara…" /></div>
           <div className="studio-page-tree">
             <span>ANA NAVİGASYON <small>{pages.filter((page) => page.visible).length} SAYFA</small></span>
-            {pages.map((page) => <button key={page.id} className={activePage.id === page.id ? "active" : ""} onClick={() => setActivePageId(page.id)}><GripVertical size={14} /><i>{page.type === "home" ? <Home size={15} /> : page.type === "contact" ? <Contact size={15} /> : <FileText size={15} />}</i><span><strong>{page.title}</strong><small>{page.slug}</small></span>{!page.visible && <Eye size={13} />}<MoreHorizontal size={15} /></button>)}
+            {pages.map((page) => <button key={page.id} className={activePage.id === page.id ? "active" : ""} onClick={() => { setActivePageId(page.id); setEditingSectionIndex(null); }}><GripVertical size={14} /><i>{page.type === "home" ? <Home size={15} /> : page.type === "contact" ? <Contact size={15} /> : <FileText size={15} />}</i><span><strong>{page.title}</strong><small>{page.slug}</small></span>{!page.visible && <Eye size={13} />}<MoreHorizontal size={15} /></button>)}
           </div>
           <button className="studio-add-page" onClick={() => setAddPageOpen(true)}><Plus size={16} /><span><strong>Yeni sayfa ekle</strong><small>Boş veya hazır şablondan</small></span><ChevronRight size={16} /></button>
           <section className="studio-page-settings"><p>SAYFA AYARLARI</p><label>Sayfa adı<input value={activePage.title} onChange={(event) => updateActivePage({ title: event.target.value })} /></label><label>URL adresi<div><span>{site.subdomain}.dromocob.tr</span><input value={activePage.slug} onChange={(event) => updateActivePage({ slug: event.target.value })} /></div></label><button onClick={() => updateActivePage({ visible: !activePage.visible })}>{activePage.visible ? <ToggleRight /> : <ToggleLeft />} Navigasyonda göster</button>{activePage.type !== "home" && <button className="studio-delete-page" onClick={removePage}><Trash2 size={15} /> Sayfayı sil</button>}</section>
         </>}
 
         {panel === "sections" && <>
-          <div className="studio-panel-head"><div><p>İÇERİK KÜTÜPHANESİ</p><h1>Bölüm ekle</h1></div><button onClick={() => setPanel("pages")}><X size={16} /></button></div>
-          <p className="studio-panel-description">Hazır kurumsal blokları seçili sayfaya ekle.</p>
-          <div className="studio-section-summary"><span><Blocks size={14} /> {activePage.sections.length} aktif bölüm</span>{sectionNotice && <strong><Check size={13} /> {sectionNotice}</strong>}</div>
-          <div className="studio-section-library">{sectionCatalog.map(({ id, name, icon: Icon, detail }) => { const count = activePage.sections.filter((section) => section === id).length; return <button type="button" key={id} onClick={() => addSection(id)}><i><Icon size={18} /></i><span><strong>{name}</strong><small>{detail}</small></span>{count > 0 && <b>{count}</b>}<Plus size={15} /></button>; })}</div>
+          <div className="studio-panel-head"><div><p>{editingSection ? "BÖLÜM DÜZENLEYİCİ" : "İÇERİK KÜTÜPHANESİ"}</p><h1>{editingSection ? "İçeriği düzenle" : "Bölüm ekle"}</h1></div><button onClick={() => editingSection ? setEditingSectionIndex(null) : setPanel("pages")}><X size={16} /></button></div>
+          {editingSection && editingSectionIndex !== null ? <div className="studio-section-editor">
+            <div className="studio-section-editor-badge"><span>{sectionCatalog.find((item) => item.id === editingSection.type)?.name || "İçerik bölümü"}</span><b>CANLI DÜZENLEME</b></div>
+            <label>Üst başlık<input value={editingSection.eyebrow} onChange={(event) => updateSection(editingSectionIndex, { eyebrow: event.target.value })} /></label>
+            <label>Ana başlık<textarea rows={3} value={editingSection.title} onChange={(event) => updateSection(editingSectionIndex, { title: event.target.value })} /></label>
+            <label>Açıklama<textarea rows={4} value={editingSection.description} onChange={(event) => updateSection(editingSectionIndex, { description: event.target.value })} /></label>
+            {(["hero", "gallery", "testimonials", "team", "logos", "video"].includes(editingSection.type)) && <div className="studio-media-editor">
+              <div><strong>GÖRSEL MEDYA</strong><small>{editingSection.type === "gallery" || editingSection.type === "team" || editingSection.type === "logos" ? "Birden fazla görsel seçebilirsin" : "İlk görsel bölüm kapağı olarak kullanılır"}</small></div>
+              {!!editingSection.images?.length && <div className="studio-media-grid">{editingSection.images.map((imageUrl, imageIndex) => <figure key={imageUrl}><Image src={imageUrl} alt={`${editingSection.title} görsel ${imageIndex + 1}`} width={120} height={82} unoptimized/><button type="button" onClick={() => removeSectionImage(editingSectionIndex, imageUrl)} aria-label="Görseli kaldır"><X size={12}/></button></figure>)}</div>}
+              <label className="studio-media-upload"><Upload size={16}/><span><strong>{sectionUpload?.index === editingSectionIndex ? `Yükleniyor · %${sectionUpload.progress}` : "Görsel yükle"}</strong><small>{sectionUpload?.index === editingSectionIndex ? sectionUpload.fileName : "PNG, JPG, WebP, AVIF · En fazla 12 MB"}</small></span><input type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/gif" multiple={["gallery", "team", "logos", "testimonials"].includes(editingSection.type)} disabled={sectionUpload !== null} onChange={(event) => { void uploadSectionImages(editingSectionIndex, event.target.files); event.currentTarget.value = ""; }}/></label>
+              {sectionUpload?.index === editingSectionIndex && <div className="studio-upload-progress"><i style={{ width: `${sectionUpload.progress}%` }}/></div>}
+              {sectionUploadError && <p className="studio-media-error">{sectionUploadError}</p>}
+            </div>}
+            <label>Öğeler <small>Her satıra bir kart, madde veya soru</small><textarea rows={6} value={editingSection.items.join("\n")} onChange={(event) => updateSection(editingSectionIndex, { items: event.target.value.split("\n").map((item) => item.trim()).filter(Boolean) })} /></label>
+            {(editingSection.type === "hero" || editingSection.type === "cta" || editingSection.type === "video" || editingSection.type === "contact") && <>
+              <label>Buton metni<input value={editingSection.ctaLabel || ""} onChange={(event) => updateSection(editingSectionIndex, { ctaLabel: event.target.value })} /></label>
+              <label>Buton bağlantısı<input value={editingSection.ctaUrl || ""} placeholder="/iletisim veya https://…" onChange={(event) => updateSection(editingSectionIndex, { ctaUrl: event.target.value })} /></label>
+            </>}
+            {editingSection.type === "video" && <label>Video adresi<input value={editingSection.mediaUrl || ""} placeholder="YouTube, Vimeo veya MP4 URL" onChange={(event) => updateSection(editingSectionIndex, { mediaUrl: event.target.value })} /></label>}
+            <div className="studio-section-editor-actions"><button onClick={() => setEditingSectionIndex(null)}><Check size={14}/> Düzenlemeyi tamamla</button><button onClick={() => removeSection(editingSectionIndex)}><Trash2 size={14}/> Bölümü sil</button></div>
+          </div> : <>
+            <p className="studio-panel-description">Dönüşüm, güven ve hikâye anlatımı için hazır blokları seçili sayfaya ekle. Eklediğin her bölüm düzenlenebilir.</p>
+            <div className="studio-section-summary"><span><Blocks size={14} /> {activePage.sections.length} aktif bölüm</span>{sectionNotice && <strong><Check size={13} /> {sectionNotice}</strong>}</div>
+            <div className="studio-section-library">{sectionCatalog.map(({ id, name, icon: Icon, detail }) => { const count = activePage.sections.filter((section) => getCustomerSectionType(section) === id).length; return <button type="button" key={id} onClick={() => addSection(id)}><i><Icon size={18} /></i><span><strong>{name}</strong><small>{detail}</small></span>{count > 0 && <b>{count}</b>}<Plus size={15} /></button>; })}</div>
+          </>}
         </>}
 
         {panel === "settings" && <>
@@ -330,7 +423,9 @@ export default function SiteEditorPage() {
           <article className={`studio-site-preview studio-preview-${site.template}`} style={{ "--studio-accent": site.accent } as React.CSSProperties}>
             <nav><strong>{site.businessName}</strong><div>{pages.filter((page) => page.visible).map((page) => <span className={page.id === activePage.id ? "active" : ""} key={page.id}>{page.title}</span>)}</div><button>İletişime geç <ArrowRight size={11} /></button></nav>
             <div className="studio-preview-sections">
-              {activePage.sections.map((sectionId, index) => {
+              {activePage.sections.map((sectionValue, index) => {
+                const content = resolveCustomerSection(sectionValue, `${activePage.id}-${index}`);
+                const sectionId = content.type;
                 const section = sectionCatalog.find((item) => item.id === sectionId) ?? sectionCatalog[0];
                 const SectionIcon = section.icon;
                 const dragProps = {
@@ -341,12 +436,14 @@ export default function SiteEditorPage() {
                   onDragEnd: () => { setDraggingSection(null); setDragTargetSection(null); },
                 };
                 const dragClass = `${draggingSection === index ? " is-dragging" : ""}${dragTargetSection === index && draggingSection !== index ? " is-drag-target" : ""}`;
-                const actionProps = { onDelete: () => removeSection(index), onMoveUp: index > 0 ? () => moveSection(index, index - 1) : undefined, onMoveDown: index < activePage.sections.length - 1 ? () => moveSection(index, index + 1) : undefined };
-                if (sectionId === "hero") return <section className={`studio-preview-hero studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} onEdit={() => setPanel("design")} /><small>{activePage.title.toUpperCase()} · DROMOCOB SITES</small><h2>{activePage.type === "home" ? site.headline : `${activePage.title}, markamızın hikâyesini anlatır.`}</h2><p>Strateji, tasarım ve teknolojiyle kalıcı dijital deneyimler oluşturuyoruz.</p><i /></section>;
-                if (sectionId === "features") return <section className={`studio-preview-features studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} /><p>YETKİNLİKLERİMİZ</p><h3>İşinizi ileri taşıyan sistemler.</h3><div><span>01<br/><b>Strateji</b></span><span>02<br/><b>Tasarım</b></span><span>03<br/><b>Teknoloji</b></span></div></section>;
-                if (sectionId === "gallery") return <section className={`studio-preview-gallery studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} /><div /><div /><div /></section>;
-                if (sectionId === "contact") return <section className={`studio-preview-contact studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} /><div><p>BİRLİKTE ÇALIŞALIM</p><h3>Yeni bir şey<br/>başlatalım.</h3></div><div><span>Ad soyad</span><span>E-posta</span><span>Mesajınız</span><button>Gönder</button></div></section>;
-                return <section className={`studio-preview-generic studio-block${dragClass}`} key={`${sectionId}-${index}`} {...dragProps}><BlockActions {...actionProps} /><section><SectionIcon size={23} /><span><small>{section.name.toUpperCase()}</small><h3>{sectionId === "testimonials" ? "İş ortaklarımız anlatıyor." : "Net fikirler, güçlü sonuçlar."}</h3><p>{section.detail}. Bu alan düzenleyicide özelleştirilebilir içeriklerle yayınlanır.</p></span></section></section>;
+                const actionProps = { onEdit: () => editSection(index), onDelete: () => removeSection(index), onMoveUp: index > 0 ? () => moveSection(index, index - 1) : undefined, onMoveDown: index < activePage.sections.length - 1 ? () => moveSection(index, index + 1) : undefined };
+                if (sectionId === "hero") return <section className={`studio-preview-hero studio-block${dragClass}`} key={content.id} style={content.images?.[0] ? { backgroundImage: `linear-gradient(90deg,rgba(8,12,9,.94),rgba(8,12,9,.36)),url(${content.images[0]})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} {...dragProps}><BlockActions {...actionProps} /><small>{content.eyebrow}</small><h2>{content.title}</h2><p>{content.description}</p><i /></section>;
+                if (sectionId === "features" || sectionId === "services" || sectionId === "stats" || sectionId === "pricing" || sectionId === "team" || sectionId === "timeline" || sectionId === "logos" || sectionId === "faq") return <section className={`studio-preview-features studio-preview-collection studio-collection-${sectionId} studio-block${dragClass}`} key={content.id} {...dragProps}><BlockActions {...actionProps} /><p>{content.eyebrow}</p><h3>{content.title}</h3><small>{content.description}</small><div>{content.items.slice(0, sectionId === "logos" ? 5 : 4).map((item, itemIndex) => <span key={`${item}-${itemIndex}`} style={content.images?.[itemIndex] ? { backgroundImage: `linear-gradient(rgba(240,241,237,.84),rgba(240,241,237,.94)),url(${content.images[itemIndex]})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>0{itemIndex + 1}<br/><b>{item}</b></span>)}</div></section>;
+                if (sectionId === "gallery") return <section className={`studio-preview-gallery studio-block${dragClass}`} key={content.id} {...dragProps}><BlockActions {...actionProps} />{content.items.slice(0, 3).map((item, itemIndex) => <div key={`${item}-${itemIndex}`} style={content.images?.[itemIndex] ? { backgroundImage: `linear-gradient(180deg,rgba(6,10,7,.08),rgba(6,10,7,.84)),url(${content.images[itemIndex]})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}><span>0{itemIndex + 1}</span><b>{item}</b></div>)}</section>;
+                if (sectionId === "contact") return <section className={`studio-preview-contact studio-block${dragClass}`} key={content.id} {...dragProps}><BlockActions {...actionProps} /><div><p>{content.eyebrow}</p><h3>{content.title}</h3><small>{content.description}</small></div><div>{content.items.slice(0, 3).map((item) => <span key={item}>{item}</span>)}<button>{content.ctaLabel || "Gönder"}</button></div></section>;
+                if (sectionId === "video") return <section className={`studio-preview-video studio-block${dragClass}`} key={content.id} style={content.images?.[0] ? { backgroundImage: `linear-gradient(90deg,rgba(6,12,9,.9),rgba(6,12,9,.42)),url(${content.images[0]})`, backgroundSize: "cover", backgroundPosition: "center" } : undefined} {...dragProps}><BlockActions {...actionProps}/><CirclePlay/><div><p>{content.eyebrow}</p><h3>{content.title}</h3><span>{content.description}</span><button>{content.ctaLabel || "Videoyu oynat"}</button></div></section>;
+                if (sectionId === "cta") return <section className={`studio-preview-cta studio-block${dragClass}`} key={content.id} {...dragProps}><BlockActions {...actionProps}/><p>{content.eyebrow}</p><h3>{content.title}</h3><span>{content.description}</span><button>{content.ctaLabel || "Projeyi başlat"}<ArrowRight size={13}/></button></section>;
+                return <section className={`studio-preview-generic studio-block${dragClass}`} key={content.id} {...dragProps}><BlockActions {...actionProps} /><section><SectionIcon size={23} /><span><small>{content.eyebrow || section.name.toUpperCase()}</small><h3>{content.title}</h3><p>{content.description}</p>{content.items.length > 0 && <div>{content.items.slice(0, 3).map((item) => <b key={item}>{item}</b>)}</div>}</span></section></section>;
               })}
               <button className="studio-inline-add" onClick={() => setPanel("sections")}><Plus size={16} /> Bu sayfaya bölüm ekle</button>
             </div>

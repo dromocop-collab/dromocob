@@ -9,7 +9,7 @@ import { packageDetailPathById, packageQuoteServiceById } from "@/lib/package-de
 import type { ServicePackage } from "@/lib/types";
 import QuoteWizard from "@/components/quote-wizard";
 
-export default function PackageGrid() {
+export default function PackageGrid({ compact = false }: { compact?: boolean }) {
   const [packages, setPackages] = useState<ServicePackage[]>(fallbackPackages);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteService, setQuoteService] = useState<ServicePackage["quoteService"]>();
@@ -61,7 +61,7 @@ export default function PackageGrid() {
 
   return (
     <>
-      <div className="package-grid" ref={gridRef}>
+      <div className={`package-grid ${compact ? "package-grid-compact" : ""}`} ref={gridRef}>
         {packages.map((item, index) => (
           <article
             className={`package-card ${item.featured ? "featured-card" : ""} ${item.theme ? `theme-${item.theme}` : ""}`}
@@ -76,10 +76,10 @@ export default function PackageGrid() {
               <span>0{index + 1}</span>
               <span className="package-card-status">
                 {item.badge && <b className="badge">{item.badge}</b>}
-                <i>DC / SYSTEM</i>
+                <i>{compact ? "DC / SELECT" : "DC / SYSTEM"}</i>
               </span>
             </div>
-            {item.image && <div className="package-visual" style={{ backgroundImage: `linear-gradient(180deg, transparent, rgba(0,0,0,.48)), url(${item.image})` }} />}
+            {item.image && !compact && <div className="package-visual" style={{ backgroundImage: `linear-gradient(180deg, transparent, rgba(0,0,0,.48)), url(${item.image})` }} />}
             <p className="eyebrow">{item.subtitle}</p>
             <h3>{item.title}</h3>
             <div className="package-price-label">Başlangıç yatırımı</div>
@@ -95,17 +95,22 @@ export default function PackageGrid() {
             )}
 
             <ul className="feature-list">
-              {item.features.map(feature => <li key={feature}><Check size={17} />{feature}</li>)}
+              {(compact ? item.features.slice(0, 3) : item.features).map(feature => <li key={feature}><Check size={17} />{feature}</li>)}
             </ul>
 
-            <div className="package-intelligence">
+            {!compact && <div className="package-intelligence">
               {!!item.idealFor?.length && <div><span>İdeal yapı</span><p>{item.idealFor.join(" · ")}</p></div>}
               {!!item.kpiFocus?.length && <div><span>Başarı odağı</span><p>{item.kpiFocus.join(" · ")}</p></div>}
-            </div>
-            {item.guarantee && <p className="package-guarantee"><ShieldCheck size={17}/>{item.guarantee}</p>}
+            </div>}
+            {!compact && item.guarantee && <p className="package-guarantee"><ShieldCheck size={17}/>{item.guarantee}</p>}
 
-            {packageDetailPathById[item.id] && <Link className="package-detail-link" href={packageDetailPathById[item.id]}>Paket detaylarını incele <ArrowUpRight size={16}/></Link>}
-            <button className="button button-full" onClick={() => { setQuoteService(packageQuoteServiceById[item.id] || item.quoteService); setQuotePackageId(item.id); setQuoteOpen(true); }}>{item.cta || "Paketi Özelleştir"} <ArrowUpRight size={18} /></button>
+            {compact ? <div className="package-compact-actions">
+              {packageDetailPathById[item.id] && <Link className="package-detail-link" href={packageDetailPathById[item.id]}>Detaylar <ArrowUpRight size={16}/></Link>}
+              <button className="button button-full" onClick={() => { setQuoteService(packageQuoteServiceById[item.id] || item.quoteService); setQuotePackageId(item.id); setQuoteOpen(true); }}>Teklif al <ArrowUpRight size={18} /></button>
+            </div> : <>
+              {packageDetailPathById[item.id] && <Link className="package-detail-link" href={packageDetailPathById[item.id]}>Paket detaylarını incele <ArrowUpRight size={16}/></Link>}
+              <button className="button button-full" onClick={() => { setQuoteService(packageQuoteServiceById[item.id] || item.quoteService); setQuotePackageId(item.id); setQuoteOpen(true); }}>{item.cta || "Paketi Özelleştir"} <ArrowUpRight size={18} /></button>
+            </>}
           </article>
         ))}
       </div>

@@ -44,7 +44,7 @@ export default function SiteNav(){
     </Link>
     <nav className="desktop-nav" aria-label="Ana navigasyon">
       <div className="nav-primary">
-        {links.map(([l,h],index)=><Link key={h} href={h} className={isActive(String(h))?"nav-link active":"nav-link"} aria-current={isActive(String(h))?"page":undefined}><small>0{index+1}</small><span>{l}</span></Link>)}
+        {links.map(([l,h])=><Link key={h} href={h} className={isActive(String(h))?"nav-link active":"nav-link"} aria-current={isActive(String(h))?"page":undefined}><span>{l}</span></Link>)}
       </div>
       <div className="nav-actions">
         <Link href="/site-olustur" className="nav-cta"><span><small>Dromocob Sites</small>Site Oluştur</span><i><ArrowUpRight size={16}/></i></Link>

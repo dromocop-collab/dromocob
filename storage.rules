@@ -1,0 +1,84 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function bootstrapAdmin() {
+      return signedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == "cihatwin@gmail.com";
+    }
+
+    function adminRecord() {
+      return firestore.get(
+        /databases/(default)/documents/admin_users/$(request.auth.uid)
+      );
+    }
+
+    function activeAdmin() {
+      return bootstrapAdmin()
+        || (
+          signedIn()
+          && adminRecord().data.active == true
+          && (
+            adminRecord().data.role == "admin"
+            || adminRecord().data.role == "super_admin"
+          )
+        );
+    }
+
+    function siteRecord(siteId) {
+      return firestore.get(
+        /databases/(default)/documents/customer_sites/$(siteId)
+      );
+    }
+
+    function canManageSite(siteId) {
+      return signedIn()
+        && (
+          siteRecord(siteId).data.ownerId == request.auth.uid
+          || activeAdmin()
+        );
+    }
+
+    function validSiteImage(siteId) {
+      return request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= 12 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*')
+        && request.resource.metadata.siteId == siteId
+        && request.resource.metadata.ownerId == siteRecord(siteId).data.ownerId;
+    }
+
+    function validAdminMedia() {
+      return request.resource != null
+        && request.resource.size > 0
+        && request.resource.size <= 250 * 1024 * 1024
+        && (
+          request.resource.contentType.matches('image/.*')
+          || request.resource.contentType.matches('video/.*')
+        );
+    }
+
+    match /customer-sites/{siteId}/sections/{sectionId}/{fileName} {
+      allow read: if true;
+      allow write: if canManageSite(siteId)
+        && (
+          request.resource == null
+          || validSiteImage(siteId)
+        );
+    }
+
+    match /admin-content/{allPaths=**} {
+      allow read: if true;
+      allow write: if activeAdmin()
+        && (
+          request.resource == null
+          || validAdminMedia()
+        );
+    }
+  }
+}

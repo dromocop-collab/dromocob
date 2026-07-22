@@ -23,6 +23,10 @@ export type PublicSeoVerificationSettings = {
   yandexVerification?: string;
 };
 
+function verificationToken(value?: string): string {
+  return String(value || "").trim().replace(/^(google-site-verification|msvalidate\.01|yandex-verification)\s*=\s*/i, "");
+}
+
 export async function getPublicTrackingSettings(): Promise<PublicTrackingSettings> {
   const fallback: PublicTrackingSettings = {
     enabled: true,
@@ -51,15 +55,25 @@ export async function getPublicSeoVerificationSettings(): Promise<PublicSeoVerif
     bingSiteVerification: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION || "",
     yandexVerification: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || "",
   };
+  const normalizedFallback = {
+    googleSiteVerification: verificationToken(fallback.googleSiteVerification),
+    bingSiteVerification: verificationToken(fallback.bingSiteVerification),
+    yandexVerification: verificationToken(fallback.yandexVerification),
+  };
 
   try {
     const snapshot = await adminDb.collection("site_settings").doc("global").get();
     const data = snapshot.data();
-    if (!data || data.active === false) return fallback;
+    if (!data || data.active === false) return normalizedFallback;
 
-    return { ...fallback, ...(data.seo as PublicSeoVerificationSettings | undefined) };
+    const merged = { ...fallback, ...(data.seo as PublicSeoVerificationSettings | undefined) };
+    return {
+      googleSiteVerification: verificationToken(merged.googleSiteVerification),
+      bingSiteVerification: verificationToken(merged.bingSiteVerification),
+      yandexVerification: verificationToken(merged.yandexVerification),
+    };
   } catch (error) {
     console.warn("[DROMOCOB SEO] Sunucu SEO ayarları okunamadı; env değerleri kullanılıyor.", error);
-    return fallback;
+    return normalizedFallback;
   }
 }

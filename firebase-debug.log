@@ -24,3 +24,49 @@
     at async /opt/homebrew/lib/node_modules/firebase-tools/lib/command.js:264:17
 [error] 
 [error] Error: Failed to authenticate, have you run firebase login?
+[debug] [2026-07-22T14:21:25.542Z] ----------------------------------------------------------------------
+[debug] [2026-07-22T14:21:25.543Z] Command:       /opt/homebrew/Cellar/node/25.8.1_1/bin/node /opt/homebrew/bin/firebase deploy --only storage --dry-run --project dromocob --non-interactive
+[debug] [2026-07-22T14:21:25.543Z] CLI Version:   15.12.0
+[debug] [2026-07-22T14:21:25.543Z] Platform:      darwin
+[debug] [2026-07-22T14:21:25.543Z] Node Version:  v25.8.1
+[debug] [2026-07-22T14:21:25.543Z] Time:          Wed Jul 22 2026 17:21:25 GMT+0300 (Türkiye Standard Time)
+[debug] [2026-07-22T14:21:25.543Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2026-07-22T14:21:25.846Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-07-22T14:21:25.846Z] > authorizing via signed-in user (dromocop@gmail.com)
+[debug] [2026-07-22T14:21:25.846Z] [iam] checking project dromocob for permissions ["firebase.projects.get","firebaserules.releases.create","firebaserules.releases.update","firebaserules.rulesets.create"]
+[debug] [2026-07-22T14:21:25.846Z] Checked if tokens are valid: false, expires at: 1784728056731
+[debug] [2026-07-22T14:21:25.847Z] Checked if tokens are valid: false, expires at: 1784728056731
+[debug] [2026-07-22T14:21:25.847Z] > refreshing access token with scopes: []
+[debug] [2026-07-22T14:21:25.847Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-07-22T14:21:25.847Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-22T14:21:26.144Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-07-22T14:21:26.144Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-07-22T14:21:26.160Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/dromocob:testIamPermissions [none]
+[debug] [2026-07-22T14:21:26.161Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/dromocob:testIamPermissions  x-goog-user-project=dromocob
+[debug] [2026-07-22T14:21:26.161Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dromocob:testIamPermissions {"permissions":["firebase.projects.get","firebaserules.releases.create","firebaserules.releases.update","firebaserules.rulesets.create"]}
+[debug] [2026-07-22T14:21:27.256Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/dromocob:testIamPermissions 200
+[debug] [2026-07-22T14:21:27.257Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/dromocob:testIamPermissions {"permissions":["firebase.projects.get","firebaserules.releases.create","firebaserules.releases.update","firebaserules.rulesets.create"]}
+[info] 
+[info] === Deploying to 'dromocob'...
+[info] 
+[info] i  deploying storage 
+[info] i  storage: ensuring required API firebasestorage.googleapis.com is enabled... 
+[debug] [2026-07-22T14:21:27.262Z] Checked if tokens are valid: true, expires at: 1784733685144
+[debug] [2026-07-22T14:21:27.262Z] Checked if tokens are valid: true, expires at: 1784733685144
+[debug] [2026-07-22T14:21:27.262Z] >>> [apiv2][query] GET https://serviceusage.googleapis.com/v1/projects/dromocob/services/firebasestorage.googleapis.com [none]
+[debug] [2026-07-22T14:21:27.262Z] >>> [apiv2][(partial)header] GET https://serviceusage.googleapis.com/v1/projects/dromocob/services/firebasestorage.googleapis.com  x-goog-user-project=dromocob
+[debug] [2026-07-22T14:21:28.549Z] <<< [apiv2][status] GET https://serviceusage.googleapis.com/v1/projects/dromocob/services/firebasestorage.googleapis.com 200
+[debug] [2026-07-22T14:21:28.549Z] <<< [apiv2][body] GET https://serviceusage.googleapis.com/v1/projects/dromocob/services/firebasestorage.googleapis.com [omitted]
+[info] ✔  storage: required API firebasestorage.googleapis.com is enabled 
+[debug] [2026-07-22T14:21:28.559Z] Checked if tokens are valid: true, expires at: 1784733685144
+[debug] [2026-07-22T14:21:28.559Z] Checked if tokens are valid: true, expires at: 1784733685144
+[debug] [2026-07-22T14:21:28.560Z] >>> [apiv2][query] GET https://firebasestorage.googleapis.com/v1alpha/projects/dromocob/defaultBucket [none]
+[debug] [2026-07-22T14:21:29.263Z] <<< [apiv2][status] GET https://firebasestorage.googleapis.com/v1alpha/projects/dromocob/defaultBucket 200
+[debug] [2026-07-22T14:21:29.264Z] <<< [apiv2][body] GET https://firebasestorage.googleapis.com/v1alpha/projects/dromocob/defaultBucket {"name":"projects/dromocob/defaultBucket","location":"EUROPE-WEST4","bucket":{"name":"projects/dromocob/buckets/dromocob.firebasestorage.app"},"storageClass":"REGIONAL"}
+[info] i  firebase.storage: checking storage.rules for compilation errors... 
+[debug] [2026-07-22T14:21:29.268Z] Checked if tokens are valid: true, expires at: 1784733685144
+[debug] [2026-07-22T14:21:29.268Z] Checked if tokens are valid: true, expires at: 1784733685144
+[debug] [2026-07-22T14:21:29.268Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/dromocob:test [none]
+[debug] [2026-07-22T14:21:29.268Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/dromocob:test [omitted]
+[debug] [2026-07-22T14:21:30.291Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/dromocob:test 200

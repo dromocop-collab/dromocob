@@ -96,7 +96,7 @@ export default function Home() {
       <section className="section dark-panel home-packages" id="paket-sistemleri">
         <div className="section-head"><div><p className="eyebrow"><Sparkles size={15}/> Akıllı hizmet mimarisi</p><h2>Hazır paket değil.<br/><em>Doğru kombinasyon.</em></h2></div><p>İhtiyacına göre kapsamı şekillendir, dinamik teklif motoru yaklaşık bütçeyi anında hesaplasın.</p></div>
         <div className="mobile-swipe-hint" aria-hidden="true"><span>Paketleri sağa kaydır</span><i/><i/><i/><ArrowRight/></div>
-        <PackageGrid />
+        <PackageGrid compact />
       </section>
 
       <section className="section mega-cta">
