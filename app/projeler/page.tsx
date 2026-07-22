@@ -48,7 +48,7 @@ export default function ProjectsPage() {
         </div>
         <div>
           <p>Her projeyi yalnızca görünen tasarım veya film olarak değil; markanın hedefi, müşterinin yolculuğu, teknik altyapı, içerik üretimi ve yayın sonrası ölçüm katmanlarıyla birlikte ele alıyoruz.</p>
-          <p>İstanbul merkezli çalışma modelimizle web ve strateji projelerini Türkiye genelinde uzaktan; prodüksiyonları ise ihtiyaca göre farklı şehirlerde yerinde yürütebiliyoruz.</p>
+          <p>Fethiye merkezli çalışma modelimizle web ve strateji projelerini Türkiye genelinde uzaktan; prodüksiyonları ise ihtiyaca göre farklı şehirlerde yerinde yürütebiliyoruz.</p>
           <QuoteLauncher>Projenin kapsamını konuşalım <ArrowRight size={18}/></QuoteLauncher>
         </div>
       </section>

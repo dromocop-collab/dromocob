@@ -3,10 +3,12 @@ export type Project = {
   title: string;
   slug: string;
   category: string;
+  projectType?: "Web" | "App" | "Film";
   summary: string;
   description: string;
   coverUrl?: string;
   videoUrl?: string;
+  externalUrl?: string;
   client?: string;
   year?: number;
   featured?: boolean;

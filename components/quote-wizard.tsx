@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { Check, ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import { fetchQuoteEngine } from "@/lib/data";
 import { calculateQuote } from "@/lib/quote-engine";
 import type { QuoteQuestion, QuoteRule } from "@/lib/types";
+
+const subscribeToClient = () => () => {};
 
 const fallbackQuestions: QuoteQuestion[] = [
   { id: "q1", key: "service", title: "Ne yaptırmak istiyorsun?", type: "single", active: true, order: 1, options: [
@@ -126,27 +129,75 @@ const emergencyDroneQuestions: QuoteQuestion[] = [
   ]}
 ];
 
+const aiAutomationQuestions: QuoteQuestion[] = [
+  { id: "ai-goal", key: "automationGoal", title: "Otomasyonda ilk hedefiniz ne?", subtitle: "Sistemin önce hangi iş sonucunu üretmesi gerektiğini belirleyelim.", type: "single", active: true, order: 1, options: [
+    { label: "Müşteri taleplerine daha hızlı yanıt vermek", value: "response", priceDelta: 0 },
+    { label: "Satış ve teklif sürecini otomatikleştirmek", value: "sales", priceDelta: 12000 },
+    { label: "Ekip içi operasyon yükünü azaltmak", value: "operations", priceDelta: 9000 },
+    { label: "Veri, raporlama ve karar akışını birleştirmek", value: "intelligence", priceDelta: 16000 }
+  ]},
+  { id: "ai-workflows", key: "automationWorkflows", title: "Hangi süreçleri otomasyona alalım?", subtitle: "Birden fazla operasyon hattı seçebilirsiniz.", type: "multi", active: true, order: 2, options: [
+    { label: "Web formu, WhatsApp ve sosyal medya talepleri", value: "inbox", priceDelta: 9000 },
+    { label: "Lead puanlama ve doğru ekibe yönlendirme", value: "lead-routing", priceDelta: 12000 },
+    { label: "Teklif hazırlama ve takip hatırlatmaları", value: "proposal", priceDelta: 16000 },
+    { label: "Randevu, rezervasyon veya sipariş operasyonu", value: "booking", priceDelta: 18000 },
+    { label: "İçerik üretimi ve onay akışları", value: "content", priceDelta: 14000 },
+    { label: "Yönetim raporları ve performans uyarıları", value: "reporting", priceDelta: 13000 }
+  ]},
+  { id: "ai-capabilities", key: "aiCapabilities", title: "Yapay zekâ hangi yeteneklere sahip olmalı?", type: "multi", active: true, order: 3, options: [
+    { label: "Kurumsal bilgi tabanından doğru yanıt üretme", value: "knowledge", priceDelta: 14000 },
+    { label: "Talep, mesaj ve belgeleri sınıflandırma", value: "classification", priceDelta: 10000 },
+    { label: "Teklif veya içerik taslağı oluşturma", value: "generation", priceDelta: 12000 },
+    { label: "Belge, PDF ve e-postalardan veri çıkarma", value: "extraction", priceDelta: 17000 },
+    { label: "İnsan onayıyla güvenli aksiyon çalıştırma", value: "human-approval", priceDelta: 9000 }
+  ]},
+  { id: "ai-integrations", key: "automationIntegrations", title: "Sistem hangi araçlarla konuşmalı?", subtitle: "Mevcut teknoloji yapınıza göre bağlantı katmanını planlayalım.", type: "multi", active: true, order: 4, options: [
+    { label: "CRM veya müşteri veritabanı", value: "crm", priceDelta: 13000 },
+    { label: "WhatsApp Business / e-posta", value: "messaging", priceDelta: 11000 },
+    { label: "ERP, muhasebe veya stok sistemi", value: "erp", priceDelta: 22000 },
+    { label: "Google Workspace / Microsoft 365", value: "workspace", priceDelta: 9000 },
+    { label: "Özel API veya mevcut yazılım", value: "custom-api", priceDelta: 18000 },
+    { label: "Henüz karar vermedik", value: "discovery", priceDelta: 0 }
+  ]},
+  { id: "ai-readiness", key: "dataReadiness", title: "Veri ve erişim hazırlığınız hangi seviyede?", type: "single", active: true, order: 5, options: [
+    { label: "API ve dokümantasyonlarımız hazır", value: "ready", priceDelta: 0 },
+    { label: "Araçlar belli, teknik keşif gerekiyor", value: "discovery", priceDelta: 8000 },
+    { label: "Veriler dağınık; önce düzenlenmeli", value: "cleanup", priceDelta: 16000 },
+    { label: "Sıfırdan güvenli veri yapısı kurulmalı", value: "foundation", priceDelta: 26000 }
+  ]},
+  { id: "ai-rollout", key: "rolloutModel", title: "Devreye alma modelini seçin.", subtitle: "Riski kontrol ederek pilot veya tam kapsamlı başlayabiliriz.", type: "single", active: true, order: 6, options: [
+    { label: "Tek süreçte hızlı pilot", value: "pilot", priceDelta: 0 },
+    { label: "2–3 süreçle departman kurulumu", value: "department", priceDelta: 24000 },
+    { label: "Şirket genelinde çoklu otomasyon", value: "enterprise", priceDelta: 55000 },
+    { label: "Önce otomasyon yol haritası", value: "roadmap", priceDelta: 6000 }
+  ]}
+];
+
 export default function QuoteWizard({ open, onClose, initialService, initialPackageId }: { open: boolean; onClose(): void; initialService?: string; initialPackageId?: string }) {
   const isEmergencyDrone = initialPackageId === "emergency-drone";
-  const [questions, setQuestions] = useState<QuoteQuestion[]>(isEmergencyDrone ? emergencyDroneQuestions : fallbackQuestions);
+  const isAiAutomation = initialPackageId === "ai-automation-suite";
+  const isSpecializedPackage = isEmergencyDrone || isAiAutomation;
+  const specializedQuestions = isEmergencyDrone ? emergencyDroneQuestions : isAiAutomation ? aiAutomationQuestions : fallbackQuestions;
+  const [questions, setQuestions] = useState<QuoteQuestion[]>(specializedQuestions);
   const [rules, setRules] = useState<QuoteRule[]>([]);
-  const [step, setStep] = useState(initialService && !isEmergencyDrone ? 1 : 0);
+  const [step, setStep] = useState(initialService && !isSpecializedPackage ? 1 : 0);
   const [answers, setAnswers] = useState<Record<string, string | string[] | number>>(
-    initialService ? { service: initialService, ...(isEmergencyDrone ? { package: "emergency-drone" } : {}) } : {}
+    initialService ? { service: initialService, ...(initialPackageId ? { package: initialPackageId } : {}) } : {}
   );
   const [result, setResult] = useState<{ price: number; notes: string[] } | null>(null);
   const [contact, setContact] = useState({ name: "", company: "", email: "", phone: "", city: "", preferredContact: "Telefon" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const mounted = useSyncExternalStore(subscribeToClient, () => true, () => false);
 
   useEffect(() => {
     fetchQuoteEngine().then(data => {
       const databaseKeys = new Set(data.questions.map(item => item.key));
       const isLegacyQuestionSet = data.questions.length <= 4 || (databaseKeys.has("service") && databaseKeys.has("extras"));
-      if (!isEmergencyDrone && data.questions.length && !isLegacyQuestionSet) setQuestions(data.questions);
-      if (!isEmergencyDrone) setRules(data.rules);
+      if (!isSpecializedPackage && data.questions.length && !isLegacyQuestionSet) setQuestions(data.questions);
+      if (!isSpecializedPackage) setRules(data.rules);
     }).catch(() => undefined);
-  }, [isEmergencyDrone]);
+  }, [isSpecializedPackage]);
 
   useEffect(() => {
     if (!open) return;
@@ -156,8 +207,8 @@ export default function QuoteWizard({ open, onClose, initialService, initialPack
   }, [open]);
 
   function closeWizard() {
-    setStep(initialService && !isEmergencyDrone ? 1 : 0);
-    setAnswers(initialService ? { service: initialService, ...(isEmergencyDrone ? { package: "emergency-drone" } : {}) } : {});
+    setStep(initialService && !isSpecializedPackage ? 1 : 0);
+    setAnswers(initialService ? { service: initialService, ...(initialPackageId ? { package: initialPackageId } : {}) } : {});
     setResult(null);
     setContact({ name: "", company: "", email: "", phone: "", city: "", preferredContact: "Telefon" });
     setError("");
@@ -165,7 +216,7 @@ export default function QuoteWizard({ open, onClose, initialService, initialPack
     onClose();
   }
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
   const visibleQuestions = questions.filter(item =>
     !item.serviceTypes?.length || item.serviceTypes.includes(String(answers.service || ""))
   );
@@ -187,13 +238,22 @@ export default function QuoteWizard({ open, onClose, initialService, initialPack
 
   async function finish() {
     setError("");
-    const quote = calculateQuote(visibleQuestions, rules, answers, isEmergencyDrone ? 18000 : 15000);
+    const quote = calculateQuote(visibleQuestions, rules, answers, isEmergencyDrone ? 18000 : isAiAutomation ? 85000 : 15000);
     const answerSelections = visibleQuestions.map(item => {
       const values = Array.isArray(answers[item.key]) ? answers[item.key] as string[] : [String(answers[item.key] || "")];
       return { key: item.key, title: item.title, values, labels: values.map(value => item.options?.find(option => option.value === value)?.label || value) };
     }).filter(item => item.values[0]);
     setResult(quote);
     setSaving(true);
+
+    const resolvedService = String(initialService || answers.service || "web");
+    const serviceLabels: Record<string, string> = {
+      web: "Web Tasarım",
+      software: "Web Application & Otomasyon",
+      video: "Video & Film",
+      hybrid: "Digital Flagship",
+      social: "Social Growth Engine",
+    };
 
     try {
       const response = await fetch("/api/public/leads", {
@@ -206,8 +266,8 @@ export default function QuoteWizard({ open, onClose, initialService, initialPack
           answers,
           estimatedPrice: quote.price,
           notes: quote.notes,
-          service: initialService === "video" ? "video" : "web",
-          serviceLabel: isEmergencyDrone ? "Acil Drone Operasyon" : initialService === "video" ? "Video & Film" : "Web & Yazılım",
+          service: resolvedService,
+          serviceLabel: isEmergencyDrone ? "Acil Drone Operasyon" : isAiAutomation ? "AI Automation Suite" : serviceLabels[resolvedService] || "Web & Yazılım",
           contact,
           answerSelections,
           quoteVersion: "advanced-v1",
@@ -238,15 +298,17 @@ export default function QuoteWizard({ open, onClose, initialService, initialPack
     ? Array.isArray(currentAnswer) && currentAnswer.length > 0
     : currentAnswer !== undefined && currentAnswer !== "";
 
-  return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true">
-      <div className="quote-modal">
+  return createPortal(
+    <div className={`modal-backdrop ${isAiAutomation ? "ai-quote-backdrop" : ""}`} role="dialog" aria-modal="true">
+      <div className={`quote-modal ${isAiAutomation ? "is-ai-automation" : ""} ${result ? "has-result" : ""}`}>
         <button className="modal-close icon-button" onClick={closeWizard}><X /></button>
         {!result ? (
           <>
-            <div className="quote-progress"><span style={{ width: `${((step + 1) / (visibleQuestions.length + 1)) * 100}%` }} /></div>
-            <div className="eyebrow">{isEmergencyDrone ? "Acil drone operasyon planlayıcı" : answers.service === "video" ? "Video prodüksiyon planlayıcı" : "Akıllı teklif motoru"} · {step + 1}/{visibleQuestions.length + 1}</div>
-            {isContactStep ? <div className="quote-contact-step"><h2>İletişim bilgilerini paylaş.</h2><p className="muted">Talebini ilgili ekibe iletelim; operasyon uygunluğu için sana dönüş yapalım.</p><div className="quote-contact-grid"><label>Ad soyad<input value={contact.name} onChange={event => setContact({ ...contact, name: event.target.value })} autoComplete="name" placeholder="Adınız soyadınız" /></label><label>Firma <small>Opsiyonel</small><input value={contact.company} onChange={event => setContact({ ...contact, company: event.target.value })} autoComplete="organization" placeholder="Firma adı" /></label><label>E-posta<input type="email" value={contact.email} onChange={event => setContact({ ...contact, email: event.target.value })} autoComplete="email" placeholder="ornek@firma.com" /></label><label>Telefon<input type="tel" value={contact.phone} onChange={event => setContact({ ...contact, phone: event.target.value })} autoComplete="tel" placeholder="05xx xxx xx xx" /></label><label>Şehir <small>Opsiyonel</small><input value={contact.city} onChange={event => setContact({ ...contact, city: event.target.value })} autoComplete="address-level2" placeholder="İstanbul" /></label><label>Tercih edilen dönüş<select value={contact.preferredContact} onChange={event => setContact({ ...contact, preferredContact: event.target.value })}><option>Telefon</option><option>WhatsApp</option><option>E-posta</option></select></label></div></div> : <><h2>{question.title}</h2>{question.subtitle && <p className="muted">{question.subtitle}</p>}<div className={`option-grid ${question.key === "service" ? "service-option-grid" : ""}`}>{question.options?.map(option => (<button key={option.value} className={`quote-option ${selected(option.value) ? "selected" : ""}`} onClick={() => choose(option.value)}><span>{option.label}</span>{selected(option.value) && <Check size={18} />}</button>))}</div></>}
+            <div className="quote-modal-content">
+              <div className="quote-progress"><span style={{ width: `${((step + 1) / (visibleQuestions.length + 1)) * 100}%` }} /></div>
+              <div className="eyebrow">{isEmergencyDrone ? "Acil drone operasyon planlayıcı" : isAiAutomation ? "AI otomasyon mimarisi" : answers.service === "video" ? "Video prodüksiyon planlayıcı" : "Akıllı teklif motoru"} · {step + 1}/{visibleQuestions.length + 1}</div>
+              {isContactStep ? <div className="quote-contact-step"><h2>İletişim bilgilerini paylaş.</h2><p className="muted">Talebini ilgili ekibe iletelim; operasyon uygunluğu için sana dönüş yapalım.</p><div className="quote-contact-grid"><label>Ad soyad<input value={contact.name} onChange={event => setContact({ ...contact, name: event.target.value })} autoComplete="name" placeholder="Adınız soyadınız" /></label><label>Firma <small>Opsiyonel</small><input value={contact.company} onChange={event => setContact({ ...contact, company: event.target.value })} autoComplete="organization" placeholder="Firma adı" /></label><label>E-posta<input type="email" value={contact.email} onChange={event => setContact({ ...contact, email: event.target.value })} autoComplete="email" placeholder="ornek@firma.com" /></label><label>Telefon<input type="tel" value={contact.phone} onChange={event => setContact({ ...contact, phone: event.target.value })} autoComplete="tel" placeholder="05xx xxx xx xx" /></label><label>Şehir <small>Opsiyonel</small><input value={contact.city} onChange={event => setContact({ ...contact, city: event.target.value })} autoComplete="address-level2" placeholder="İstanbul" /></label><label>Tercih edilen dönüş<select value={contact.preferredContact} onChange={event => setContact({ ...contact, preferredContact: event.target.value })}><option>Telefon</option><option>WhatsApp</option><option>E-posta</option></select></label></div></div> : <><h2>{question.title}</h2>{question.subtitle && <p className="muted">{question.subtitle}</p>}<div className={`option-grid ${question.key === "service" ? "service-option-grid" : ""}`}>{question.options?.map(option => (<button key={option.value} className={`quote-option ${selected(option.value) ? "selected" : ""}`} onClick={() => choose(option.value)}><span>{option.label}</span>{selected(option.value) && <Check size={18} />}</button>))}</div></>}
+            </div>
             <div className="quote-actions">
               <button className="button button-ghost" disabled={step === 0} onClick={() => setStep(step - 1)}><ChevronLeft size={18} /> Geri</button>
               {!isContactStep ? <button className="button" disabled={!canContinue} onClick={() => setStep(step + 1)}>Devam <ChevronRight size={18} /></button> : <button className="button" disabled={contact.name.trim().length < 2 || !/^\S+@\S+\.\S+$/.test(contact.email) || contact.phone.replace(/\D/g, "").length < 10 || saving} onClick={finish}>{saving ? <Loader2 className="spin" /> : "Talebi Gönder"}</button>}
@@ -264,6 +326,7 @@ export default function QuoteWizard({ open, onClose, initialService, initialPack
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

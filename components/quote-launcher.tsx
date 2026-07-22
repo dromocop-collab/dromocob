@@ -1,14 +1,18 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { ArrowRight, Camera, Code2, Sparkles, X } from "lucide-react";
 import AdvancedQuoteWizard from "@/components/advanced-quote-wizard";
 import type { AdvancedQuoteService } from "@/lib/advanced-quote-config";
 
+const subscribeToClient = () => () => {};
+
 export default function QuoteLauncher({ children, className = "button", ariaLabel = "Teklif motorunu aç" }: { children?: ReactNode; className?: string; ariaLabel?: string }) {
   const [chooserOpen, setChooserOpen] = useState(false);
   const [service, setService] = useState<AdvancedQuoteService | null>(null);
+  const mounted = useSyncExternalStore(subscribeToClient, () => true, () => false);
 
   useEffect(() => {
     if (!chooserOpen) return;
@@ -26,7 +30,7 @@ export default function QuoteLauncher({ children, className = "button", ariaLabe
 
   return <>
     <button type="button" className={className} aria-label={ariaLabel} onClick={() => setChooserOpen(true)}>{children || <>Teklif motorunu aç <ArrowRight size={18}/></>}</button>
-    {chooserOpen && <div className="quote-entry-backdrop" role="dialog" aria-modal="true" aria-labelledby="quote-entry-title" onMouseDown={event => event.target === event.currentTarget && setChooserOpen(false)}>
+    {mounted && chooserOpen && createPortal(<div className="quote-entry-backdrop" role="dialog" aria-modal="true" aria-labelledby="quote-entry-title" onMouseDown={event => event.target === event.currentTarget && setChooserOpen(false)}>
       <section className="quote-entry-shell">
         <header><div><Sparkles/><span><small>DROMOCOB / PROJECT INTAKE</small><strong>Kapsam zekâsı aktif</strong></span></div><button type="button" onClick={() => setChooserOpen(false)} aria-label="Kapat"><X/></button></header>
         <div className="quote-entry-copy"><p>YENİ PROJE / 01</p><h2 id="quote-entry-title">Neyi birlikte<br/><em>inşa ediyoruz?</em></h2><span>Doğru sorularla kapsamı çıkaralım, yaklaşık yatırım aralığını hesaplayalım ve talebini doğrudan proje masasına ulaştıralım.</span></div>
@@ -36,7 +40,7 @@ export default function QuoteLauncher({ children, className = "button", ariaLabe
         </div>
         <footer><span><i/> Ortalama 3–5 dakika</span><span>İletişim bilgileri yalnızca son adımda istenir.</span></footer>
       </section>
-    </div>}
+    </div>, document.body)}
     {service && <AdvancedQuoteWizard key={service} service={service} initiallyOpen hideTrigger onClose={() => setService(null)}/>} 
   </>;
 }

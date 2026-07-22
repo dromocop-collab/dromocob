@@ -46,6 +46,13 @@ export default function AdminProjectsPage() {
         },
 
         {
+          key: "projectType",
+          label: "Ana proje kategorisi",
+          placeholder: "Web | App | Film",
+          helpText: "Projenin vitrinde görüneceği ana filtre: Web, App veya Film.",
+        },
+
+        {
           key: "summary",
           label: "Kısa açıklama",
           placeholder:
@@ -84,6 +91,13 @@ export default function AdminProjectsPage() {
           label: "Proje bağlantısı",
           placeholder:
             "https://...",
+        },
+
+        {
+          key: "externalUrl",
+          label: "Harici uygulama bağlantısı",
+          placeholder: "https://apps.apple.com/...",
+          helpText: "App Store veya harici ürün sayfasına doğrudan yönlendirmek için kullanılır.",
         },
 
         {

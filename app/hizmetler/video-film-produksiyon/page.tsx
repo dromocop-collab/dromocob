@@ -15,7 +15,7 @@ export default function VideoProductionPage() {
     { question: "Video prodüksiyon süreci nasıl ilerliyor?", answer: "Hedef ve dağıtım kanalları belirlendikten sonra konsept, senaryo, çekim planı, prodüksiyon ve post-prodüksiyon adımları yazılı kapsamla yürütülür." },
     { question: "Dikey ve yatay video teslim ediyor musunuz?", answer: "Evet. Ana filmin yanında ihtiyaca göre 16:9, 9:16 ve 1:1 platform adaptasyonları hazırlanabilir." },
     { question: "Drone ve FPV çekimi yapılabiliyor mu?", answer: "Projenin lokasyonu, hava koşulları ve yasal uçuş uygunluğu değerlendirildikten sonra sinematik drone veya FPV planları prodüksiyona eklenebilir." },
-    { question: "Türkiye'nin farklı şehirlerinde çekim yapıyor musunuz?", answer: "Evet. İstanbul merkezli çalışıyor, prodüksiyon kapsamına göre Türkiye'nin farklı şehirlerinde saha çekimi planlayabiliyoruz." },
+    { question: "Türkiye'nin farklı şehirlerinde çekim yapıyor musunuz?", answer: "Evet. Fethiye merkezli çalışıyor, prodüksiyon kapsamına göre Türkiye'nin farklı şehirlerinde saha çekimi planlayabiliyoruz." },
   ]} mediaEyebrow="Production toolkit" mediaTitle="Sinematik üretim setimiz." media={[
     { src: "/images/services/sony-fx3-cinema-camera.webp", title: "Sony FX3 Cinema Line", detail: "Full-frame sinematik görüntü, düşük ışık gücü ve çevik prodüksiyon.", alt: "Sony FX3 sinema kamerası ile profesyonel video prodüksiyon" },
     { src: "/images/services/gm-24-70-lens.webp", title: "Sony 24–70mm G Master", detail: "Keskin, hızlı ve çok yönlü profesyonel optik sistem.", alt: "Sony 24-70mm G Master profesyonel kamera lensi" },

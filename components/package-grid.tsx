@@ -13,6 +13,7 @@ export default function PackageGrid() {
   const [packages, setPackages] = useState<ServicePackage[]>(fallbackPackages);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteService, setQuoteService] = useState<ServicePackage["quoteService"]>();
+  const [quotePackageId, setQuotePackageId] = useState<string>();
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -104,11 +105,11 @@ export default function PackageGrid() {
             {item.guarantee && <p className="package-guarantee"><ShieldCheck size={17}/>{item.guarantee}</p>}
 
             {packageDetailPathById[item.id] && <Link className="package-detail-link" href={packageDetailPathById[item.id]}>Paket detaylarını incele <ArrowUpRight size={16}/></Link>}
-            <button className="button button-full" onClick={() => { setQuoteService(packageQuoteServiceById[item.id] || item.quoteService); setQuoteOpen(true); }}>{item.cta || "Paketi Özelleştir"} <ArrowUpRight size={18} /></button>
+            <button className="button button-full" onClick={() => { setQuoteService(packageQuoteServiceById[item.id] || item.quoteService); setQuotePackageId(item.id); setQuoteOpen(true); }}>{item.cta || "Paketi Özelleştir"} <ArrowUpRight size={18} /></button>
           </article>
         ))}
       </div>
-      {quoteOpen && <QuoteWizard open initialService={quoteService} onClose={() => setQuoteOpen(false)} />}
+      {quoteOpen && <QuoteWizard open initialService={quoteService} initialPackageId={quotePackageId} onClose={() => { setQuoteOpen(false); setQuotePackageId(undefined); }} />}
     </>
   );
 }

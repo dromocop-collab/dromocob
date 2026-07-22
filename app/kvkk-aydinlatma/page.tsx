@@ -1,13 +1,10 @@
-import type { Metadata } from "next";
-import { absoluteUrl } from "@/lib/seo";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "KVKK Aydınlatma Metni",
   description: "Dromocob KVKK aydınlatma metni ve kişisel veri işleme esasları.",
-  alternates: {
-    canonical: absoluteUrl("/kvkk-aydinlatma"),
-  },
-};
+  path: "/kvkk-aydinlatma",
+});
 
 export default function KvkkPage() {
   return (
@@ -15,42 +12,42 @@ export default function KvkkPage() {
       <p className="eyebrow">Kurumsal / Hukuki</p>
       <h1>KVKK Aydınlatma Metni</h1>
       <p className="legal-lead">
-        Bu metin, 6698 sayili Kisisel Verilerin Korunmasi Kanunu kapsaminda Dromocob
-        tarafindan elde edilen verilerin hangi amacla islendigi ve haklarinizin neler oldugu
-        konusunda sizi bilgilendirmek amaciyla hazirlanmistir.
+        Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Dromocob
+        tarafından elde edilen verilerin hangi amaçla işlendiği ve haklarınızın neler olduğu
+        konusunda sizi bilgilendirmek amacıyla hazırlanmıştır.
       </p>
 
       <div className="legal-block">
         <h2>1. Veri sorumlusu</h2>
-        <p>Dromocob, ilgili mevzuat kapsaminda veri sorumlusu sifatiyla hareket eder.</p>
+        <p>Dromocob, ilgili mevzuat kapsamında veri sorumlusu sıfatıyla hareket eder.</p>
       </div>
 
       <div className="legal-block">
-        <h2>2. Islenen veri kategorileri</h2>
+        <h2>2. İşlenen veri kategorileri</h2>
         <p>Ad-soyad, e-posta, telefon, talep icerigi, teknik erisim verileri ve teklif verileri.</p>
       </div>
 
       <div className="legal-block">
-        <h2>3. Isleme amaclari</h2>
+        <h2>3. İşleme amaçları</h2>
         <p>
-          Talebinizi degerlendirmek, sizinle iletisime gecmek, sozlesme sureclerini yurutmek,
-          hizmet kalitesi ve guvenlik sureclerini surdurmek.
+          Talebinizi değerlendirmek, sizinle iletişime geçmek, sözleşme süreçlerini yürütmek,
+          hizmet kalitesi ve güvenlik süreçlerini sürdürmek.
         </p>
       </div>
 
       <div className="legal-block">
         <h2>4. Hukuki sebep</h2>
         <p>
-          Acik rizaniz, sozlesmenin kurulmasi/ifa edilmesi ve veri sorumlusunun mesru menfaati
-          hukuki sebeplerine dayali olarak veri islenebilir.
+          Açık rızanız, sözleşmenin kurulması/ifa edilmesi ve veri sorumlusunun meşru menfaati
+          hukuki sebeplerine dayalı olarak veri işlenebilir.
         </p>
       </div>
 
       <div className="legal-block">
-        <h2>5. Haklariniz</h2>
+        <h2>5. Haklarınız</h2>
         <p>
-          KVKK 11. madde kapsaminda; verilerinize erisme, duzeltme, silme, islemeye itiraz etme
-          ve zarar halinde tazmin talep etme haklarina sahipsiniz.
+          KVKK 11. madde kapsamında; verilerinize erişme, düzeltme, silme, işlemeye itiraz etme
+          ve zarar halinde tazmin talep etme haklarına sahipsiniz.
         </p>
       </div>
 

@@ -6,9 +6,9 @@ import { absoluteUrl, pageMetadata, siteName, siteUrl } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Acil Drone Çekimi | Kurumsal Hava Görüntüleme",
-  description: "İstanbul ve Türkiye genelinde acil kurumsal drone çekimi. Etkinlik, tesis, şantiye, gayrimenkul, lansman ve marka filmi için hızlı operasyon planı ve profesyonel hava görüntüleme.",
+  description: "Fethiye, Muğla ve Türkiye genelinde acil kurumsal drone çekimi. Etkinlik, tesis, şantiye, gayrimenkul, lansman ve marka filmi için hızlı operasyon planı ve profesyonel hava görüntüleme.",
   path: "/acil-drone-cekimi",
-  keywords: ["acil drone çekimi", "acil drone kiralama", "kurumsal drone çekimi", "İstanbul drone çekimi", "hava görüntüleme", "drone video çekimi", "şantiye drone çekimi", "gayrimenkul drone çekimi", "etkinlik drone çekimi", "FPV drone çekimi"],
+  keywords: ["acil drone çekimi", "acil drone kiralama", "kurumsal drone çekimi", "Fethiye drone çekimi", "Muğla drone çekimi", "İstanbul drone çekimi", "hava görüntüleme", "drone video çekimi", "şantiye drone çekimi", "gayrimenkul drone çekimi", "etkinlik drone çekimi", "FPV drone çekimi"],
 });
 
 const packageItems = [
@@ -22,7 +22,7 @@ const packageItems = [
 
 const faqs = [
   { question: "Acil drone çekimi için ne kadar önce iletişime geçmeliyiz?", answer: "Takvim, lokasyon, hava koşulları ve ilgili uçuş kısıtları değerlendirildikten sonra en hızlı uygulanabilir operasyon planını paylaşırız. Aynı gün taleplerde uygunluk teyidi önceliklidir." },
-  { question: "İstanbul dışında drone çekimi organize edebilir misiniz?", answer: "Evet. İstanbul merkezli ekibimizle Türkiye genelindeki kurumsal çekimler için lokasyon, ulaşım, izin ve ekip planlamasını proje kapsamına göre yürütürüz." },
+  { question: "Fethiye dışında drone çekimi organize edebilir misiniz?", answer: "Evet. Fethiye merkezli ekibimizle Türkiye genelindeki kurumsal çekimler için lokasyon, ulaşım, izin ve ekip planlamasını proje kapsamına göre yürütürüz." },
   { question: "Uçuş izni veya lokasyon izni gerektiğinde süreç nasıl ilerler?", answer: "Uçuş ve lokasyon uygunluğu proje başında kontrol edilir. İzin gerektiren alanlarda gerekli sorumluluklar, zamanlama ve alternatif çekim yaklaşımı netleştirilmeden operasyon başlatılmaz." },
   { question: "Teslimlerde hangi kullanım formatları hazırlanabilir?", answer: "İhtiyaca göre kurumsal film, web sitesi, LED ekran, 16:9 yatay video, 9:16 dikey Reels/Shorts veya kısa kampanya varyasyonları için teslim planı oluşturulur." },
 ];

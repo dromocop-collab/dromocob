@@ -6,6 +6,7 @@ import PackageGrid from "@/components/package-grid";
 import GrowthDiagnostic from "@/components/growth-diagnostic";
 import { pageMetadata } from "@/lib/seo";
 import QuoteLauncher from "@/components/quote-launcher";
+import InstagramReels from "@/components/instagram-reels";
 
 export const metadata = pageMetadata({
   title: "Kurumsal Web Sitesi ve Video Prodüksiyon",
@@ -21,7 +22,7 @@ export default function Home() {
       <section className="hero section">
         <div className="hero-noise" />
         <div className="hero-copy">
-          <div className="eyebrow"><span className="live-dot" /> İstanbul · Türkiye</div>
+          <div className="eyebrow"><span className="live-dot" /> Fethiye · Türkiye</div>
           <h1>Web tasarım & film.<br/><span>Hatırlananı</span> üret.</h1>
           <p>Markalar için kurumsal web sitesi, e-ticaret ve özel yazılım altyapıları; sinematik tanıtım filmi ve video prodüksiyonları tasarlıyorum.</p>
           <div className="hero-actions">
@@ -78,18 +79,23 @@ export default function Home() {
       <section className="section split-intro">
         <div><p className="eyebrow">Tek kişi. Çok disiplin. Tek standart.</p><h2>Fikirden ekrana,<br/>ekrandan <em>sonuca.</em></h2></div>
         <div><p>Bir projeye yalnızca “video”, “site” ya da “reklam” diye bakmıyorum. Markanın bütün dijital yüzünü aynı hikâyenin parçaları olarak tasarlıyorum.</p>
-        <div className="pill-row"><span>Strategy</span><span>Production</span><span>Development</span><span>Growth</span></div></div>
+        <div className="pill-row"><span>Strategy</span><span>Production</span><span>Development</span><span>Growth</span></div>
+        <div className="motion-expertise"><div><i>AE</i><span><small>POST-PRODUCTION / AFTER EFFECTS</small><strong>Motion & Visual Effects</strong></span></div><div className="motion-expertise-track"><span>Motion Design</span><span>Compositing</span><span>VFX</span><span>Motion Tracking</span><span>Rotoscoping</span><span>Keying</span><span>Expressions</span><span>Title Design</span></div></div></div>
       </section>
 
       <section className="section home-projects">
-        <div className="section-head"><div><p className="eyebrow">Seçili çalışmalar</p><h2>Projeler / <span>01—08</span></h2></div><Link className="text-link" href="/projeler">Tümünü gör <ArrowRight size={16}/></Link></div>
+        <div className="section-head"><div><p className="eyebrow">Seçili çalışmalar</p><h2>Projeler / <span>01—10</span></h2></div><Link className="text-link" href="/projeler">Tümünü gör <ArrowRight size={16}/></Link></div>
+        <div className="mobile-swipe-hint" aria-hidden="true"><span>Kaydırarak keşfet</span><i/><i/><i/><ArrowRight/></div>
         <ProjectGrid />
       </section>
+
+      <InstagramReels />
 
       <GrowthDiagnostic />
 
       <section className="section dark-panel home-packages" id="paket-sistemleri">
         <div className="section-head"><div><p className="eyebrow"><Sparkles size={15}/> Akıllı hizmet mimarisi</p><h2>Hazır paket değil.<br/><em>Doğru kombinasyon.</em></h2></div><p>İhtiyacına göre kapsamı şekillendir, dinamik teklif motoru yaklaşık bütçeyi anında hesaplasın.</p></div>
+        <div className="mobile-swipe-hint" aria-hidden="true"><span>Paketleri sağa kaydır</span><i/><i/><i/><ArrowRight/></div>
         <PackageGrid />
       </section>
 

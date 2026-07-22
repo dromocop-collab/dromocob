@@ -141,11 +141,12 @@ function normalizeRule(raw: Record<string, unknown>, id: string): QuoteRule {
   };
 }
 
-export const fallbackProjects: Project[] = projectCaseStudies.map((project, index) => ({
+export const fallbackProjects: Project[] = projectCaseStudies.map<Project>((project, index) => ({
   id: project.id,
   title: project.title,
   slug: project.slug,
   category: project.category,
+  projectType: ["cinematic-brand", "social-growth"].includes(project.id) ? "Film" : "Web",
   summary: project.summary,
   description: project.description,
   coverUrl: project.coverUrl,
@@ -153,7 +154,48 @@ export const fallbackProjects: Project[] = projectCaseStudies.map((project, inde
   featured: index < 2,
   active: true,
   order: index + 1,
-}));
+})).concat({
+  id: "bizim-6nci-kuyumculuk-app",
+  title: "Bizim 6'ncı Kuyumculuk",
+  slug: "bizim-6nci-kuyumculuk-app",
+  category: "Shopping App",
+  projectType: "App",
+  summary: "Altın ve takı koleksiyonlarını keşif, güvenli sipariş, hesap yönetimi, favoriler ve stok bildirimleriyle mobilde buluşturan alışveriş uygulaması.",
+  description: "Bizim 6'ncı Kuyumculuk için geliştirilen iOS uygulaması; ürün filtreleme, sepet, sipariş takibi, kuponlar, favoriler, iadeler ve stok bildirimlerini tek mobil deneyimde birleştirir.",
+  coverUrl: "/images/projects/bizim-6nci-kuyumculuk-app.jpg",
+  externalUrl: "https://apps.apple.com/tr/app/bizim-6nc%C4%B1-kuyumculuk/id6760553574?l=tr",
+  client: "Bizim 6'ncı Kuyumculuk",
+  year: 2026,
+  featured: true,
+  active: true,
+  order: projectCaseStudies.length + 1,
+}, {
+  id: "the-jacks-coffee",
+  title: "The Jacks Coffee",
+  slug: "the-jacks-coffee-app",
+  category: "Food & Beverage App",
+  projectType: "App",
+  summary: "Menü keşfi, hızlı sipariş, QR damga, kampanya ve sadakat deneyimini tek mobil uygulamada birleştiren kahve platformu.",
+  description: "The Jacks Coffee Lounge için geliştirilen iOS uygulaması; sipariş, favoriler, QR sadakat sistemi, kampanyalar ve hesap yönetimini mobil öncelikli bir deneyimde toplar.",
+  coverUrl: "/images/projects/the-jacks-coffee-app.jpg",
+  externalUrl: "https://apps.apple.com/us/app/the-jacks-coffee/id6757435094",
+  client: "The Jacks Coffee Lounge",
+  year: 2026,
+  featured: true,
+  active: true,
+  order: projectCaseStudies.length + 2,
+});
+
+export function inferProjectType(raw: Record<string, unknown>): Project["projectType"] {
+  const explicit = String(raw.projectType || "").trim().toLocaleLowerCase("tr-TR");
+  if (explicit === "app" || explicit === "uygulama") return "App";
+  if (explicit === "film" || explicit === "video") return "Film";
+  if (explicit === "web") return "Web";
+  const context = `${raw.title || ""} ${raw.category || ""} ${raw.slug || ""}`.toLocaleLowerCase("tr-TR");
+  if (context.includes("bizim 6'ncı") || context.includes("bizim-6nci") || context.includes("jacks") || context.includes("mobil uygulama") || context.includes("shopping app")) return "App";
+  if (context.includes("film") || context.includes("prodüksiyon") || context.includes("reels")) return "Film";
+  return "Web";
+}
 
 export const fallbackPackages: ServicePackage[] = [
   {
@@ -234,17 +276,69 @@ export const fallbackPackages: ServicePackage[] = [
     quoteService: "video",
     active: true,
     order: 4
+  },
+  {
+    id: "social-growth-engine",
+    title: "Social Growth Engine",
+    subtitle: "Aylık Reels · İçerik · Büyüme sistemi",
+    priceFrom: 32000,
+    description: "Markanın her ay ne anlatacağını, nasıl üreteceğini ve hangi verilerle gelişeceğini düzenli bir içerik operasyonuna dönüştüren büyüme sistemi.",
+    features: ["Aylık kreatif yön ve içerik planı", "Toplu Reels / Shorts çekim günü", "Dikey video kurgu ve motion graphics", "Kapak, altyazı ve kanal adaptasyonları", "Yayın takvimi ve içerik matrisi", "Aylık performans değerlendirmesi"],
+    idealFor: ["Düzenli içerik üretmek isteyen markalar", "Sosyal satış yapan işletmeler", "Kurucu ve uzman markaları"],
+    kpiFocus: ["İçerik devamlılığı", "Nitelikli erişim", "Etkileşim ve talep"],
+    deliveryTime: "Aylık üretim döngüsü",
+    supportWindow: "Sürekli kreatif destek",
+    maxRevision: 2,
+    guarantee: "Her ay yazılı içerik planı, teslim matrisi ve sonraki üretimi geliştiren performans notu.",
+    cta: "Büyüme Sistemini Kur",
+    theme: "light",
+    badge: "Aylık büyüme",
+    quoteService: "social",
+    active: true,
+    order: 5
+  },
+  {
+    id: "ai-automation-suite",
+    title: "AI Automation Suite",
+    subtitle: "Yapay zekâ · CRM · Operasyon otomasyonu",
+    priceFrom: 85000,
+    description: "Tekrarlayan müşteri, teklif, içerik ve operasyon işlerini yapay zekâ destekli akışlarla hızlandıran kuruma özel otomasyon sistemi.",
+    features: ["Operasyon ve darboğaz analizi", "AI destekli müşteri karşılama akışları", "CRM, form ve bildirim otomasyonları", "Teklif ve talep sınıflandırma sistemi", "Yönetim paneli ve canlı raporlama", "Ekip eğitimi, dokümantasyon ve stabilizasyon"],
+    idealFor: ["Manuel operasyon yükü yüksek ekipler", "Çok kanaldan talep alan şirketler", "Ölçeklenmek isteyen hizmet markaları"],
+    kpiFocus: ["Yanıt süresi", "Operasyon maliyeti", "Lead işleme verimliliği"],
+    deliveryTime: "5-8 hafta",
+    supportWindow: "90 gün stabilizasyon",
+    maxRevision: 4,
+    guarantee: "Canlıya alınan akışlar için senaryo testleri, hata kayıtları ve 90 günlük kontrollü iyileştirme desteği.",
+    cta: "Otomasyonu Planla",
+    theme: "graphite",
+    badge: "Yeni nesil operasyon",
+    quoteService: "software",
+    active: true,
+    order: 6
   }
 ];
 
 export async function fetchActiveProjects() {
   try {
     const snap = await getDocs(query(collection(db, "projects"), where("active", "==", true), orderBy("order")));
-    const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as Project));
+    const data = snap.docs.map(d => {
+      const raw = d.data() as Record<string, unknown>;
+      return { id: d.id, ...raw, projectType: inferProjectType(raw) } as Project;
+    });
     if (!data.length) return fallbackProjects;
 
     const dynamicBySlug = new Map(data.map(project => [project.slug, project]));
-    const bundled = fallbackProjects.map(project => dynamicBySlug.get(project.slug) || project);
+    const bundled = fallbackProjects.map(project => {
+      const dynamic = dynamicBySlug.get(project.slug);
+      return dynamic ? {
+        ...project,
+        ...dynamic,
+        coverUrl: dynamic.coverUrl || project.coverUrl,
+        projectType: dynamic.projectType || project.projectType,
+        externalUrl: dynamic.externalUrl || project.externalUrl,
+      } : project;
+    });
     const bundledSlugs = new Set(fallbackProjects.map(project => project.slug));
     return [...bundled, ...data.filter(project => !bundledSlugs.has(project.slug))];
   } catch {
@@ -259,11 +353,21 @@ export async function fetchActivePackages() {
       .map(d => normalizePackage(d.data() as Record<string, unknown>, d.id))
       .filter(item => item.title && item.priceFrom > 0 && item.features.length > 0);
 
-    // Eski genel paket şeması yerine yeni uzmanlık paketlerini göster.
-    // Admin panelden yeni şemayla en az bir akış tanımlandığında dinamik veri devralır.
-    return data.length && data.some(item => item.quoteService)
-      ? data
-      : fallbackPackages;
+    if (!data.length || !data.some(item => item.quoteService)) return fallbackPackages;
+
+    const dynamicById = new Map(data.map(item => [item.id, item]));
+    const bundled = fallbackPackages.map(item => {
+      const dynamic = dynamicById.get(item.id);
+      return dynamic ? {
+        ...item,
+        ...dynamic,
+        image: dynamic.image || item.image,
+        promoVideo: dynamic.promoVideo || item.promoVideo,
+      } : item;
+    });
+    const bundledIds = new Set(fallbackPackages.map(item => item.id));
+    return [...bundled, ...data.filter(item => !bundledIds.has(item.id))]
+      .sort((first, second) => Number(first.order || 0) - Number(second.order || 0));
   } catch {
     return fallbackPackages;
   }

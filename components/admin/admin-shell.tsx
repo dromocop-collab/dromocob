@@ -44,7 +44,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           <div className="admin-context"><span className="system-status"/><div><small>DROMOCOB CONTROL OS</small><strong>{activeItem ? String(activeItem[1]) : "Sistem çevrimiçi"}</strong></div></div>
           <div className="admin-topbar-actions">
             <div className="admin-command"><Command size={14}/><span>Hızlı komut</span><kbd>⌘ K</kbd></div>
-            <Link className="admin-site-link" href="/" target="_blank">Siteyi aç <ExternalLink size={14}/></Link>
+            <Link className="admin-site-link" href="/" target="_blank" rel="noreferrer">Siteyi aç <ExternalLink size={14}/></Link>
             <button className="admin-mobile-toggle" onClick={() => setMobileNavOpen(true)} aria-label="Admin menüsünü aç">
               <Menu size={18}/>
             </button>

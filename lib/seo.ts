@@ -7,7 +7,7 @@ export const sitePhone = "+905304788298";
 export const sitePhoneDisplay = "+90 530 478 82 98";
 export const defaultTitle = "Kurumsal Web Sitesi ve Video Prodüksiyon | Türkiye";
 export const defaultDescription =
-  "İstanbul merkezli Dromocob; markalar için sinematik film prodüksiyonu, yüksek performanslı web ürünleri, SEO ve ölçülebilir büyüme sistemleri geliştirir.";
+  "Fethiye merkezli Dromocob; markalar için sinematik film prodüksiyonu, yüksek performanslı web ürünleri, SEO ve ölçülebilir büyüme sistemleri geliştirir.";
 
 export const defaultKeywords = [
   "Dromocob",
@@ -31,6 +31,10 @@ export const defaultKeywords = [
   "dijital büyüme",
   "Next.js web geliştirme",
   "Firebase admin panel",
+  "Fethiye web tasarım",
+  "Fethiye video prodüksiyon",
+  "Muğla web tasarım",
+  "Muğla video prodüksiyon",
   "İstanbul web tasarım",
   "İstanbul video prodüksiyon",
   "e-ticaret altyapısı",
@@ -124,7 +128,8 @@ export const organizationJsonLd = {
   },
   address: {
     "@type": "PostalAddress",
-    addressLocality: "İstanbul",
+    addressLocality: "Fethiye",
+    addressRegion: "Muğla",
     addressCountry: "TR",
   },
   founder: {

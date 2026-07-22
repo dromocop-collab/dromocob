@@ -71,7 +71,7 @@ export default function ContactPageClient() {
         <div className="contact-hq-trust"><span><ShieldCheck/> Bilgileriniz korunur</span><span><Clock3/> 1 iş günü içinde dönüş</span><span><Globe2/> Türkiye geneli üretim</span></div>
       </div>
       <aside className="contact-command-card">
-        <header><span><i/> PROJECT DESK ONLINE</span><small>UTC+3 / ISTANBUL</small></header>
+        <header><span><i/> PROJECT DESK ONLINE</span><small>UTC+3 / FETHİYE</small></header>
         <div className="contact-command-core"><span><Image className="brand-round-logo" src="/logo.svg" alt="Dromocob" width={512} height={512} /></span><i/><i/><i/></div>
         <div className="contact-command-metrics"><div><small>İlk değerlendirme</small><strong>&lt; 24 saat</strong></div><div><small>Çalışma modeli</small><strong>Uçtan uca</strong></div><div><small>Proje alanı</small><strong>TR / Global</strong></div><div><small>Durum</small><strong className="is-live">Yeni proje açık</strong></div></div>
         <footer><Sparkles/><span>Kapsam · Takvim · Yatırım · Ekip</span></footer>
@@ -81,7 +81,7 @@ export default function ContactPageClient() {
     <section className="contact-channel-strip">
       <a href={`mailto:${siteEmail}`}><Mail/><span><small>E-posta</small><strong>{siteEmail}</strong></span><ArrowUpRight/></a>
       <a href={`tel:${sitePhone}`}><Phone/><span><small>Telefon / WhatsApp</small><strong>{sitePhoneDisplay}</strong></span><ArrowUpRight/></a>
-      <div><MapPin/><span><small>Üretim merkezi</small><strong>İstanbul · Türkiye geneli</strong></span></div>
+      <div><MapPin/><span><small>Üretim merkezi</small><strong>Fethiye · Türkiye geneli</strong></span></div>
       <div><CalendarClock/><span><small>Toplantı modeli</small><strong>Online / Yerinde</strong></span></div>
     </section>
 

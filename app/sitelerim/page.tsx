@@ -78,8 +78,8 @@ export default function MySitesPage() {
         <div className="my-site-info">
           <div><span className="my-site-status"><i /> YAYINDA</span><span>{templateNames[site.template]}</span></div>
           <h2>{site.businessName}</h2>
-          <Link href={`/site-onizleme/${site.id}`} target="_blank"><Globe2 size={13} /> {site.subdomain}.dromocob.tr <ExternalLink size={12} /></Link>
-          <div className="my-site-actions"><Link href={`/site-duzenle/${site.id}`}><Settings2 size={15} /> Siteyi düzenle</Link><button onClick={() => setDeleteTarget(site)} aria-label={`${site.businessName} sitesini sil`}><Trash2 size={15} /></button><Link href={`/site-onizleme/${site.id}`} target="_blank" aria-label={`${site.businessName} sitesini önizle`}><ArrowRight size={16} /></Link></div>
+          <Link href={`/site-onizleme/${site.id}`} target="_blank" rel="noreferrer"><Globe2 size={13} /> {site.subdomain}.dromocob.tr <ExternalLink size={12} /></Link>
+          <div className="my-site-actions"><Link href={`/site-duzenle/${site.id}`}><Settings2 size={15} /> Siteyi düzenle</Link><button onClick={() => setDeleteTarget(site)} aria-label={`${site.businessName} sitesini sil`}><Trash2 size={15} /></button><Link href={`/site-onizleme/${site.id}`} target="_blank" rel="noreferrer" aria-label={`${site.businessName} sitesini önizle`}><ArrowRight size={16} /></Link></div>
         </div>
       </article>)}
       <Link href="/site-olustur" className="my-site-add"><Plus size={23} /><strong>Yeni site oluştur</strong><span>Yeni bir marka deneyimi başlat</span></Link>

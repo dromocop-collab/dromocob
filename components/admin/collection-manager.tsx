@@ -17,7 +17,7 @@ import {
   doc,
   onSnapshot,
   serverTimestamp,
-  updateDoc,
+  setDoc,
 } from "firebase/firestore";
 
 import {
@@ -52,6 +52,7 @@ import {
   db,
   storage,
 } from "@/lib/firebase";
+import { fallbackPackages, fallbackProjects, inferProjectType } from "@/lib/data";
 
 export type Field = {
   key: string;
@@ -87,6 +88,12 @@ type UploadState = {
 
   fileName: string;
 };
+
+function bundledRows(collectionName: string): Row[] {
+  if (collectionName === "projects") return fallbackProjects.map(item => ({ ...item, bundled: true }));
+  if (collectionName === "packages") return fallbackPackages.map(item => ({ ...item, bundled: true }));
+  return [];
+}
 
 function slugify(value: string) {
   return value
@@ -407,8 +414,7 @@ export default function CollectionManager({
       ),
 
       (snapshot) => {
-        setRows(
-          snapshot.docs.map(
+        const liveRows: Row[] = snapshot.docs.map(
             (document) => {
               const data = document.data();
               return {
@@ -419,11 +425,30 @@ export default function CollectionManager({
                   videoUrl: data.videoUrl || data.showreel || "",
                   summary: data.summary || data.subtitle || "",
                   slug: data.slug || slugify(String(data.title || "")),
+                  projectType: inferProjectType(data),
                 } : {}),
               };
             }
-          )
+          );
+
+        const allDefaults = bundledRows(collectionName);
+        const mergedLiveRows = liveRows.map(row => {
+          const bundled = allDefaults.find(item => item.id === row.id || (item.slug && item.slug === row.slug));
+          if (!bundled) return row;
+          return {
+            ...bundled,
+            ...row,
+            coverUrl: row.coverUrl || bundled.coverUrl,
+            image: row.image || bundled.image,
+          };
+        });
+        const liveIds = new Set(mergedLiveRows.map(row => row.id));
+        const liveSlugs = new Set(mergedLiveRows.map(row => String(row.slug || "")).filter(Boolean));
+        const defaults = allDefaults.filter(row =>
+          !liveIds.has(row.id) && (!row.slug || !liveSlugs.has(String(row.slug)))
         );
+
+        setRows([...defaults, ...mergedLiveRows]);
       },
 
       (snapshotError) => {
@@ -565,10 +590,10 @@ export default function CollectionManager({
 
   async function togglePublished(row: Row) {
     try {
-      await updateDoc(doc(db, collectionName, row.id), {
+      await setDoc(doc(db, collectionName, row.id), {
         active: row.active === false,
         updatedAt: serverTimestamp(),
-      });
+      }, { merge: true });
     } catch (toggleError) {
       console.error(toggleError);
       setError("Yayın durumu değiştirilemedi.");
@@ -973,23 +998,34 @@ export default function CollectionManager({
         const title = String(payload.title || "").trim();
         const slug = slugify(String(payload.slug || title));
         const summary = String(payload.summary || "").trim();
+        const projectTypeInput = String(payload.projectType || "Web").trim().toLocaleLowerCase("tr-TR");
+        const projectType = projectTypeInput === "app" || projectTypeInput === "uygulama"
+          ? "App"
+          : projectTypeInput === "film" || projectTypeInput === "video"
+            ? "Film"
+            : projectTypeInput === "web"
+              ? "Web"
+              : null;
         if (!title || !slug || summary.length < 20) {
           throw new Error("Proje adı, sayfa adresi ve en az 20 karakterlik kısa açıklama zorunlu.");
         }
+        if (!projectType) throw new Error("Ana proje kategorisi Web, App veya Film olmalı.");
         payload.title = title;
         payload.slug = slug;
         payload.summary = summary;
+        payload.projectType = projectType;
       }
 
       if (editing) {
-        await updateDoc(
+        await setDoc(
           doc(
             db,
             collectionName,
             editing.id
           ),
 
-          payload
+          payload,
+          { merge: true }
         );
       } else {
         await addDoc(
@@ -1592,7 +1628,7 @@ export default function CollectionManager({
 
                   <div className="studio-row-actions">
                     {collectionName === "projects" && Boolean(row.slug) && (
-                      <Link href={`/projeler/${String(row.slug)}`} target="_blank" aria-label="Projeyi görüntüle">
+                      <Link href={`/projeler/${String(row.slug)}`} target="_blank" rel="noreferrer" aria-label="Projeyi görüntüle">
                         <ExternalLink size={16} />
                       </Link>
                     )}

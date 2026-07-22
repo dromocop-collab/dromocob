@@ -113,7 +113,7 @@ export const projectCaseStudies: ProjectCaseStudy[] = [
     coverAlt: "Sinematik marka filmi prodüksiyonu için profesyonel kamera ve ışık seti",
     year: 2026,
     service: "Uçtan uca video ve film prodüksiyonu",
-    location: "İstanbul merkezli, Türkiye geneli",
+    location: "Fethiye merkezli, Türkiye geneli",
     challenge: "Markanın değerini birkaç saniye içinde hissettiren; web, sosyal medya ve dijital reklam kanallarında tutarlı çalışabilen güçlü bir görsel anlatı kurmak.",
     solution: "Ana film etrafında şekillenen modüler bir prodüksiyon planı oluşturduk. Kreatif yön, senaryo, çekim dili ve teslim formatları aynı sistem içinde ele alındı.",
     outcomes: ["Tek ana fikir etrafında tutarlı marka anlatısı", "Yatay, dikey ve kısa reklam formatlarına uyarlanabilir kurgu", "Arşivlenebilir görüntü ve yayın master yapısı"],
@@ -130,7 +130,7 @@ export const projectCaseStudies: ProjectCaseStudy[] = [
     keywords: ["marka filmi prodüksiyonu", "reklam filmi çekimi", "İstanbul video prodüksiyon", "Türkiye film prodüksiyon", "kurumsal tanıtım filmi"],
     faq: [
       { question: "Marka filmi prodüksiyonu ne kadar sürer?", answer: "Kapsama göre değişmekle birlikte keşif, pre-prodüksiyon, çekim ve post-prodüksiyon birlikte planlanır. Kesin takvim senaryo ve teslim sayısı netleştiğinde paylaşılır." },
-      { question: "Türkiye genelinde çekim yapıyor musunuz?", answer: "Evet. Proje yönetimi İstanbul merkezli yürütülür; lokasyon ve ekip planına göre Türkiye'nin farklı şehirlerinde çekim organize edilebilir." },
+      { question: "Türkiye genelinde çekim yapıyor musunuz?", answer: "Evet. Proje yönetimi Fethiye merkezli yürütülür; lokasyon ve ekip planına göre Türkiye'nin farklı şehirlerinde çekim organize edilebilir." },
     ],
   },
   {
@@ -179,7 +179,7 @@ export const projectCaseStudies: ProjectCaseStudy[] = [
     coverAlt: "Sosyal medya içerik üretimi, Reels planlama ve performans analitiği çalışma masası",
     year: 2026,
     service: "Sosyal medya içerik üretimi ve growth",
-    location: "İstanbul ve Türkiye geneli",
+    location: "Fethiye ve Türkiye geneli",
     challenge: "Tek seferlik paylaşımlar yerine marka dilini koruyan, düzenli üretilebilen ve performans verisinden öğrenen bir içerik sistemi kurmak.",
     solution: "İçerik sütunları, format matrisi, çekim düzeni, yayın takvimi ve aylık değerlendirmeyi tek operasyon döngüsünde topladık.",
     outcomes: ["Tekrarlanabilir içerik üretim düzeni", "Marka diliyle uyumlu Reels ve kısa video sistemi", "Kreatif kararları besleyen ölçüm ve öğrenim döngüsü"],

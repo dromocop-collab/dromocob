@@ -9,6 +9,7 @@ import SiteNav from "@/components/site-nav";
 import SiteFooter from "@/components/site-footer";
 import LiveChat from "@/components/live-chat";
 import CookieConsent from "@/components/cookie-consent";
+import ContactDock from "@/components/contact-dock";
 import type { PublicTrackingSettings } from "@/lib/runtime-tracking";
 import { CONSENT_STORAGE_KEY, type ConsentChoice } from "@/lib/google-consent";
 
@@ -289,6 +290,7 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
           <main id="main-content" className={isWorkspaceRoute ? "admin-route-main" : undefined}>{children}</main>
           {!isWorkspaceRoute && <SiteFooter />}
           {!isWorkspaceRoute && settings.features?.liveChatEnabled !== false && <LiveChat />}
+          {!isWorkspaceRoute && <ContactDock />}
           {!isWorkspaceRoute && trackingEnabled && <CookieConsent />}
         </>
       )}

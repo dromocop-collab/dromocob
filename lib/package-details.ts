@@ -67,7 +67,7 @@ export const packageDetails: PackageDetail[] = [
     collaboration: ["Ön prodüksiyonda tek onay noktası", "Çekim günü için paylaşılan call sheet", "Kurgu revizyonlarında zaman kodlu geri bildirim", "Platformlara uygun teslim matrisi"],
     faqs: [
       { question: "Reklam filmi ve kurumsal tanıtım filmi aynı pakette planlanabilir mi?", answer: "Evet. Ana anlatıdan farklı süre ve kadrajlarda versiyonlar türetilerek hem kurumsal hem kampanya kullanımı için tek üretim planı kurulabilir." },
-      { question: "Çekim İstanbul dışında yapılabilir mi?", answer: "Evet. Lokasyon, ekip, ulaşım ve izin ihtiyacı keşif aşamasında planlanır; Türkiye genelinde saha prodüksiyonu organize edilebilir." },
+      { question: "Çekim Fethiye dışında yapılabilir mi?", answer: "Evet. Lokasyon, ekip, ulaşım ve izin ihtiyacı keşif aşamasında planlanır; Türkiye genelinde saha prodüksiyonu organize edilebilir." },
       { question: "Teslim formatları nelerdir?", answer: "İhtiyaca göre 16:9, 9:16, 1:1, kısa cutdown, altyazılı veya sessiz yayın masterları hazırlanabilir." },
     ],
     keywords: ["kurumsal tanıtım filmi", "video prodüksiyon", "reklam filmi çekimi", "marka filmi", "ürün tanıtım videosu"],

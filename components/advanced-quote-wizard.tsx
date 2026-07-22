@@ -1,7 +1,8 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
+import { createPortal } from "react-dom";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, CircleCheck, Loader2, Send, X } from "lucide-react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { advancedQuoteConfig, type AdvancedQuoteQuestion, type AdvancedQuoteService } from "@/lib/advanced-quote-config";
@@ -11,6 +12,7 @@ type Answers = Record<string, string | string[]>;
 type Contact = { name: string; company: string; email: string; phone: string; city: string; preferredContact: string };
 
 const emptyContact: Contact = { name: "", company: "", email: "", phone: "", city: "", preferredContact: "Telefon / WhatsApp" };
+const subscribeToClient = () => () => {};
 
 export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen için teklif al", initiallyOpen = false, hideTrigger = false, onClose }: { service: AdvancedQuoteService; buttonLabel?: string; initiallyOpen?: boolean; hideTrigger?: boolean; onClose?: () => void }) {
   const [questionOverrides, setQuestionOverrides] = useState<Array<AdvancedQuoteQuestion & { storedKey: string }>>([]);
@@ -24,6 +26,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
   const [sent, setSent] = useState(false);
   const [referenceId, setReferenceId] = useState("");
   const [error, setError] = useState("");
+  const mounted = useSyncExternalStore(subscribeToClient, () => true, () => false);
 
   useEffect(() => onSnapshot(
     query(collection(db, "quote_questions"), where("active", "==", true)),
@@ -164,7 +167,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
 
   return <>
     {!hideTrigger && <button type="button" className="button" onClick={() => setOpen(true)}>{buttonLabel} <ArrowRight size={18}/></button>}
-    {open && <div className="advanced-quote-backdrop" role="dialog" aria-modal="true" aria-label={config.label}>
+    {mounted && open && createPortal(<div className="advanced-quote-backdrop" role="dialog" aria-modal="true" aria-label={config.label}>
       <div className={`advanced-quote-shell quote-${service}`}>
         <header className="advanced-quote-head"><div><Image className="advanced-quote-logo" src="/logo.svg" alt="" width={34} height={34}/><div><small>DROMOCOB / SCOPE INTELLIGENCE</small><strong>{config.label}</strong></div></div><button type="button" onClick={close} aria-label="Teklif motorunu kapat"><X/></button></header>
         <div className="advanced-quote-progress"><span style={{ width: `${((step + 1) / totalSteps) * 100}%` }}/></div>
@@ -192,6 +195,6 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
           <aside className="advanced-quote-summary"><p>KAPSAM ÖZETİ</p><div><span>Tamamlanan</span><strong>{completedCount}/{config.questions.length}</strong></div><div><span>Modül</span><strong>{config.shortLabel}</strong></div><div><span>Ön kapsam değeri</span><strong>{estimatedPrice.toLocaleString("tr-TR")} TL+</strong></div><small>Bu değer otomatik kapsam analizidir; resmî fiyat değildir. Nihai teklif ihtiyaç, takvim ve üretim planı doğrulandıktan sonra hazırlanır.</small><div className="summary-track"><span style={{ width: `${(completedCount / config.questions.length) * 100}%` }}/></div></aside>
         </form> : <div className="advanced-quote-success"><CircleCheck/><p className="advanced-quote-kicker">Talep başarıyla alındı</p><h2>Kapsam masamızda.</h2><p>Tüm seçimlerin admin paneline kaydedildi ve <strong>info@dromocob.tr</strong> adresine bildirim oluşturuldu. İnceleyip seninle iletişime geçeceğiz.</p>{referenceId && <code>REFERANS / {referenceId}</code>}<button className="button" onClick={close}>Tamamla</button></div>}
       </div>
-    </div>}
+    </div>, document.body)}
   </>;
 }

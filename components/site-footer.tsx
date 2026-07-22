@@ -65,7 +65,7 @@ export default function SiteFooter() {
 
   return (
     <footer className="site-footer">
-      <div className="footer-signal"><span><i/> İstanbul’dan dünyaya üretim</span><span>Web Application · Film Production · Growth</span></div>
+      <div className="footer-signal"><span><i/> Fethiye’den dünyaya üretim</span><span>Web Application · Film Production · Growth</span></div>
 
       <section className="footer-cta">
         <div>
@@ -99,7 +99,7 @@ export default function SiteFooter() {
 
         <nav><p>Yetkinlikler</p><Link href="/hizmetler/web-tasarim">Web Tasarım <Code2/></Link><Link href="/hizmetler/video-film-produksiyon">Video & Film <Clapperboard/></Link><Link href="/acil-drone-cekimi">Acil Drone Çekimi <ArrowUpRight/></Link><Link href="/paketler">Digital Flagship <Sparkles/></Link><Link href="/kurumsal">Growth Systems <ArrowUpRight/></Link></nav>
         <nav><p>Keşfet</p><Link href="/">Anasayfa</Link><Link href="/projeler">Projeler</Link><Link href="/hakkimda">Hakkımda</Link><Link href="/kurumsal">Kurumsal</Link><Link href="/iletisim">İletişim</Link></nav>
-        <div className="footer-contact"><p>İletişim</p><a href={`mailto:${siteEmail}`}>{siteEmail} <ArrowUpRight/></a><a href={`tel:${sitePhone}`}>{sitePhoneDisplay} <ArrowUpRight/></a><span>İstanbul, Türkiye<br/>Türkiye geneli hizmet</span></div>
+        <div className="footer-contact"><p>İletişim</p><a href={`mailto:${siteEmail}`}>{siteEmail} <ArrowUpRight/></a><a href={`tel:${sitePhone}`}>{sitePhoneDisplay} <ArrowUpRight/></a><span>Fethiye, Muğla<br/>Türkiye geneli hizmet</span></div>
       </section>
 
       <div className="footer-bottom">

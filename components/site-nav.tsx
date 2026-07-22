@@ -24,9 +24,12 @@ export default function SiteNav(){
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    const closeOnEscape = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", closeOnEscape);
 
     return () => {
       document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
     };
   }, [open]);
 
@@ -50,7 +53,7 @@ export default function SiteNav(){
     </nav>
     <button className="mobile-menu" type="button" onClick={()=>setOpen(!open)} aria-label={open?"Menüyü kapat":"Menüyü aç"} aria-expanded={open} aria-controls="mobile-site-navigation"><span>{open?<X/>:<Menu/>}</span></button>
     {open&&<div className="mobile-nav" id="mobile-site-navigation">
-      <div className="mobile-nav-intro"><span>MENU / 01—06</span><p>Film, web ve büyüme sistemleri için bütünleşik üretim.</p></div>
+      <div className="mobile-nav-intro"><span>MENU / 01—07</span><p>Film, web ve büyüme sistemleri için bütünleşik üretim.</p></div>
       <div className="mobile-nav-links">{links.map(([l,h],index)=><Link key={h} href={h} className={isActive(String(h))?"nav-link active":"nav-link"} onClick={()=>setOpen(false)}><span>0{index+1}</span>{l}<ArrowUpRight size={18}/></Link>)}</div>
       <div className="mobile-nav-footer"><Link href="/site-olustur" className="nav-cta" onClick={()=>setOpen(false)}><span><small>Dromocob Sites</small>Site Oluştur</span><i><ArrowUpRight size={17}/></i></Link><AccountMenu/></div>
     </div>}

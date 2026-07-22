@@ -72,9 +72,7 @@ export default function CookieConsent() {
 
   if (!ready) return null;
 
-  return (
-    <>
-      {visible ? (
+  return visible ? (
         <section className="cookie-consent" role="dialog" aria-modal="true" aria-labelledby="cookie-consent-title">
           <button className="cookie-consent-close" onClick={() => save(false, false)} aria-label="Çerezleri reddet ve kapat"><X /></button>
           <div className="cookie-consent-icon"><Cookie /></div>
@@ -100,9 +98,5 @@ export default function CookieConsent() {
             )}
           </div>
         </section>
-      ) : (
-        <button className="cookie-settings-button" onClick={() => setVisible(true)} aria-label="Çerez tercihlerini aç"><Cookie /></button>
-      )}
-    </>
-  );
+  ) : null;
 }
