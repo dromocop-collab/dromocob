@@ -27,6 +27,46 @@ const services = [
     description: "Reklam filmi, marka filmi, kurumsal tanıtım, ürün videosu, drone, FPV ve sosyal medya prodüksiyonu.",
     alt: "Profesyonel video ve film prodüksiyon hizmetleri",
   },
+  {
+    href: "/tanitim-filmi",
+    image: "/images/services/cinema-lighting-system.webp",
+    eyebrow: "Corporate film production",
+    title: "Tanıtım Filmi Çekimi",
+    description: "Kurumsal tanıtım filmi, şirket tanıtım videosu, ürün tanıtım filmi ve marka filmi prodüksiyonu.",
+    alt: "Kurumsal tanıtım filmi çekimi ve prodüksiyonu",
+  },
+  {
+    href: "/drone-cekimi",
+    image: "/images/services/dji-mini-5-pro-drone.webp",
+    eyebrow: "Aerial cinematography",
+    title: "Drone Çekimi",
+    description: "Gayrimenkul, tesis, etkinlik ve marka filmi için profesyonel drone ve FPV hava görüntüleme.",
+    alt: "Profesyonel drone çekimi ve havadan görüntüleme",
+  },
+  {
+    href: "/magaza-tanitimi",
+    image: "/images/services/cinema-lighting-system.webp",
+    eyebrow: "Store & venue production",
+    title: "Mağaza Tanıtımı",
+    description: "Mağaza, showroom, restoran ve kurumsal mekânlar için tanıtım filmi, iç mekân çekimi ve sosyal medya adaptasyonları.",
+    alt: "Mağaza ve mekân tanıtım filmi prodüksiyonu",
+  },
+  {
+    href: "/seo",
+    image: "/images/services/web-software-infrastructure.webp",
+    eyebrow: "Search engine optimization",
+    title: "SEO Hizmeti",
+    description: "Teknik SEO, yerel SEO, içerik stratejisi, Core Web Vitals ve yapılandırılmış veri ile organik büyüme.",
+    alt: "Teknik SEO ve organik büyüme hizmetleri",
+  },
+  {
+    href: "/google-ads",
+    image: "/images/services/web-design-system.webp",
+    eyebrow: "Digital advertising",
+    title: "Google Ads Yönetimi",
+    description: "Google Ads hesap yönetimi, anahtar kelime stratejisi, dönüşüm takibi ve performans optimizasyonu.",
+    alt: "Google Ads reklam yönetimi ve optimizasyonu",
+  },
 ];
 
 export default function ServicesPage() {
