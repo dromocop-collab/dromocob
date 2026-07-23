@@ -2,6 +2,27 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  trailingSlash: false,
+  async redirects() {
+    return [
+      // ── Duplicate content fix: consolidate /hizmetler/* into canonical short URLs ──
+      { source: "/hizmetler/web-tasarim", destination: "/web-tasarim", permanent: true },
+      { source: "/hizmetler/video-film-produksiyon", destination: "/tanitim-filmi", permanent: true },
+
+      // ── Legacy 404 fixes: old PHP/HTML site URLs found in Search Console ──
+      { source: "/index.html", destination: "/", permanent: true },
+      { source: "/iletisim/index.html", destination: "/iletisim", permanent: true },
+      { source: "/dromocop-yapilan-calismalarimiz.html", destination: "/projeler", permanent: true },
+      { source: "/hakkimizda", destination: "/hakkimda", permanent: true },
+
+      // ── Old PHP product routes → projects ──
+      { source: "/products/view.php", destination: "/projeler", permanent: true },
+      { source: "/products/:path*", destination: "/projeler", permanent: true },
+
+      // ── Catch any remaining .html extension requests ──
+      { source: "/:path*.html", destination: "/:path*", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

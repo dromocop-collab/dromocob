@@ -12,7 +12,7 @@ export const metadata = pageMetadata({
 
 const services = [
   {
-    href: "/hizmetler/web-tasarim",
+    href: "/web-tasarim",
     image: "/images/services/web-design-system.webp",
     eyebrow: "Web design & development",
     title: "Web Tasarım ve Web Yazılım",
@@ -20,7 +20,7 @@ const services = [
     alt: "Kurumsal web tasarım ve web yazılım hizmetleri",
   },
   {
-    href: "/hizmetler/video-film-produksiyon",
+    href: "/tanitim-filmi",
     image: "/images/services/sony-fx3-cinema-camera.webp",
     eyebrow: "Film & video production",
     title: "Video ve Film Prodüksiyon",

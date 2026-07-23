@@ -37,7 +37,7 @@ const websiteCaseStudies: ProjectCaseStudy[] = [
     services: ["E-ticaret bilgi mimarisi", "Premium UI tasarım sistemi", "Ürün ve koleksiyon deneyimi", "Güvenli ödeme akışı", "Üyelik, favoriler ve randevu", "Teknik SEO ve performans"],
     process: [{ title: "Marka keşfi", description: "Kuyumculukta güven, ürün keşfi ve mağaza deneyiminin dijital karşılıkları tanımlandı." }, { title: "Deneyim tasarımı", description: "Mobil öncelikli katalog, filtre, ürün ve danışmanlık akışları prototiplendi." }, { title: "E-ticaret geliştirme", description: "Yönetilebilir ürün altyapısı, ödeme ve müşteri özellikleri geliştirildi." }, { title: "Yayın ve optimizasyon", description: "Performans, SEO, yasal sayfalar ve dönüşüm temasları yayına hazırlandı." }],
     deliverables: ["Responsive premium mağaza", "Ürün ve koleksiyon yönetimi", "Bütçeye göre alışveriş", "Güvenli ödeme altyapısı", "Randevu ve canlı destek", "SEO ve analitik katmanı"],
-    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "E-ticaret ve web sistemlerini incele", liveUrl: "https://6nci.com", keywords: ["6'ncı Kuyumculuk", "kuyumculuk e-ticaret", "premium web tasarım", "mücevher e-ticaret sitesi"],
+    relatedServiceUrl: "/web-tasarim", relatedServiceLabel: "E-ticaret ve web sistemlerini incele", liveUrl: "https://6nci.com", keywords: ["6'ncı Kuyumculuk", "kuyumculuk e-ticaret", "premium web tasarım", "mücevher e-ticaret sitesi"],
     faq: [{ question: "Bu projede hangi deneyimler öne çıkıyor?", answer: "Koleksiyon keşfi, bütçe bazlı yönlendirme, güvenli ödeme, sertifika ve sigortalı gönderim bilgileri ile kişisel danışmanlık tek yapıda buluşuyor." }, { question: "Siteyi canlı inceleyebilir miyim?", answer: "Evet. Sayfadaki Canlı Site bağlantısıyla 6nci.com deneyimini doğrudan açabilirsiniz." }],
   },
   {
@@ -51,7 +51,7 @@ const websiteCaseStudies: ProjectCaseStudy[] = [
     services: ["Dönüşüm odaklı UX", "Mobil web tasarımı", "WhatsApp teklif akışı", "Hizmet kategorileri", "Yerel SEO altyapısı", "İletişim ve harita entegrasyonu"],
     process: [{ title: "Arama niyeti", description: "Bölgesel müşteri sorguları ve en hızlı iletişim senaryoları haritalandı." }, { title: "Akış tasarımı", description: "Alım süreci üç basit adım ve güçlü aksiyonlarla sadeleştirildi." }, { title: "İçerik sistemi", description: "Mobilya, beyaz eşya ve ev aletleri kategorileri yönetilebilir yapıya alındı." }, { title: "Yerel yayın", description: "Mobil hız, harita, iletişim ve yerel SEO kontrolleri tamamlandı." }],
     deliverables: ["Responsive kurumsal site", "WhatsApp teklif yönlendirmesi", "Kategori landing alanları", "Yerel SEO sayfa yapısı", "İletişim formu ve harita", "Performans optimizasyonu"],
-    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "Dönüşüm odaklı web hizmetini incele", liveUrl: "https://kilicspot.tr", keywords: ["Kılıç Spot", "spotçu web sitesi", "yerel SEO", "ikinci el eşya web tasarım"],
+    relatedServiceUrl: "/web-tasarim", relatedServiceLabel: "Dönüşüm odaklı web hizmetini incele", liveUrl: "https://kilicspot.tr", keywords: ["Kılıç Spot", "spotçu web sitesi", "yerel SEO", "ikinci el eşya web tasarım"],
     faq: [{ question: "Projenin ana dönüşüm hedefi neydi?", answer: "Ziyaretçinin eşya fotoğraflarını WhatsApp üzerinden hızla iletmesi, teklif alması ve nakliye sürecini net biçimde anlamasıydı." }, { question: "Site hangi bölgeye odaklanıyor?", answer: "Büyükçekmece, Esenyurt, Beylikdüzü ve İstanbul çevresindeki yerel müşteri taleplerine odaklanıyor." }],
   },
   {
@@ -65,7 +65,7 @@ const websiteCaseStudies: ProjectCaseStudy[] = [
     services: ["Kurumsal bilgi mimarisi", "Özgün görsel yön", "Ürün katalog sistemi", "Teknik ürün detayları", "Lead ve teklif formları", "SEO içerik altyapısı"],
     process: [{ title: "Marka mimarisi", description: "Gayrimenkul, dekoratif boya, medya ve turizm alanlarının dijital hiyerarşisi kuruldu." }, { title: "Malzeme dili", description: "Renk, doku ve uygulama uzmanlığını taşıyan görsel sistem geliştirildi." }, { title: "Katalog", description: "Kategori, ürün, teknik bilgi ve benzer ürün ilişkileri yapılandırıldı." }, { title: "Büyüme altyapısı", description: "Teklif, iletişim, SEO içerikleri ve ölçüm temasları yayına alındı." }],
     deliverables: ["Kurumsal marka sitesi", "Dinamik ürün kataloğu", "Teknik ürün sayfaları", "Hizmet ve süreç anlatımı", "Teklif ve iletişim formları", "SEO içerik şablonları"],
-    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "Kurumsal platform hizmetini incele", liveUrl: "https://masegroup.com.tr", keywords: ["Mase Group", "dekoratif boya web sitesi", "ürün katalog yazılımı", "kurumsal web tasarım"],
+    relatedServiceUrl: "/web-tasarim", relatedServiceLabel: "Kurumsal platform hizmetini incele", liveUrl: "https://masegroup.com.tr", keywords: ["Mase Group", "dekoratif boya web sitesi", "ürün katalog yazılımı", "kurumsal web tasarım"],
     faq: [{ question: "Platform hangi alanları bir araya getiriyor?", answer: "Gayrimenkul, dekoratif boya, medya ve turizm faaliyetleri tek kurumsal yapı altında sunuluyor." }, { question: "Ürün kataloğu yönetilebilir mi?", answer: "Evet. Kategori, ürün, açıklama, uygulama bilgisi ve benzer ürün ilişkileri genişleyebilen bir içerik yapısıyla kurgulandı." }],
   },
   {
@@ -79,7 +79,7 @@ const websiteCaseStudies: ProjectCaseStudy[] = [
     services: ["UX stratejisi", "Responsive UI tasarımı", "Ürün kategori sistemi", "Eşya satma akışı", "WhatsApp entegrasyonu", "Teknik SEO"],
     process: [{ title: "Kullanıcı yolları", description: "Ürün arayan ve eşya satmak isteyen kullanıcıların ihtiyaçları ayrıştırıldı." }, { title: "Mobil tasarım", description: "Kategori keşfi ve hızlı iletişim küçük ekranlar için önceliklendirildi." }, { title: "Yönetim sistemi", description: "Değişken ürün ve içeriklerin güncellenebileceği yapı kuruldu." }, { title: "Yayın", description: "SEO, performans ve dönüşüm noktaları doğrulanarak canlıya alındı." }],
     deliverables: ["Mobil öncelikli web sitesi", "Ürün kategori yapısı", "Hızlı teklif akışı", "WhatsApp ve telefon aksiyonları", "Yönetilebilir içerik alanları", "SEO temel kurulumu"],
-    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "Web tasarım sistemlerini incele", liveUrl: "https://ugurbeyspot.com", keywords: ["Uğurbey Spot", "ikinci el eşya sitesi", "spot mağaza web tasarım", "mobil web deneyimi"],
+    relatedServiceUrl: "/web-tasarim", relatedServiceLabel: "Web tasarım sistemlerini incele", liveUrl: "https://ugurbeyspot.com", keywords: ["Uğurbey Spot", "ikinci el eşya sitesi", "spot mağaza web tasarım", "mobil web deneyimi"],
     faq: [{ question: "Platform kimlere hitap ediyor?", answer: "İkinci el ürün satın almak isteyenlerle elindeki mobilya, beyaz eşya veya elektroniği değerlendirmek isteyen kullanıcıları aynı platformda buluşturuyor." }, { question: "Mobil iletişim nasıl kolaylaştırıldı?", answer: "Telefon ve WhatsApp gibi yüksek niyetli aksiyonlar sayfa akışında görünür ve kolay erişilebilir konumlandırıldı." }],
   },
   {
@@ -93,7 +93,7 @@ const websiteCaseStudies: ProjectCaseStudy[] = [
     services: ["Otomotiv UX araştırması", "Ürün katalog mimarisi", "Marka-model filtreleme", "Ürün detay tasarımı", "Teklif ve iletişim akışı", "Mobil performans"],
     process: [{ title: "Katalog analizi", description: "Araç, model, malzeme ve ürün varyasyonlarının ilişki yapısı çıkarıldı." }, { title: "Ürün deneyimi", description: "Uyumluluk ve işçilik detaylarını öne çıkaran arayüz tasarlandı." }, { title: "Teklif sistemi", description: "Ürün keşfinden talebe geçişi hızlandıran temas noktaları geliştirildi." }, { title: "Optimizasyon", description: "Mobil hız, taranabilirlik ve katalog kullanılabilirliği doğrulandı." }],
     deliverables: ["Responsive otomotiv kataloğu", "Marka-model filtreleri", "Ürün detay şablonları", "Teklif alma akışı", "Yönetilebilir kategori sistemi", "Teknik SEO altyapısı"],
-    relatedServiceUrl: "/hizmetler/web-tasarim", relatedServiceLabel: "Katalog ve e-ticaret hizmetini incele", liveUrl: "https://akcotokilif.com", keywords: ["AKC Oto Kılıf", "oto kılıf web sitesi", "otomotiv ürün kataloğu", "araç uyumluluk filtresi"],
+    relatedServiceUrl: "/web-tasarim", relatedServiceLabel: "Katalog ve e-ticaret hizmetini incele", liveUrl: "https://akcotokilif.com", keywords: ["AKC Oto Kılıf", "oto kılıf web sitesi", "otomotiv ürün kataloğu", "araç uyumluluk filtresi"],
     faq: [{ question: "Dijital katalog nasıl çalışıyor?", answer: "Ürünler araç ve kategori mantığıyla ayrıştırılarak ziyaretçinin uyumlu seçeneğe daha hızlı ulaşması hedefleniyor." }, { question: "Teklif süreci katalogla bağlantılı mı?", answer: "Evet. Kullanıcı incelediği kapsamdan kopmadan uygun iletişim veya teklif kanalına ilerleyebiliyor." }],
   },
 ];
@@ -125,7 +125,7 @@ export const projectCaseStudies: ProjectCaseStudy[] = [
       { title: "Post-prodüksiyon", description: "Kurgu, renk, ses, grafik ve platform varyasyonları kontrollü revizyon akışıyla tamamlanır." },
     ],
     deliverables: ["Ana marka filmi", "15–30 saniyelik cutdown", "Dikey Reels / Shorts versiyonları", "Altyazılı yayın masterları", "Kapak ve thumbnail kareleri", "Teslim ve arşiv klasörü"],
-    relatedServiceUrl: "/hizmetler/video-film-produksiyon",
+    relatedServiceUrl: "/tanitim-filmi",
     relatedServiceLabel: "Video ve film prodüksiyon hizmetini incele",
     keywords: ["marka filmi prodüksiyonu", "reklam filmi çekimi", "İstanbul video prodüksiyon", "Türkiye film prodüksiyon", "kurumsal tanıtım filmi"],
     faq: [
@@ -158,7 +158,7 @@ export const projectCaseStudies: ProjectCaseStudy[] = [
       { title: "SEO ve yayın", description: "Teknik kontroller, yapılandırılmış veri, ölçüm, yönlendirme ve yayın sonrası izleme tamamlanır." },
     ],
     deliverables: ["Responsive e-ticaret arayüzü", "Ürün ve içerik yönetim paneli", "Sepet ve ödeme akışı", "SEO sayfa şablonları", "GA4 ve dönüşüm olayları", "Teknik teslim dokümantasyonu"],
-    relatedServiceUrl: "/hizmetler/web-tasarim",
+    relatedServiceUrl: "/web-tasarim",
     relatedServiceLabel: "Web tasarım ve yazılım hizmetini incele",
     keywords: ["e-ticaret web tasarım", "özel e-ticaret yazılımı", "Next.js e-ticaret", "kurumsal web tasarım Türkiye", "yönetim panelli web sitesi"],
     faq: [
