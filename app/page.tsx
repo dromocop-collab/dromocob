@@ -1,12 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Bot, Camera, Code2, Film, Gauge, Layers3, Play, Radar, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bot, Camera, CheckCheck, Code2, Film, Gauge, Layers3, MessageCircle, Play, Radar, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import ProjectGrid from "@/components/project-grid";
 import PackageGrid from "@/components/package-grid";
 import GrowthDiagnostic from "@/components/growth-diagnostic";
 import { pageMetadata } from "@/lib/seo";
 import QuoteLauncher from "@/components/quote-launcher";
 import InstagramReels from "@/components/instagram-reels";
+import { sitePhone, sitePhoneDisplay } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Kurumsal Web Sitesi ve Video Prodüksiyon",
@@ -17,6 +18,9 @@ export const metadata = pageMetadata({
 });
 
 export default function Home() {
+  const whatsappMessage = encodeURIComponent("Merhaba Dromocob, projem hakkında hızlıca bilgi almak istiyorum.");
+  const whatsappUrl = `https://wa.me/${sitePhone.replace(/\D/g, "")}?text=${whatsappMessage}`;
+
   return (
     <div className="home-page">
       <section className="hero section">
@@ -97,6 +101,43 @@ export default function Home() {
         <div className="section-head"><div><p className="eyebrow"><Sparkles size={15}/> Akıllı hizmet mimarisi</p><h2>Hazır paket değil.<br/><em>Doğru kombinasyon.</em></h2></div><p>İhtiyacına göre kapsamı şekillendir, dinamik teklif motoru yaklaşık bütçeyi anında hesaplasın.</p></div>
         <div className="mobile-swipe-hint" aria-hidden="true"><span>Paketleri sağa kaydır</span><i/><i/><i/><ArrowRight/></div>
         <PackageGrid compact />
+      </section>
+
+      <section className="section whatsapp-fast-contact" aria-labelledby="whatsapp-contact-title">
+        <div className="whatsapp-contact-copy">
+          <p className="eyebrow"><span className="whatsapp-live-dot"/> Hızlı iletişim / WhatsApp</p>
+          <h2 id="whatsapp-contact-title">Aklındaki projeyi<br/><em>bir mesajla başlat.</em></h2>
+          <p>Uzun formlarla uğraşmadan hedefini kısaca anlat. İhtiyacını birlikte netleştirelim, sana en doğru başlangıç yolunu hızlıca paylaşayım.</p>
+          <div className="whatsapp-contact-points">
+            <span><Zap/> Hızlı ilk değerlendirme</span>
+            <span><ShieldCheck/> Doğrudan ve güvenli iletişim</span>
+          </div>
+          <a className="whatsapp-contact-button" href={whatsappUrl} target="_blank" rel="noreferrer" aria-label={`WhatsApp üzerinden ${sitePhoneDisplay} numarasına mesaj gönder`}>
+            <span><MessageCircle/></span>
+            <div><small>WHATSAPP&apos;TAN YAZ</small><strong>{sitePhoneDisplay}</strong></div>
+            <ArrowUpRight/>
+          </a>
+        </div>
+
+        <div className="whatsapp-visual" aria-hidden="true">
+          <div className="whatsapp-orbit whatsapp-orbit-one"/>
+          <div className="whatsapp-orbit whatsapp-orbit-two"/>
+          <div className="whatsapp-phone">
+            <header>
+              <span className="whatsapp-avatar">DC<i/></span>
+              <div><strong>Dromocob</strong><small>çevrimiçi</small></div>
+              <MessageCircle/>
+            </header>
+            <div className="whatsapp-chat">
+              <span className="whatsapp-day">BUGÜN</span>
+              <p className="whatsapp-message is-incoming">Merhaba 👋 Projen için nasıl yardımcı olabilirim?<small>10:24</small></p>
+              <p className="whatsapp-message is-outgoing">Markam için yeni bir web sitesi düşünüyorum.<small>10:25 <CheckCheck/></small></p>
+              <p className="whatsapp-message is-incoming">Harika. Hedefini ve mevcut durumunu birkaç cümleyle paylaşman yeterli.<small>10:25</small></p>
+            </div>
+            <footer><span>Mesajınızı yazın</span><i><ArrowUpRight/></i></footer>
+          </div>
+          <div className="whatsapp-response-card"><i/><span><small>ORTALAMA İLK DÖNÜŞ</small><strong>Aynı gün içinde</strong></span></div>
+        </div>
       </section>
 
       <section className="section mega-cta">
