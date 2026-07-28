@@ -189,7 +189,9 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
   const clarityId = trackingEnabled ? cleanId(tracking?.clarityId) : "";
   const debugMode = trackingEnabled && tracking?.debugMode === true;
   const gtagId = ga4Id || adsId;
-  const directGtagId = gtmId ? "" : gtagId;
+  // GTM kullanılırken de admin paneline girilen Ads etiketi kendi başına çalışsın.
+  // GA4, aynı ölçümün iki kez gönderilmemesi için GTM varken doğrudan yüklenmez.
+  const directGtagId = isWorkspaceRoute ? "" : (gtmId ? adsId : gtagId);
 
   useEffect(() => {
     if (initialPageView.current) {
@@ -226,7 +228,7 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
         </>
       )}
 
-      {gtmId && (
+      {gtmId && !isWorkspaceRoute && (
         <>
           <Script id="dromocob-gtm" strategy="afterInteractive">
             {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmId}');`}

@@ -301,6 +301,11 @@ export default function Page() {
         throw new Error("WhatsApp ve Calendly URL alanları geçerli http/https adresi olmalı.");
       }
 
+      const googleAdsId = settings.tracking.googleAdsId.trim().toUpperCase();
+      if (googleAdsId && !/^AW-[0-9]+$/.test(googleAdsId)) {
+        throw new Error("Google Ads ID, AW- ile başlamalı ve yalnızca rakam içermeli (ör. AW-18343146345).");
+      }
+
       const payload: SiteSettings = {
         ...settings,
         seo: {
@@ -316,7 +321,7 @@ export default function Page() {
           consentModeEnabled: true,
           ga4MeasurementId: settings.tracking.ga4MeasurementId.trim(),
           gtmId: settings.tracking.gtmId.trim(),
-          googleAdsId: settings.tracking.googleAdsId.trim(),
+          googleAdsId,
           googleAdsConversionLabel: settings.tracking.googleAdsConversionLabel.trim(),
           metaPixelId: settings.tracking.metaPixelId.trim(),
           metaDomainVerification: settings.tracking.metaDomainVerification.trim(),
@@ -438,7 +443,7 @@ export default function Page() {
             <label className="toggle full"><input type="checkbox" checked={settings.tracking.enabled} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, enabled: event.target.checked } }))} /> Tracking scriptlerini aktif et</label>
             <label>GA4 Measurement ID<input value={settings.tracking.ga4MeasurementId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, ga4MeasurementId: event.target.value } }))} placeholder="G-XXXXXXXXXX" /><small>GA4 doğrudan yüklenir. GTM içinde ayrıca aynı GA4 etiketini kurma; çift ölçüm oluşur.</small></label>
             <label>GTM ID<input value={settings.tracking.gtmId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, gtmId: event.target.value } }))} placeholder="GTM-XXXXXX" /><small>Container kimliğini gir: ör. GTM-ABC1234.</small></label>
-            <label>Google Ads ID<input value={settings.tracking.googleAdsId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsId: event.target.value } }))} placeholder="AW-XXXXXXX" /></label>
+            <label>Google Ads etiketi ID<input value={settings.tracking.googleAdsId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsId: event.target.value } }))} placeholder="AW-18343146345" autoCapitalize="characters" spellCheck={false} /><small>AW- ile başlayan etiketi gir. Kaydedildiğinde Google etiketi ziyaretçi sayfalarında otomatik yüklenir.</small></label>
             <label>Ads Conversion Label<input value={settings.tracking.googleAdsConversionLabel} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsConversionLabel: event.target.value } }))} placeholder="abcDEF123..." /></label>
             <label>Meta Pixel ID<input value={settings.tracking.metaPixelId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, metaPixelId: event.target.value } }))} /></label>
             <label>Meta Domain Verification<input value={settings.tracking.metaDomainVerification} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, metaDomainVerification: event.target.value } }))} /></label>
