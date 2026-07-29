@@ -602,10 +602,21 @@ export default function CollectionManager({
 
   async function duplicateRow(row: Row) {
     try {
-      const { id, ...copy } = row;
-      void id;
-      delete copy.createdAt;
-      delete copy.updatedAt;
+      const copy: Record<string, unknown> = {};
+
+      for (const field of fields) {
+        if (row[field.key] !== undefined) {
+          copy[field.key] = row[field.key];
+        }
+
+        if (field.type === "image" || field.type === "video") {
+          const storagePathKey = `${field.key}StoragePath`;
+          if (row[storagePathKey] !== undefined) {
+            copy[storagePathKey] = row[storagePathKey];
+          }
+        }
+      }
+
       copy.title = `${String(row.title || row.name || "İçerik")} — Kopya`;
       if (collectionName === "projects") copy.slug = `${String(row.slug || slugify(String(row.title || "proje")))}-kopya-${Date.now().toString().slice(-5)}`;
       copy.active = false;
@@ -614,7 +625,10 @@ export default function CollectionManager({
       setSuccess("Kayıt taslak olarak çoğaltıldı.");
     } catch (copyError) {
       console.error(copyError);
-      setError("Kayıt çoğaltılamadı.");
+      const code = typeof copyError === "object" && copyError && "code" in copyError
+        ? String(copyError.code)
+        : "";
+      setError(`Kayıt çoğaltılamadı${code ? ` (${code})` : ""}.`);
     }
   }
 

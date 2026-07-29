@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Middleware to handle www → non-www canonical redirect.
+ * Proxy to handle www → non-www canonical redirect.
  * Google Search Console shows both www.dromocob.tr and dromocob.tr variants
  * being crawled, which causes duplicate content issues.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const host = request.headers.get("host") || "";
 
   // Redirect www.dromocob.tr → dromocob.tr
@@ -21,7 +21,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Run middleware on all routes except static assets and Next.js internals
+  // Run proxy on all routes except static assets and Next.js internals
   matcher: [
     "/((?!_next/static|_next/image|favicon\\.ico|icon\\.png|apple-icon\\.png|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml|opengraph-image|images/).*)",
   ],

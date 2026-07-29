@@ -8,6 +8,7 @@ import { pageMetadata } from "@/lib/seo";
 import QuoteLauncher from "@/components/quote-launcher";
 import InstagramReels from "@/components/instagram-reels";
 import { sitePhone, sitePhoneDisplay } from "@/lib/seo";
+import HomeClientExperience from "@/components/home-client-experience";
 
 export const metadata = pageMetadata({
   title: "Kurumsal Web Sitesi ve Video Prodüksiyon",
@@ -86,6 +87,8 @@ export default function Home() {
         <div className="pill-row"><span>Strategy</span><span>Production</span><span>Development</span><span>Growth</span></div>
         <div className="motion-expertise"><div><i>AE</i><span><small>POST-PRODUCTION / AFTER EFFECTS</small><strong>Motion & Visual Effects</strong></span></div><div className="motion-expertise-track"><span>Motion Design</span><span>Compositing</span><span>VFX</span><span>Motion Tracking</span><span>Rotoscoping</span><span>Keying</span><span>Expressions</span><span>Title Design</span></div></div></div>
       </section>
+
+      <HomeClientExperience />
 
       <section className="section home-projects">
         <div className="section-head"><div><p className="eyebrow">Seçili çalışmalar</p><h2>Projeler / <span>01—10</span></h2></div><Link className="text-link" href="/projeler">Tümünü gör <ArrowRight size={16}/></Link></div>

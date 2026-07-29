@@ -23,6 +23,27 @@ export type PublicSeoVerificationSettings = {
   yandexVerification?: string;
 };
 
+export type PublicSeoSettings = PublicSeoVerificationSettings & {
+  siteName?: string;
+  defaultTitle?: string;
+  titleTemplate?: string;
+  defaultDescription?: string;
+  keywords?: string[];
+  canonicalUrl?: string;
+  ogImage?: string;
+  robotsIndex?: boolean;
+  robotsFollow?: boolean;
+  locale?: string;
+  twitterHandle?: string;
+  organizationName?: string;
+  organizationDescription?: string;
+  logoUrl?: string;
+  socialProfiles?: string[];
+  noIndexPaths?: string[];
+  structuredDataEnabled?: boolean;
+  sitemapEnabled?: boolean;
+};
+
 function verificationToken(value?: string): string {
   return String(value || "").trim().replace(/^(google-site-verification|msvalidate\.01|yandex-verification)\s*=\s*/i, "");
 }
@@ -75,5 +96,27 @@ export async function getPublicSeoVerificationSettings(): Promise<PublicSeoVerif
   } catch (error) {
     console.warn("[DROMOCOB SEO] Sunucu SEO ayarları okunamadı; env değerleri kullanılıyor.", error);
     return normalizedFallback;
+  }
+}
+
+export async function getPublicSeoSettings(): Promise<PublicSeoSettings> {
+  const verification = await getPublicSeoVerificationSettings();
+
+  try {
+    const snapshot = await adminDb.collection("site_settings").doc("global").get();
+    const data = snapshot.data();
+    if (!data || data.active === false) return verification;
+
+    const seo = (data.seo || {}) as PublicSeoSettings;
+    return {
+      ...seo,
+      ...verification,
+      keywords: Array.isArray(seo.keywords) ? seo.keywords.map(String).filter(Boolean) : undefined,
+      socialProfiles: Array.isArray(seo.socialProfiles) ? seo.socialProfiles.map(String).filter(Boolean) : undefined,
+      noIndexPaths: Array.isArray(seo.noIndexPaths) ? seo.noIndexPaths.map(String).filter(Boolean) : undefined,
+    };
+  } catch (error) {
+    console.warn("[DROMOCOB SEO] Genel SEO ayarları okunamadı; kod varsayılanları kullanılıyor.", error);
+    return verification;
   }
 }

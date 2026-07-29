@@ -2,6 +2,8 @@ import type { MetadataRoute } from "next";
 import { packageDetails } from "@/lib/package-details";
 import { projectCaseStudies } from "@/lib/project-case-studies";
 import { absoluteUrl } from "@/lib/seo";
+import { adminDb } from "@/lib/firebase-admin";
+import { getPublicSeoSettings } from "@/lib/runtime-tracking";
 
 /**
  * Search engines use the sitemap as a discovery map, not a ranking mechanism.
@@ -81,18 +83,71 @@ function entry(route: PublicRoute): MetadataRoute.Sitemap[number] {
   };
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+type FirestoreSeoEntry = {
+  slug: string;
+  title: string;
+  image?: string;
+  updatedAt?: Date;
+};
+
+function firestoreDate(value: unknown): Date | undefined {
+  if (value && typeof value === "object" && "toDate" in value && typeof value.toDate === "function") {
+    return value.toDate();
+  }
+  return undefined;
+}
+
+async function getPublishedContent() {
+  try {
+    const [projectsSnapshot, packagesSnapshot] = await Promise.all([
+      adminDb.collection("projects").where("active", "==", true).get(),
+      adminDb.collection("packages").where("active", "==", true).get(),
+    ]);
+
+    const projects: FirestoreSeoEntry[] = projectsSnapshot.docs.map(document => {
+      const data = document.data();
+      return {
+        slug: String(data.slug || "").trim(),
+        title: String(data.title || "").trim(),
+        image: String(data.coverUrl || data.coverImage || "").trim() || undefined,
+        updatedAt: firestoreDate(data.updatedAt) || firestoreDate(data.createdAt),
+      };
+    }).filter(item => item.slug && item.title);
+
+    const packages: FirestoreSeoEntry[] = packagesSnapshot.docs.map(document => {
+      const data = document.data();
+      const known = packageDetails.find(item => item.packageId === document.id || item.slug === data.slug);
+      return {
+        slug: known?.slug || "",
+        title: String(data.title || known?.title || "").trim(),
+        image: String(data.image || "").trim() || undefined,
+        updatedAt: firestoreDate(data.updatedAt) || firestoreDate(data.createdAt),
+      };
+    }).filter(item => item.slug && item.title);
+
+    return { projects, packages };
+  } catch (error) {
+    console.warn("[SITEMAP] Firestore içerikleri okunamadı; yerleşik içerikler kullanılıyor.", error);
+    return { projects: [] as FirestoreSeoEntry[], packages: [] as FirestoreSeoEntry[] };
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [seoSettings, published] = await Promise.all([getPublicSeoSettings(), getPublishedContent()]);
+  if (seoSettings.sitemapEnabled === false) return [];
+
   const staticEntries = publicRoutes.map(entry);
 
   const packageEntries: MetadataRoute.Sitemap = packageDetails.map(item => {
     const path = `/paketler/${item.slug}`;
+    const live = published.packages.find(entry => entry.slug === item.slug);
     return {
       url: absoluteUrl(path),
-      lastModified: new Date(`${updated.packages}T12:00:00.000Z`),
+      lastModified: live?.updatedAt || new Date(`${updated.packages}T12:00:00.000Z`),
       changeFrequency: "monthly",
       priority: item.slug === "digital-flagship" ? 0.94 : 0.9,
       alternates: localizedAlternates(path),
-      images: uniqueAbsoluteImages([openGraphImage]),
+      images: uniqueAbsoluteImages([live?.image || "", openGraphImage]),
     };
   });
 
@@ -109,9 +164,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
     };
   });
 
+  const firestoreProjectEntries: MetadataRoute.Sitemap = published.projects.map(project => {
+    const path = `/projeler/${project.slug}`;
+    return {
+      url: absoluteUrl(path),
+      lastModified: project.updatedAt || new Date(`${updated.core}T12:00:00.000Z`),
+      changeFrequency: "monthly",
+      priority: 0.86,
+      alternates: localizedAlternates(path),
+      images: uniqueAbsoluteImages([project.image || "", openGraphImage]),
+    };
+  });
+
   // Guard against accidental duplicate canonical URLs as content grows.
   const seen = new Set<string>();
-  return [...staticEntries, ...packageEntries, ...projectEntries].filter(item => {
+  return [...staticEntries, ...packageEntries, ...firestoreProjectEntries, ...projectEntries].filter(item => {
     if (seen.has(item.url)) return false;
     seen.add(item.url);
     return true;

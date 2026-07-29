@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, Check, CheckCircle2, Clock3, Headphones, Refresh
 import { notFound } from "next/navigation";
 import PackageQuoteLauncher from "@/components/package-quote-launcher";
 import { getPackageDetail, packageDetails } from "@/lib/package-details";
-import { absoluteUrl, pageMetadata, siteName, siteUrl } from "@/lib/seo";
+import { absoluteUrl, breadcrumbJsonLd, pageMetadata, siteName, siteUrl } from "@/lib/seo";
 
 type PackagePageProps = { params: Promise<{ slug: string }> };
 
@@ -24,10 +24,16 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
 
   const serviceSchema = { "@context": "https://schema.org", "@type": "Service", "@id": `${siteUrl}/paketler/${item.slug}#service`, name: item.title, description: item.description, url: absoluteUrl(`/paketler/${item.slug}`), provider: { "@id": `${siteUrl}/#organization`, "@type": "ProfessionalService", name: siteName }, areaServed: { "@type": "Country", name: "Türkiye" }, offers: { "@type": "Offer", priceCurrency: "TRY", price: item.priceFrom, description: `Başlangıç yatırımı: ${item.priceFrom.toLocaleString("tr-TR")} TL + KDV` } };
   const faqSchema = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: item.faqs.map(faq => ({ "@type": "Question", name: faq.question, acceptedAnswer: { "@type": "Answer", text: faq.answer } })) };
+  const breadcrumbSchema = breadcrumbJsonLd([
+    { name: "Ana Sayfa", path: "/" },
+    { name: "Paketler", path: "/paketler" },
+    { name: item.title, path: `/paketler/${item.slug}` },
+  ]);
 
   return <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema).replace(/</g, "\\u003c") }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, "\\u003c") }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema).replace(/</g, "\\u003c") }} />
     <section className="package-detail-hero section">
       <Link className="package-back-link" href="/paketler"><ArrowLeft size={16}/> Tüm paketler</Link>
       <div className="package-detail-hero-copy">

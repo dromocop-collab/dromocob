@@ -72,6 +72,6 @@ const services = [
 export default function ServicesPage() {
   return <>
     <section className="page-hero section"><p className="eyebrow">Dromocob / Türkiye geneli</p><h1>Web, film ve teknoloji.<br/><span>Tek üretim sistemi.</span></h1><p className="hero-description">Markanın dijital deneyimini ve görsel hikâyesini aynı stratejik çerçevede tasarlayan uzmanlık alanları.</p></section>
-    <section className="services-index section">{services.map(service => <Link href={service.href} key={service.href} className="services-index-card"><div><Image src={service.image} alt={service.alt} width={1200} height={1200} sizes="(max-width: 800px) 100vw, 50vw"/></div><article><p className="eyebrow">{service.eyebrow}</p><h2>{service.title}</h2><p>{service.description}</p><span>Hizmeti incele <ArrowRight/></span></article></Link>)}</section>
+    <section className="services-index section">{services.map(service => <Link href={service.href} key={`${service.href}-${service.title}`} className="services-index-card"><div><Image src={service.image} alt={service.alt} width={1200} height={1200} sizes="(max-width: 800px) 100vw, 50vw"/></div><article><p className="eyebrow">{service.eyebrow}</p><h2>{service.title}</h2><p>{service.description}</p><span>Hizmeti incele <ArrowRight/></span></article></Link>)}</section>
   </>;
 }

@@ -387,10 +387,16 @@ service cloud.firestore {
           "slug",
           "subtitle",
           "description",
+          "summary",
+          "projectType",
           "coverImage",
           "coverImageStoragePath",
+          "coverUrl",
+          "coverUrlStoragePath",
           "showreel",
           "showreelStoragePath",
+          "videoUrl",
+          "videoUrlStoragePath",
           "gallery",
           "category",
           "client",
@@ -398,6 +404,7 @@ service cloud.firestore {
           "services",
           "year",
           "projectUrl",
+          "externalUrl",
           "order",
           "sortOrder",
           "featured",
@@ -422,6 +429,16 @@ service cloud.firestore {
         )
         && isOptionalString(
           request.resource.data,
+          "summary",
+          500
+        )
+        && isOptionalString(
+          request.resource.data,
+          "projectType",
+          30
+        )
+        && isOptionalString(
+          request.resource.data,
           "coverImage",
           1000
         )
@@ -432,12 +449,37 @@ service cloud.firestore {
         )
         && isOptionalString(
           request.resource.data,
+          "coverUrl",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "coverUrlStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
           "showreel",
           1000
         )
         && isOptionalString(
           request.resource.data,
           "showreelStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "videoUrl",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "videoUrlStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "externalUrl",
           1000
         )
         && isOptionalString(
@@ -478,10 +520,16 @@ service cloud.firestore {
           "slug",
           "subtitle",
           "description",
+          "summary",
+          "projectType",
           "coverImage",
           "coverImageStoragePath",
+          "coverUrl",
+          "coverUrlStoragePath",
           "showreel",
           "showreelStoragePath",
+          "videoUrl",
+          "videoUrlStoragePath",
           "gallery",
           "category",
           "client",
@@ -489,6 +537,7 @@ service cloud.firestore {
           "services",
           "year",
           "projectUrl",
+          "externalUrl",
           "order",
           "sortOrder",
           "featured",
@@ -509,6 +558,16 @@ service cloud.firestore {
         )
         && isOptionalString(
           request.resource.data,
+          "summary",
+          500
+        )
+        && isOptionalString(
+          request.resource.data,
+          "projectType",
+          30
+        )
+        && isOptionalString(
+          request.resource.data,
           "coverImage",
           1000
         )
@@ -519,12 +578,37 @@ service cloud.firestore {
         )
         && isOptionalString(
           request.resource.data,
+          "coverUrl",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "coverUrlStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
           "showreel",
           1000
         )
         && isOptionalString(
           request.resource.data,
           "showreelStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "videoUrl",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "videoUrlStoragePath",
+          1000
+        )
+        && isOptionalString(
+          request.resource.data,
+          "externalUrl",
           1000
         )
         && isOptionalString(

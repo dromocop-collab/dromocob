@@ -83,6 +83,7 @@ export function pageMetadata({
       card: "summary_large_image",
       title,
       description,
+      images: [absoluteUrl("/opengraph-image")],
     },
     robots: noIndex
       ? {
@@ -104,6 +105,19 @@ export function pageMetadata({
             "max-video-preview": -1,
           },
         },
+  };
+}
+
+export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
   };
 }
 

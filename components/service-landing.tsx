@@ -3,6 +3,7 @@ import Image from "next/image";
 import { CheckCircle2 } from "lucide-react";
 import AdvancedQuoteWizard from "@/components/advanced-quote-wizard";
 import type { AdvancedQuoteService } from "@/lib/advanced-quote-config";
+import { breadcrumbJsonLd } from "@/lib/seo";
 
 type ServiceLandingProps = {
   eyebrow: string;
@@ -23,11 +24,11 @@ type ServiceLandingProps = {
 };
 
 export default function ServiceLanding({ eyebrow, title, accent, intro, services, process, cities, schema, media, mediaEyebrow, mediaTitle, path, breadcrumbLabel, faqs, quoteService }: ServiceLandingProps) {
-  const breadcrumbSchema = { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Ana Sayfa", item: "https://dromocob.tr/" },
-    { "@type": "ListItem", position: 2, name: "Hizmetler", item: "https://dromocob.tr/hizmetler" },
-    { "@type": "ListItem", position: 3, name: breadcrumbLabel, item: `https://dromocob.tr${path}` },
-  ] };
+  const breadcrumbSchema = breadcrumbJsonLd([
+    { name: "Ana Sayfa", path: "/" },
+    { name: "Hizmetler", path: "/hizmetler" },
+    { name: breadcrumbLabel, path },
+  ]);
   const faqSchema = { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: faqs.map(item => ({
     "@type": "Question",
     name: item.question,
