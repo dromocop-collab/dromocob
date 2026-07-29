@@ -12,15 +12,29 @@ const nextConfig: NextConfig = {
       // ── Legacy 404 fixes: old PHP/HTML site URLs found in Search Console ──
       { source: "/index.html", destination: "/", permanent: true },
       { source: "/iletisim/index.html", destination: "/iletisim", permanent: true },
+      { source: "/iletisim/index.php", destination: "/iletisim", permanent: true },
       { source: "/dromocop-yapilan-calismalarimiz.html", destination: "/projeler", permanent: true },
       { source: "/hakkimizda", destination: "/hakkimda", permanent: true },
+      { source: "/hakkimda/index.php", destination: "/hakkimda", permanent: true },
+      { source: "/bakim", destination: "/", permanent: true },
+      { source: "/bakim/:path*", destination: "/", permanent: true },
+      { source: "/drone", destination: "/drone-cekimi", permanent: true },
+
+      // ── Legacy account routes, including historical nested `next=` loops ──
+      { source: "/users/login.php", destination: "/giris", permanent: true },
+      { source: "/users/register.php", destination: "/kayit", permanent: true },
+      { source: "/users/profile.php", destination: "/profilim", permanent: true },
+      { source: "/users/:path*", destination: "/giris", permanent: true },
 
       // ── Old PHP product routes → projects ──
+      { source: "/products", destination: "/projeler", permanent: true },
+      { source: "/products/index.php", destination: "/projeler", permanent: true },
       { source: "/products/view.php", destination: "/projeler", permanent: true },
       { source: "/products/:path*", destination: "/projeler", permanent: true },
 
       // ── Catch any remaining .html extension requests ──
       { source: "/:path*.html", destination: "/:path*", permanent: true },
+
     ];
   },
   async headers() {
