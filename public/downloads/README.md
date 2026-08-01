@@ -2,6 +2,6 @@
 
 Production PhotoResize disk image must be uploaded as:
 
-`public/downloads/PhotoResize.dmg`
+`public/downloads/PhotoResize-1.0.1.dmg`
 
-The public product pages already link to `/downloads/PhotoResize.dmg`.
+The public product pages already link to `/downloads/PhotoResize-1.0.1.dmg`.
