@@ -94,6 +94,7 @@ export async function requireAdminToken(authorization: string | null) {
   }
 
   let isFirestoreAdmin = false;
+  let role = isEmergencyAdminEmail(decoded.email) ? "super_admin" : "support";
 
   try {
     const adminDoc =
@@ -102,8 +103,9 @@ export async function requireAdminToken(authorization: string | null) {
         .doc(decoded.uid)
         .get();
 
-    isFirestoreAdmin =
-      adminDoc.data()?.active === true;
+    const data = adminDoc.data();
+    isFirestoreAdmin = data?.active === true;
+    if (typeof data?.role === "string") role = data.role;
   } catch (error) {
     if (!isCredentialError(error)) {
       throw error;
@@ -115,5 +117,14 @@ export async function requireAdminToken(authorization: string | null) {
     isEmergencyAdminEmail(decoded.email);
 
   if (!authorized) throw new Error("FORBIDDEN");
-  return decoded;
+  return { ...decoded, role };
+}
+
+export async function requireAdminRole(
+  authorization: string | null,
+  allowed: Array<"super_admin" | "admin" | "license_manager" | "support">,
+) {
+  const admin = await requireAdminToken(authorization);
+  if (!allowed.includes(admin.role as (typeof allowed)[number])) throw new Error("FORBIDDEN");
+  return admin;
 }

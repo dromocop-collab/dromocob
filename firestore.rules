@@ -144,6 +144,8 @@ service cloud.firestore {
         && (
           adminDoc().data.role == "admin"
           || adminDoc().data.role == "super_admin"
+          || adminDoc().data.role == "license_manager"
+          || adminDoc().data.role == "support"
         );
     }
 
@@ -348,6 +350,8 @@ service cloud.firestore {
         && (
           request.resource.data.role == "admin"
           || request.resource.data.role == "super_admin"
+          || request.resource.data.role == "license_manager"
+          || request.resource.data.role == "support"
         )
         && request.resource.data.active is bool
         && request.resource.data.createdBy == currentUid()
@@ -360,6 +364,8 @@ service cloud.firestore {
         && (
           request.resource.data.role == "admin"
           || request.resource.data.role == "super_admin"
+          || request.resource.data.role == "license_manager"
+          || request.resource.data.role == "support"
         )
         && request.resource.data.active is bool
         && hasValidUpdatedAt(request.resource.data);
@@ -1757,6 +1763,14 @@ service cloud.firestore {
 
       allow read, write: if false;
     }
+
+    // License keys, signed receipts, devices and event history are server-only.
+    // Clients must use the authenticated License API so limits cannot be bypassed.
+    match /licenses/{documentId} { allow read, write: if false; }
+    match /license_activations/{documentId} { allow read, write: if false; }
+    match /license_events/{documentId} { allow read, write: if false; }
+    match /license_api_keys/{documentId} { allow read, write: if false; }
+    match /app_releases/{documentId} { allow read, write: if false; }
 
 
     // =========================================================

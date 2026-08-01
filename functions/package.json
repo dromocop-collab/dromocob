@@ -1,0 +1,23 @@
+{
+  "name": "dromocob-license-functions",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "deploy": "npm run build && firebase deploy --only functions:licensing",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.2.0",
+    "firebase-functions": "^7.3.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "overrides": {
+    "uuid": "^11.1.1"
+  }
+}

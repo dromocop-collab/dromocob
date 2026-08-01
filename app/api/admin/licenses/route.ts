@@ -1,0 +1,53 @@
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase-admin";
+import { requireAdminRole } from "@/lib/admin-guard";
+import { dateToTimestamp } from "@/lib/licensing/service";
+import { generateLicenseKey, licenseKeyHash } from "@/lib/licensing/crypto";
+
+export const runtime = "nodejs";
+
+function fail(error: unknown) {
+  const message = error instanceof Error ? error.message : "UNKNOWN";
+  return Response.json({ ok: false, error: message === "UNAUTHORIZED" || message === "FORBIDDEN" ? message : "LICENSE_ADMIN_FAILED" }, { status: message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : 500 });
+}
+
+export async function GET(request: Request) {
+  try {
+    await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "license_manager", "support"]);
+    const [licenses, activations, events] = await Promise.all([
+      adminDb.collection("licenses").orderBy("createdAt", "desc").limit(250).get(),
+      adminDb.collection("license_activations").orderBy("updatedAt", "desc").limit(500).get(),
+      adminDb.collection("license_events").orderBy("createdAt", "desc").limit(250).get(),
+    ]);
+    const serialize = (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
+      const data = doc.data();
+      return { id: doc.id, ...Object.fromEntries(Object.entries(data).map(([key, value]) => [key, value instanceof Timestamp ? value.toDate().toISOString() : value])) };
+    };
+    return Response.json({ ok: true, licenses: licenses.docs.map(serialize), activations: activations.docs.map(serialize), events: events.docs.map(serialize) });
+  } catch (error) { return fail(error); }
+}
+
+export async function POST(request: Request) {
+  try {
+    const admin = await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "license_manager"]);
+    const body = await request.json();
+    const email = String(body.ownerEmail || "").trim().toLowerCase();
+    const products = Array.isArray(body.products) ? body.products.map(String).slice(0, 20) : [];
+    if (!email.includes("@") || products.length === 0) return Response.json({ ok: false, error: "INVALID_REQUEST" }, { status: 400 });
+    const key = generateLicenseKey();
+    const ref = adminDb.collection("licenses").doc();
+    await ref.set({
+      keyHash: licenseKeyHash(key), keySuffix: key.slice(-5), ownerEmail: email,
+      ownerUid: body.ownerUid ? String(body.ownerUid) : null,
+      customerName: String(body.customerName || "").slice(0, 180),
+      plan: ["trial", "pro", "business", "lifetime"].includes(body.plan) ? body.plan : "pro",
+      status: "active", products, maxDevices: Math.max(1, Math.min(100, Number(body.maxDevices) || 1)),
+      startsAt: Timestamp.now(), expiresAt: dateToTimestamp(body.expiresAt),
+      offlineGraceDays: Math.max(1, Math.min(30, Number(body.offlineGraceDays) || 7)),
+      notes: String(body.notes || "").slice(0, 2000), createdBy: admin.uid,
+      createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp(),
+    });
+    await adminDb.collection("license_events").add({ type: "license_created", licenseId: ref.id, userId: admin.uid, createdAt: FieldValue.serverTimestamp() });
+    return Response.json({ ok: true, id: ref.id, licenseKey: key });
+  } catch (error) { return fail(error); }
+}

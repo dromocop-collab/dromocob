@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dromocob Platform + License Cloud
 
-## Getting Started
+Dromocob web sitesi, yönetim paneli ve bütün masaüstü uygulamalarının ortak lisans altyapısıdır. Lisans anahtarları Firestore'a açık metin olarak yazılmaz; SHA-256 özeti tutulur. Cihaza verilen çevrimdışı makbuzlar P-256 / ES256 ile imzalanır ve istemci tarafında doğrulanır.
 
-First, run the development server:
+## Modüller
+
+- `/admin/lisanslar`: lisans oluşturma, askıya alma/iptal, cihaz ve aktivasyon akışı
+- `/api/licenses/activate`: hesap + ürün + cihaz doğrulaması ve aktivasyon
+- `/api/licenses/validate`: token yenileme ve çevrimdışı makbuz rotasyonu
+- `/api/licenses/deactivate`: cihaz oturumunu kapatma
+- `/api/licenses/apps`: ürün kataloğu, minimum sürüm ve makbuz açık anahtarı
+- Firebase Functions: süre bitirme, aktivasyon kapatma, log saklama ve lisans e-posta kuyruğu
+- PhotoResize macOS: Firebase hesap girişi, Keychain, trial, cihaz izi, imzalı receipt ve offline grace
+
+## Yerel kurulum
+
+Gereksinimler: Node.js 22, npm, Firebase CLI ve Xcode 17+.
 
 ```bash
+cp .env.example .env.local
+./scripts/generate-license-keys.sh
+npm install
+cd functions && npm install && cd ..
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Anahtar üretiminden çıkan özel anahtarı yalnızca sunucu ortamındaki `DROMOCOB_LICENSE_PRIVATE_KEY` değişkenine, açık anahtarı `DROMOCOB_LICENSE_PUBLIC_KEY` değişkenine koyun. PEM satır sonlarını Vercel/Firebase değişkenlerinde `\\n` biçiminde saklayabilirsiniz. Özel anahtarı repoya veya macOS uygulamasına eklemeyin.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Firebase
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. `.firebaserc` içindeki projeyi doğrulayın veya `firebase use <project-id>` çalıştırın.
+2. Admin kullanıcılarının `users/{uid}.role` alanını `super_admin`, `admin`, `license_manager` veya `support` yapın.
+3. Firestore e-posta kuyruğu için Firebase Trigger Email eklentisini `mail` koleksiyonuyla yapılandırın.
+4. Kuralları, indexleri ve zamanlanmış fonksiyonları yayınlayın:
 
-## Learn More
+```bash
+./scripts/deploy-license-cloud.sh
+```
 
-To learn more about Next.js, take a look at the following resources:
+Scheduled Functions için Firebase projesinin Blaze planında olması gerekir.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## PhotoResize yapılandırması
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Uygulama `pixel-resizer-pro` ürün kimliğini kullanır. Bundle ID: `com.cihat.photoResize`, minimum macOS: 14. Uygulamadaki `LicenseAPI.swift` içinde production alan adı ve Firebase Web API anahtarı tanımlıdır. App Store / dağıtım öncesinde:
 
-## Deploy on Vercel
+- Release signing ve hardened runtime'ı açın.
+- Network entitlement dışında gereksiz entitlement eklemeyin.
+- `CFBundleShortVersionString` değerini `/api/licenses/apps` minimum/latest sürümleriyle eşleyin.
+- Debug ve Release buildlerini, ardından imzalama/notarization akışını çalıştırın.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Güvenlik modeli
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Lisans anahtarı yalnızca oluşturulduğu anda gösterilir.
+- Sunucuda anahtar özeti, son karakterleri ve metadata saklanır.
+- Aktivasyon Firebase ID token ile kullanıcıya bağlanır.
+- Cihaz parmak izi SHA-256 ile anonimleştirilir.
+- Receipt cihaz, kullanıcı, ürün ve son kullanma tarihine bağlıdır.
+- Keychain verileri `ThisDeviceOnly` erişim sınıfıyla tutulur.
+- Saat geri alma denetimi ve sınırlı offline grace bulunur.
+- Firestore istemcilerinin lisans koleksiyonlarına doğrudan erişimi kapalıdır.
+
+## Kalite kapıları
+
+```bash
+npm run lint
+npm run build
+cd functions && npm run build
+xcodebuild -project photoResize.xcodeproj -scheme photoResize -configuration Release -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
+```
+
+Gerçek lisans aktivasyon uçtan uca testi için production ortam değişkenleri, yayınlanmış Firebase index/functions ve doğrulanmış admin rolü gerekir.
