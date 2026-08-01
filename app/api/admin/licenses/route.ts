@@ -14,16 +14,38 @@ function fail(error: unknown) {
 export async function GET(request: Request) {
   try {
     await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "license_manager", "support"]);
-    const [licenses, activations, events] = await Promise.all([
+    const [licenses, activations, events, settings] = await Promise.all([
       adminDb.collection("licenses").orderBy("createdAt", "desc").limit(250).get(),
       adminDb.collection("license_activations").orderBy("updatedAt", "desc").limit(500).get(),
       adminDb.collection("license_events").orderBy("createdAt", "desc").limit(250).get(),
+      adminDb.collection("app_settings").doc("licensing").get(),
     ]);
     const serialize = (doc: FirebaseFirestore.QueryDocumentSnapshot) => {
       const data = doc.data();
       return { id: doc.id, ...Object.fromEntries(Object.entries(data).map(([key, value]) => [key, value instanceof Timestamp ? value.toDate().toISOString() : value])) };
     };
-    return Response.json({ ok: true, licenses: licenses.docs.map(serialize), activations: activations.docs.map(serialize), events: events.docs.map(serialize) });
+    const configuredDays = Number(settings.data()?.trialDays);
+    const trialDays = Number.isFinite(configuredDays) ? Math.max(1, Math.min(30, Math.round(configuredDays))) : 7;
+    return Response.json({ ok: true, licenses: licenses.docs.map(serialize), activations: activations.docs.map(serialize), events: events.docs.map(serialize), settings: { trialDays } });
+  } catch (error) { return fail(error); }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const admin = await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "license_manager"]);
+    const body = await request.json();
+    const requestedDays = Number(body.trialDays);
+    if (!Number.isFinite(requestedDays) || requestedDays < 1 || requestedDays > 30) {
+      return Response.json({ ok: false, error: "INVALID_TRIAL_DAYS" }, { status: 400 });
+    }
+    const trialDays = Math.round(requestedDays);
+    await adminDb.collection("app_settings").doc("licensing").set({
+      trialDays,
+      updatedBy: admin.uid,
+      updatedAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+    await adminDb.collection("license_events").add({ type: "trial_settings_updated", trialDays, userId: admin.uid, createdAt: FieldValue.serverTimestamp() });
+    return Response.json({ ok: true, settings: { trialDays } });
   } catch (error) { return fail(error); }
 }
 
