@@ -56,6 +56,8 @@ const publicRoutes: PublicRoute[] = [
   { path: "/google-ads", priority: 0.95, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages] },
   { path: "/projeler", priority: 0.92, changeFrequency: "weekly", lastModified: updated.core, images: [openGraphImage, ...projectCaseStudies.map(project => project.coverUrl)] },
   { path: "/paketler", priority: 0.92, changeFrequency: "weekly", lastModified: updated.packages, images: [openGraphImage] },
+  { path: "/uygulamalar", priority: 0.94, changeFrequency: "weekly", lastModified: "2026-08-01", images: [openGraphImage] },
+  { path: "/uygulamalar/photoresize", priority: 0.95, changeFrequency: "weekly", lastModified: "2026-08-01", images: [openGraphImage] },
   { path: "/kurumsal", priority: 0.84, changeFrequency: "monthly", lastModified: updated.core, images: [openGraphImage] },
   { path: "/hakkimda", priority: 0.76, changeFrequency: "monthly", lastModified: updated.core, images: [openGraphImage] },
   { path: "/iletisim", priority: 0.82, changeFrequency: "monthly", lastModified: updated.core, images: [openGraphImage] },
