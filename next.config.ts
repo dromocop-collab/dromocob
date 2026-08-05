@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
     return [
       // ── Duplicate content fix: consolidate /hizmetler/* into canonical short URLs ──
       { source: "/hizmetler/web-tasarim", destination: "/web-tasarim", permanent: true },
-      { source: "/hizmetler/video-film-produksiyon", destination: "/tanitim-filmi", permanent: true },
+      { source: "/hizmetler/video-film-produksiyon", destination: "/video-produksiyon", permanent: true },
 
       // ── Legacy 404 fixes: old PHP/HTML site URLs found in Search Console ──
       { source: "/index.html", destination: "/", permanent: true },
