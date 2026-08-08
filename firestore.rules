@@ -1771,6 +1771,8 @@ service cloud.firestore {
     match /license_events/{documentId} { allow read, write: if false; }
     match /license_api_keys/{documentId} { allow read, write: if false; }
     match /app_releases/{documentId} { allow read, write: if false; }
+    match /mobile_premium_entitlements/{documentId} { allow read, write: if false; }
+    match /mobile_premium_audit_logs/{documentId} { allow read, write: if false; }
 
 
     // =========================================================

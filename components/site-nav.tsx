@@ -100,9 +100,12 @@ export default function SiteNav() {
 
   // Close dropdown on route change
   useEffect(() => {
-    setActiveDropdown(null);
-    setMobileExpanded(null);
-    setOpen(false);
+    const timer = window.setTimeout(() => {
+      setActiveDropdown(null);
+      setMobileExpanded(null);
+      setOpen(false);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [pathname]);
 
   // Close desktop dropdown on outside click
