@@ -11,14 +11,18 @@ export async function POST(request: NextRequest) {
   if (!token) return new NextResponse("Unauthorized", { status: 401 });
 
   try {
+    const payload = await request.json().catch(() => ({})) as { app?: unknown; platform?: unknown };
+    const app = payload.app === "dromocob" ? "dromocob" : "calorievision";
+    const platform = payload.platform === "macos" ? "macos" : "ios";
     const decoded = await adminAuth.verifyIdToken(token);
     const user = await adminAuth.getUser(decoded.uid);
     const ref = adminDb.collection("mobile_app_users").doc(user.uid);
     const existing = await ref.get();
     await ref.set({
       uid: user.uid,
-      app: "calorievision",
-      platform: "ios",
+      app,
+      apps: FieldValue.arrayUnion(app),
+      platform,
       email: user.email || null,
       displayName: user.displayName || null,
       lastSeenAt: FieldValue.serverTimestamp(),

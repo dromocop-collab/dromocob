@@ -16,7 +16,6 @@ import {
   X,
 } from "lucide-react";
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
@@ -25,9 +24,8 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  setDoc,
   Timestamp,
-  updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import {
   onAuthStateChanged,
@@ -171,6 +169,7 @@ export default function LiveChat() {
     (() => void) | null
   >(null);
   const initializationIdRef = useRef(0);
+  const sessionExistsRef = useRef(false);
 
   const isReady =
     status === "ready" || status === "sending";
@@ -309,20 +308,14 @@ export default function LiveChat() {
         }
 
         if (!sessionSnapshot.exists()) {
-          await setDoc(sessionReference, {
-            ownerUid: user.uid,
-            status: "open",
-            visitorName: "",
-            visitorEmail: "",
-            visitorPhone: "",
-            lastMessage: "",
-            lastMessageAt: serverTimestamp(),
-            unreadAdmin: 0,
-            unreadVisitor: 0,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          });
+          // Sohbet penceresini açmak konuşma oluşturmaz. Oturum ve ilk
+          // mesaj, kullanıcı gerçekten gönder tuşuna bastığında yazılır.
+          sessionExistsRef.current = false;
+          setMessages([]);
+          setStatus("ready");
+          return;
         } else {
+          sessionExistsRef.current = true;
           const session =
             sessionSnapshot.data() as ChatSession;
 
@@ -494,39 +487,46 @@ export default function LiveChat() {
         sessionId
       );
 
-      /*
-       * Önce mesajı oluşturuyoruz.
-       * Rules senderUid ile auth.uid eşleşmesini bekliyor.
-       */
-      const messageReference = await addDoc(
-        collection(
-          db,
-          "chat_sessions",
-          sessionId,
-          "messages"
-        ),
-        {
+      // Oturum özeti ve ilk mesaj tek atomik yazmada oluşturulur.
+      const messageReference = doc(collection(db, "chat_sessions", sessionId, "messages"));
+      const batch = writeBatch(db);
+
+      if (sessionExistsRef.current) {
+        batch.update(sessionReference, {
+          lastMessage: cleanText,
+          lastMessageAt: serverTimestamp(),
+          unreadAdmin: 1,
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        batch.set(sessionReference, {
+          ownerUid: currentUser.uid,
+          status: "open",
+          visitorName: currentUser.displayName || "",
+          visitorEmail: currentUser.email || "",
+          visitorPhone: "",
+          lastMessage: cleanText,
+          lastMessageAt: serverTimestamp(),
+          unreadAdmin: 1,
+          unreadVisitor: 0,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      }
+
+      batch.set(messageReference, {
           sender: "visitor",
           senderUid: currentUser.uid,
           text: cleanText,
           read: false,
           createdAt: serverTimestamp(),
-        }
-      );
-
-      /*
-       * Session güncellemesi sadece rules'un ziyaretçiye
-       * izin verdiği alanlarla yapılır.
-       */
-      await updateDoc(sessionReference, {
-        lastMessage: cleanText,
-        lastMessageAt: serverTimestamp(),
-        unreadAdmin: 1,
-        updatedAt: serverTimestamp(),
       });
+      await batch.commit();
+      sessionExistsRef.current = true;
 
       setText("");
       setStatus("ready");
+      setRetryKey(value => value + 1);
 
       try {
         const idToken = await currentUser.getIdToken();

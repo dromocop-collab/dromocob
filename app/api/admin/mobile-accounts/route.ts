@@ -28,8 +28,8 @@ export async function GET(request: NextRequest) {
       .limit(PAGE_SIZE)
       .get();
     const markerUIDs = markerSnapshot.docs
-      .filter(document => document.data().app === "calorievision")
       .map(document => document.id);
+    const markerByUID = new Map(markerSnapshot.docs.map(document => [document.id, serializeAdminValue(document.data()) as Record<string, unknown>]));
     const authResult = markerUIDs.length
       ? await adminAuth.getUsers(markerUIDs.map(uid => ({ uid })))
       : { users: [], notFound: [] };
@@ -49,6 +49,8 @@ export async function GET(request: NextRequest) {
         emailVerified: user.emailVerified,
         createdAt: user.metadata.creationTime,
         lastSignInAt: user.metadata.lastSignInTime || null,
+        app: markerByUID.get(user.uid)?.app || "calorievision",
+        apps: markerByUID.get(user.uid)?.apps || [markerByUID.get(user.uid)?.app || "calorievision"],
         entitlement: entitlementByUid.get(user.uid) || null,
       })),
       total: markerSnapshot.size,

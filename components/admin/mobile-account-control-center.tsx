@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, BadgeCheck, CalendarClock, Crown, RefreshCw, Save, Search, ShieldCheck, UserRound, X } from "lucide-react";
+import { Activity, BadgeCheck, CalendarClock, Crown, RefreshCw, Save, Search, ShieldCheck, Smartphone, UserRound, X } from "lucide-react";
 import { auth } from "@/lib/firebase";
 
 type Entitlement = {
@@ -25,8 +25,12 @@ type Account = {
   emailVerified: boolean;
   createdAt: string;
   lastSignInAt: string | null;
+  app: "calorievision" | "dromocob";
+  apps: Array<"calorievision" | "dromocob">;
   entitlement: Entitlement | null;
 };
+
+type AppFilter = "all" | "calorievision" | "dromocob";
 
 const featureOptions = [
   ["ai_scan_unlimited", "Sınırsız AI tarama"],
@@ -64,6 +68,7 @@ function labelDate(value: string | null) {
 export default function MobileAccountControlCenter() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [search, setSearch] = useState("");
+  const [appFilter, setAppFilter] = useState<AppFilter>("all");
   const [selected, setSelected] = useState<Account | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
@@ -96,8 +101,8 @@ export default function MobileAccountControlCenter() {
 
   const filtered = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("tr-TR");
-    return accounts.filter(account => !query || account.uid.toLowerCase().includes(query) || (account.email || "").toLocaleLowerCase("tr-TR").includes(query) || (account.displayName || "").toLocaleLowerCase("tr-TR").includes(query));
-  }, [accounts, search]);
+    return accounts.filter(account => (appFilter === "all" || account.apps?.includes(appFilter)) && (!query || account.uid.toLowerCase().includes(query) || (account.email || "").toLocaleLowerCase("tr-TR").includes(query) || (account.displayName || "").toLocaleLowerCase("tr-TR").includes(query)));
+  }, [accounts, search, appFilter]);
 
   const activeCount = accounts.filter(item => item.entitlement?.status === "active").length;
   const scheduledCount = accounts.filter(item => item.entitlement?.status === "scheduled").length;
@@ -146,7 +151,7 @@ export default function MobileAccountControlCenter() {
   }
 
   return <div className="mobile-accounts-admin">
-    <header className="admin-title"><div><p className="admin-kicker">CALORIEVISION / ACCOUNT ENTITLEMENTS</p><h1>Mobil hesaplar</h1><p>Premium erişim, süre, plan ve özellikleri hesap bazında güvenli şekilde yönet.</p></div><button className="admin-action" onClick={() => void load()} disabled={loading}><RefreshCw className={loading ? "spin" : ""} size={17}/> Yenile</button></header>
+    <header className="admin-title"><div><p className="admin-kicker">DROMOCOB APPS / ACCOUNT ENTITLEMENTS</p><h1>Uygulama hesapları</h1><p>Dromocob ve CalorieVision premium erişimlerini tek güvenli merkezden yönet.</p></div><button className="admin-action" onClick={() => void load()} disabled={loading}><RefreshCw className={loading ? "spin" : ""} size={17}/> Yenile</button></header>
     {error && <div className="admin-alert">{error}</div>}
     {notice && <div className="mobile-account-notice"><BadgeCheck size={17}/>{notice}</div>}
     <section className="mobile-account-metrics">
@@ -156,8 +161,9 @@ export default function MobileAccountControlCenter() {
       <article><span><Activity/></span><div><small>DÖNÜŞÜM</small><strong>{accounts.length ? `%${Math.round(activeCount / accounts.length * 100)}` : "%0"}</strong></div></article>
     </section>
     <section className="mobile-account-panel">
+      <div className="mobile-app-filter" role="tablist" aria-label="Uygulama filtresi">{(["all", "dromocob", "calorievision"] as AppFilter[]).map(item => <button key={item} className={appFilter === item ? "active" : ""} onClick={() => setAppFilter(item)}><Smartphone size={14}/>{item === "all" ? "Tüm uygulamalar" : item === "dromocob" ? "Dromocob" : "CalorieVision"}</button>)}</div>
       <div className="mobile-account-toolbar"><div><h2>Hesap dizini</h2><small>{filtered.length} hesap gösteriliyor</small></div><label><Search size={16}/><input value={search} onChange={event => setSearch(event.target.value)} placeholder="E-posta, ad veya UID ara"/></label></div>
-      <div className="mobile-account-table"><div className="mobile-account-table-head"><span>Hesap</span><span>Durum</span><span>Plan</span><span>Bitiş</span><span/></div>{filtered.map(account => <button key={account.uid} onClick={() => open(account)}><span><i>{(account.displayName || account.email || "?").slice(0, 2).toUpperCase()}</i><b>{account.displayName || "İsimsiz hesap"}<small>{account.email || account.uid}</small></b></span><span><em className={`entitlement-status ${account.entitlement?.status || "inactive"}`}>{account.entitlement?.status || "free"}</em>{account.disabled && <small>Askıda</small>}</span><span>{account.entitlement?.plan || "free"}</span><span>{labelDate(account.entitlement?.expiresAt || null)}</span><span>Yönet</span></button>)}{!loading && !filtered.length && <p className="mobile-account-empty">Eşleşen hesap bulunamadı.</p>}</div>
+      <div className="mobile-account-table"><div className="mobile-account-table-head"><span>Hesap</span><span>Durum</span><span>Plan</span><span>Bitiş</span><span/></div>{filtered.map(account => <button key={account.uid} onClick={() => open(account)}><span><i>{(account.displayName || account.email || "?").slice(0, 2).toUpperCase()}</i><b>{account.displayName || "İsimsiz hesap"}<small>{account.email || account.uid}</small><small className="mobile-app-tags">{(account.apps || [account.app]).map(app => <em key={app}>{app === "dromocob" ? "Dromocob" : "CalorieVision"}</em>)}</small></b></span><span><em className={`entitlement-status ${account.entitlement?.status || "inactive"}`}>{account.entitlement?.status || "free"}</em>{account.disabled && <small>Askıda</small>}</span><span>{account.entitlement?.plan || "free"}</span><span>{labelDate(account.entitlement?.expiresAt || null)}</span><span>Yönet</span></button>)}{!loading && !filtered.length && <p className="mobile-account-empty">Eşleşen uygulama hesabı bulunamadı.</p>}</div>
     </section>
 
     {selected && <div className="mobile-account-drawer-backdrop" onClick={() => setSelected(null)}><aside className="mobile-account-drawer" onClick={event => event.stopPropagation()}><header><div><p className="admin-kicker">ENTITLEMENT CONTROL</p><h2>{selected.displayName || selected.email || "Mobil hesap"}</h2><small>{selected.uid}</small></div><button onClick={() => setSelected(null)} aria-label="Kapat"><X/></button></header>

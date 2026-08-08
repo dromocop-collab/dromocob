@@ -31789,6 +31789,7 @@ body:has(.cookie-consent) .contact-dock {
 .admin-os:has(.mobile-accounts-admin) .mobile-account-toolbar label{color:#a8b5ab;background:#090e0b;border-color:var(--cv-admin-line)}
 .admin-os:has(.mobile-accounts-admin) .mobile-account-toolbar input{color:var(--cv-admin-text);background:transparent}
 .admin-os:has(.mobile-accounts-admin) .mobile-account-toolbar input::placeholder{color:#657269}
+.mobile-app-filter{display:flex;gap:8px;padding:16px 20px 0;overflow-x:auto}.mobile-app-filter button{min-height:38px;padding:0 14px;border:1px solid var(--admin-line);border-radius:999px;background:#0b100c;color:#89968d;display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:10px;font-weight:800;cursor:pointer}.mobile-app-filter button.active{border-color:#d8ff3e66;background:#d8ff3e12;color:var(--acid);box-shadow:0 0 22px #d8ff3e12}.mobile-app-tags{display:flex!important;gap:4px;flex-wrap:wrap}.mobile-app-tags em{padding:3px 6px;border-radius:99px;background:#56a8ff18;color:#8fc5ff;font-size:7px;font-style:normal;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
 .admin-os:has(.mobile-accounts-admin) .mobile-account-table-head{color:#77857b}
 .admin-os:has(.mobile-accounts-admin) .mobile-account-table>button{color:#dfe7e1}
 .admin-os:has(.mobile-accounts-admin) .mobile-account-table>button:hover{background:rgba(217,255,67,.035)}

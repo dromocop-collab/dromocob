@@ -243,6 +243,9 @@ export default function LiveChatAdmin() {
                 updatedAt: toTimestamp(data.updatedAt),
               } satisfies Session;
             })
+            // Eski sürüm site açılışında boş oturum oluşturuyordu. Gerçek
+            // müşteri mesajı bulunmayan bu kayıtlar destek kuyruğuna girmez.
+            .filter(session => Boolean(session.lastMessage?.trim()))
             .sort(
               (left, right) =>
                 (right.lastMessageAt?.toMillis() || right.createdAt?.toMillis() || 0) -

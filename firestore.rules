@@ -1427,11 +1427,11 @@ service cloud.firestore {
         }
 
         function parentSessionExists() {
-          return exists(parentSessionPath());
+          return existsAfter(parentSessionPath());
         }
 
         function parentSession() {
-          return get(parentSessionPath());
+          return getAfter(parentSessionPath());
         }
 
         function isSessionOwner() {
