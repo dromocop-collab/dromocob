@@ -23,8 +23,16 @@ export async function GET(request: NextRequest) {
   try {
     await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "support"]);
     const search = (request.nextUrl.searchParams.get("search") || "").trim().toLowerCase();
-    const pageToken = request.nextUrl.searchParams.get("pageToken") || undefined;
-    const authResult = await adminAuth.listUsers(PAGE_SIZE, pageToken);
+    const markerSnapshot = await adminDb.collection("mobile_app_users")
+      .orderBy("lastSeenAt", "desc")
+      .limit(PAGE_SIZE)
+      .get();
+    const markerUIDs = markerSnapshot.docs
+      .filter(document => document.data().app === "calorievision")
+      .map(document => document.id);
+    const authResult = markerUIDs.length
+      ? await adminAuth.getUsers(markerUIDs.map(uid => ({ uid })))
+      : { users: [], notFound: [] };
     const filtered = authResult.users.filter(user => !search || user.uid.toLowerCase().includes(search) || (user.email || "").toLowerCase().includes(search) || (user.displayName || "").toLowerCase().includes(search));
     const entitlementDocs = filtered.length
       ? await adminDb.getAll(...filtered.map(user => adminDb.collection("mobile_premium_entitlements").doc(user.uid)))
@@ -43,7 +51,8 @@ export async function GET(request: NextRequest) {
         lastSignInAt: user.metadata.lastSignInTime || null,
         entitlement: entitlementByUid.get(user.uid) || null,
       })),
-      nextPageToken: authResult.pageToken || null,
+      total: markerSnapshot.size,
+      nextPageToken: null,
     }, { headers: { "cache-control": "no-store, max-age=0" } });
   } catch (error) {
     return responseError(error);

@@ -1773,6 +1773,7 @@ service cloud.firestore {
     match /app_releases/{documentId} { allow read, write: if false; }
     match /mobile_premium_entitlements/{documentId} { allow read, write: if false; }
     match /mobile_premium_audit_logs/{documentId} { allow read, write: if false; }
+    match /mobile_app_users/{documentId} { allow read, write: if false; }
 
 
     // =========================================================
