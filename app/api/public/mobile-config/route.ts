@@ -3,7 +3,14 @@ import { adminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
-const supportedApps = new Set(["dromocob", "calorievision"]);
+const supportedApps = new Set(["dromocob", "calorievision", "jackscoffee", "altincikuyumculuk"]);
+
+const appNames: Record<string, string> = {
+  dromocob: "Dromocob",
+  calorievision: "Kalori Merkezi",
+  jackscoffee: "The Jack's Coffee",
+  altincikuyumculuk: "6'ncı Kuyumculuk",
+};
 
 export async function GET(request: Request) {
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "";
@@ -32,7 +39,7 @@ export async function GET(request: Request) {
       firebase: { apiKey, projectId, authDomain },
       app: {
         id: appId,
-        name: appId === "calorievision" ? "Kalori Merkezi" : "Dromocob",
+        name: appNames[appId] || "Dromocob",
         maintenanceEnabled: operation.maintenanceEnabled === true,
         maintenanceTitle: String(operation.maintenanceTitle || "Kısa bir bakımdayız"),
         maintenanceMessage: String(operation.maintenanceMessage || "Deneyimi iyileştirmek için sistemi güncelliyoruz. Lütfen kısa süre sonra tekrar deneyin."),
