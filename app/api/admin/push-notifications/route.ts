@@ -21,6 +21,17 @@ function serializeCampaign(id: string, value: FirebaseFirestore.DocumentData) {
   return { id, ...value, createdAt: date instanceof Date ? date.toISOString() : null };
 }
 
+function failureSummary(results: PromiseSettledResult<Awaited<ReturnType<typeof sendAPNS>>>[]) {
+  const summary: Record<string, number> = {};
+  for (const result of results) {
+    const reason = result.status === "fulfilled"
+      ? (result.value.ok ? "" : result.value.reason || `HTTP_${result.value.status}`)
+      : "APNS_CONNECTION_ERROR";
+    if (reason) summary[reason] = (summary[reason] || 0) + 1;
+  }
+  return summary;
+}
+
 export async function GET(request: NextRequest) {
   try {
     await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "support"]);
@@ -75,11 +86,26 @@ export async function POST(request: NextRequest) {
       const batch = snapshot.docs.slice(offset, offset + 25);
       const batchResults = await Promise.allSettled(batch.map(async document => {
         const data = document.data();
-        const result = await sendAPNS({
+        const environment = data.environment === "sandbox" ? "sandbox" : "production";
+        let result = await sendAPNS({
           token: String(data.token || ""), topic: APP_TOPICS[appId],
-          environment: data.environment === "sandbox" ? "sandbox" : "production",
+          environment,
           title, body: message, deepLink: deepLink || undefined,
         });
+        // Old builds may have registered a valid token with the wrong APNs
+        // environment. Retry once and repair the record automatically.
+        if (!result.ok && result.reason === "BadDeviceToken") {
+          const fallbackEnvironment = environment === "sandbox" ? "production" : "sandbox";
+          const fallback = await sendAPNS({
+            token: String(data.token || ""), topic: APP_TOPICS[appId],
+            environment: fallbackEnvironment,
+            title, body: message, deepLink: deepLink || undefined,
+          });
+          if (fallback.ok) {
+            result = fallback;
+            await document.ref.set({ environment: fallbackEnvironment, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+          }
+        }
         if (!result.ok && ["BadDeviceToken", "Unregistered", "DeviceTokenNotForTopic"].includes(result.reason || "")) {
           await document.ref.set({ active: false, invalidatedAt: FieldValue.serverTimestamp(), invalidReason: result.reason }, { merge: true });
         }
@@ -89,10 +115,11 @@ export async function POST(request: NextRequest) {
     }
     const successCount = results.filter(result => result.status === "fulfilled" && result.value.ok).length;
     const failureCount = results.length - successCount;
+    const failureReasons = failureSummary(results);
     const status = results.length === 0 ? "no_audience" : failureCount === 0 ? "sent" : successCount > 0 ? "partial" : "failed";
-    await campaignRef.update({ matched: results.length, successCount, failureCount, status, sentAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+    await campaignRef.update({ matched: results.length, successCount, failureCount, failureReasons, status, sentAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
 
-    return NextResponse.json({ ok: true, campaignId: campaignRef.id, matched: results.length, successCount, failureCount, status });
+    return NextResponse.json({ ok: true, campaignId: campaignRef.id, matched: results.length, successCount, failureCount, failureReasons, status });
   } catch (error) {
     return responseError(error);
   }
