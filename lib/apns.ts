@@ -14,6 +14,31 @@ type APNSMessage = {
 
 let cachedJWT: { value: string; createdAt: number } | null = null;
 
+function normalizedPrivateKey() {
+  const raw = process.env.APNS_PRIVATE_KEY?.trim();
+  if (!raw) return "";
+  const unquoted = (raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))
+    ? raw.slice(1, -1)
+    : raw;
+  return unquoted.replace(/\\n/g, "\n").replace(/\r/g, "").trim();
+}
+
+export function apnsConfigurationStatus() {
+  const missing: string[] = [];
+  if (!process.env.APNS_TEAM_ID?.trim()) missing.push("APNS_TEAM_ID");
+  if (!process.env.APNS_KEY_ID?.trim()) missing.push("APNS_KEY_ID");
+  const privateKey = normalizedPrivateKey();
+  if (!privateKey) missing.push("APNS_PRIVATE_KEY");
+
+  if (missing.length > 0) return { ready: false, missing, invalid: [] as string[] };
+  try {
+    createPrivateKey(privateKey);
+    return { ready: true, missing, invalid: [] as string[] };
+  } catch {
+    return { ready: false, missing, invalid: ["APNS_PRIVATE_KEY"] };
+  }
+}
+
 function base64url(value: string | Buffer) {
   return Buffer.from(value).toString("base64url");
 }
@@ -21,7 +46,7 @@ function base64url(value: string | Buffer) {
 function providerToken() {
   const teamId = process.env.APNS_TEAM_ID;
   const keyId = process.env.APNS_KEY_ID;
-  const privateKey = process.env.APNS_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const privateKey = normalizedPrivateKey();
   if (!teamId || !keyId || !privateKey) throw new Error("APNS_NOT_CONFIGURED");
 
   const now = Math.floor(Date.now() / 1000);

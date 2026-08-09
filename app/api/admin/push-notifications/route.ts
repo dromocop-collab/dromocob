@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { requireAdminRole } from "@/lib/admin-guard";
 import { adminDb } from "@/lib/firebase-admin";
-import { sendAPNS } from "@/lib/apns";
+import { apnsConfigurationStatus, sendAPNS } from "@/lib/apns";
 
 export const dynamic = "force-dynamic";
 
@@ -28,9 +28,12 @@ export async function GET(request: NextRequest) {
     const tokenSnapshots = await Promise.all(Object.keys(APP_TOPICS).map(appId =>
       adminDb.collection("mobile_push_tokens").where("appId", "==", appId).where("active", "==", true).count().get()
     ));
+    const provider = apnsConfigurationStatus();
     return NextResponse.json({
       ok: true,
-      providerReady: Boolean(process.env.APNS_TEAM_ID && process.env.APNS_KEY_ID && process.env.APNS_PRIVATE_KEY),
+      providerReady: provider.ready,
+      providerMissing: provider.missing,
+      providerInvalid: provider.invalid,
       campaigns: snapshot.docs.map(document => serializeCampaign(document.id, document.data())),
       audiences: Object.keys(APP_TOPICS).reduce<Record<string, number>>((result, appId, index) => {
         result[appId] = tokenSnapshots[index].data().count;
