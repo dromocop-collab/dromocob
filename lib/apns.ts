@@ -20,7 +20,15 @@ function normalizedPrivateKey() {
   const unquoted = (raw.startsWith('"') && raw.endsWith('"')) || (raw.startsWith("'") && raw.endsWith("'"))
     ? raw.slice(1, -1)
     : raw;
-  return unquoted.replace(/\\n/g, "\n").replace(/\r/g, "").trim();
+  const expanded = unquoted.replace(/\\n/g, "\n").replace(/\r/g, "").trim();
+  const match = expanded.match(/-----BEGIN PRIVATE KEY-----([\s\S]*?)-----END PRIVATE KEY-----/);
+  if (!match) return expanded;
+
+  // Firebase App Hosting may flatten a multiline secret into a single line.
+  // Rebuild a canonical PKCS#8 PEM regardless of spaces, real newlines or `\\n`.
+  const body = match[1].replace(/\s+/g, "");
+  const lines = body.match(/.{1,64}/g) ?? [];
+  return `-----BEGIN PRIVATE KEY-----\n${lines.join("\n")}\n-----END PRIVATE KEY-----`;
 }
 
 export function apnsConfigurationStatus() {
