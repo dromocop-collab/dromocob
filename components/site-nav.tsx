@@ -17,6 +17,7 @@ type NavItem =
 
 const navItems: NavItem[] = [
   { label: "Anasayfa", href: "/" },
+  { label: "Uygulamalar", href: "/uygulamalar" },
   {
     label: "Hizmetler",
     dropdown: [

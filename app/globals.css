@@ -7290,6 +7290,238 @@ main {
   font-size: 13px;
 }
 
+.calorie-page {
+  background: radial-gradient(circle at 84% 14%, rgba(255, 154, 56, .14), transparent 34%), radial-gradient(circle at 10% 76%, rgba(59, 168, 255, .1), transparent 30%), #fbf8f1;
+  color: #111317
+}
+
+.calorie-page .section {
+  position: relative
+}
+
+.calorie-hero {
+  min-height: 830px;
+  padding-top: 185px;
+  display: grid;
+  grid-template-columns: 1.02fr .98fr;
+  gap: 6vw;
+  align-items: center
+}
+
+.calorie-copy h1 {
+  margin: 16px 0 20px;
+  font-size: clamp(58px, 8vw, 124px);
+  line-height: .86;
+  letter-spacing: -.07em
+}
+
+.calorie-copy>p {
+  max-width: 640px;
+  margin: 0;
+  color: #4b5058;
+  font-size: 20px;
+  line-height: 1.6
+}
+
+.calorie-actions {
+  margin-top: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px
+}
+
+.calorie-actions a {
+  min-height: 56px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d6d0c5;
+  border-radius: 14px;
+  color: #151a23;
+  background: rgba(255, 255, 255, .65);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .05em
+}
+
+.calorie-actions a:first-child {
+  color: #fff;
+  border-color: #1f2937;
+  background: linear-gradient(135deg, #1f2937, #0f172a);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, .24)
+}
+
+.calorie-tags {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px
+}
+
+.calorie-tags span {
+  min-height: 34px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #d9d2c6;
+  border-radius: 999px;
+  color: #4d545d;
+  background: rgba(255, 255, 255, .58);
+  font-size: 10px;
+  font-weight: 800
+}
+
+.calorie-visual {
+  min-height: 560px;
+  display: grid;
+  place-items: center;
+  position: relative
+}
+
+.calorie-visual-glow {
+  position: absolute;
+  width: 430px;
+  height: 430px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 125, 44, .26), rgba(255, 125, 44, 0) 64%)
+}
+
+.calorie-icon-frame {
+  width: 300px;
+  height: 300px;
+  border-radius: 78px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, rgba(255, 255, 255, .98), rgba(255, 255, 255, .65));
+  border: 1px solid #e5ddd0;
+  box-shadow: 0 38px 90px rgba(49, 31, 10, .22)
+}
+
+.calorie-icon-frame img {
+  border-radius: 56px
+}
+
+.calorie-chip {
+  position: absolute;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #e3dacd;
+  background: rgba(255, 255, 255, .86);
+  color: #31363f;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 900
+}
+
+.chip-a {
+  top: 19%;
+  left: 2%
+}
+
+.chip-b {
+  right: 2%;
+  bottom: 18%
+}
+
+.calorie-grid {
+  padding-top: 0;
+  padding-bottom: 96px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px
+}
+
+.calorie-grid article {
+  padding: 28px;
+  border: 1px solid #ddd5c8;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .72)
+}
+
+.calorie-grid h2 {
+  margin: 0;
+  font-size: 34px;
+  letter-spacing: -.05em
+}
+
+.calorie-grid p {
+  margin: 12px 0 0;
+  color: #575d66;
+  font-size: 14px;
+  line-height: 1.65
+}
+
+.calorie-link-list {
+  margin-top: 20px;
+  display: grid;
+  gap: 8px
+}
+
+.calorie-link-list a {
+  min-height: 42px;
+  padding: 0 13px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #e4ddd1;
+  border-radius: 12px;
+  color: #1e2631;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 700
+}
+
+.calorie-link-list a:hover {
+  border-color: #bfc9d6;
+  background: #f9fbff
+}
+
+.calorie-band {
+  margin-bottom: 90px;
+  padding-top: 54px;
+  padding-bottom: 54px;
+  border: 1px solid #ddd4c7;
+  border-radius: 24px;
+  background: linear-gradient(115deg, #151b24, #222f42);
+  color: #f8fbff;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 20px;
+  align-items: center
+}
+
+.calorie-band p {
+  margin: 0;
+  color: #ffbe85;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .16em
+}
+
+.calorie-band h3 {
+  margin: 0;
+  font-size: clamp(28px, 3.4vw, 50px);
+  letter-spacing: -.05em;
+  line-height: .98
+}
+
+.calorie-band a {
+  min-height: 54px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-radius: 12px;
+  background: #d6ff43;
+  color: #17200f;
+  font-size: 10px;
+  font-weight: 900
+}
+
 @media (max-width: 1000px) {
   .trust-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -7303,6 +7535,63 @@ main {
 
   .legal-page {
     padding-top: 140px;
+  }
+
+  .calorie-hero {
+    min-height: auto;
+    padding-top: 140px
+  }
+}
+
+@media(max-width:1100px) {
+  .calorie-hero,
+  .calorie-grid,
+  .calorie-band {
+    grid-template-columns: 1fr
+  }
+
+  .calorie-visual {
+    min-height: 460px
+  }
+}
+
+@media(max-width:700px) {
+  .calorie-copy h1 {
+    font-size: 64px
+  }
+
+  .calorie-copy>p {
+    font-size: 17px
+  }
+
+  .calorie-icon-frame {
+    width: 220px;
+    height: 220px;
+    border-radius: 52px
+  }
+
+  .calorie-icon-frame img {
+    width: 164px;
+    height: 164px;
+    border-radius: 40px
+  }
+
+  .calorie-chip {
+    font-size: 8px
+  }
+
+  .calorie-grid {
+    padding-bottom: 56px
+  }
+
+  .calorie-grid h2 {
+    font-size: 30px
+  }
+
+  .calorie-band {
+    margin-bottom: 64px;
+    padding-top: 32px;
+    padding-bottom: 32px
   }
 }
 
@@ -30817,6 +31106,22 @@ body:has(.cookie-consent) .contact-dock {
   width: 17px
 }
 
+.apps-meta-links {
+  margin: 14px 0 0;
+  color: #8fa2b6;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .02em
+}
+
+.apps-meta-links a {
+  color: #8ed4ff
+}
+
+.apps-meta-links a:hover {
+  color: #fff
+}
+
 .apps-trust {
   margin-top: 25px;
   display: flex;
@@ -30939,6 +31244,11 @@ body:has(.cookie-consent) .contact-dock {
   line-height: 1.7
 }
 
+.apps-featured-grid {
+  display: grid;
+  gap: 18px
+}
+
 .app-product-card {
   min-height: 230px;
   padding: 30px;
@@ -30957,6 +31267,24 @@ body:has(.cookie-consent) .contact-dock {
 .app-product-card:hover {
   transform: translateY(-7px);
   box-shadow: 0 45px 90px rgba(24, 73, 119, .28)
+}
+
+.app-product-card-calorie {
+  background: radial-gradient(circle at 86% 16%, rgba(255, 124, 58, .35), transparent 31%), linear-gradient(135deg, #28142f, #12091f 58%, #09111f);
+  box-shadow: 0 35px 80px rgba(78, 32, 98, .24)
+}
+
+.app-product-card-calorie .app-product-number,
+.app-product-card-calorie small {
+  color: #ffb174
+}
+
+.app-product-card-calorie .app-product-icon {
+  background: linear-gradient(145deg, #432038, #130a21)
+}
+
+.app-product-card-calorie .app-product-icon img {
+  border-radius: 18px
 }
 
 .app-product-number {
