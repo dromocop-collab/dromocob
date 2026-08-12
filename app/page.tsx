@@ -9,6 +9,7 @@ import QuoteLauncher from "@/components/quote-launcher";
 import InstagramReels from "@/components/instagram-reels";
 import { sitePhone, sitePhoneDisplay } from "@/lib/seo";
 import HomeClientExperience from "@/components/home-client-experience";
+import LaunchOffer from "@/components/launch-offer";
 
 export const metadata = pageMetadata({
   title: "Kurumsal Web Sitesi ve Video Prodüksiyon",
@@ -24,13 +25,14 @@ export default function Home() {
 
   return (
     <div className="home-page">
+      <LaunchOffer />
       <section className="hero section">
         <div className="hero-noise" />
         <div className="hero-copy">
-          <div className="eyebrow"><span className="live-dot" /> Fethiye · Türkiye</div>
-          <h1>Web tasarım & film.<br/><span>Hatırlananı</span> üret.</h1>
-          <p>Markalar için kurumsal web sitesi, e-ticaret ve özel yazılım altyapıları; sinematik tanıtım filmi ve video prodüksiyonları tasarlıyorum.</p>
-          <div className="hero-actions">
+          <div className="eyebrow hero-reveal hero-reveal-one"><span className="live-dot" /> Fethiye · Türkiye</div>
+          <h1 className="hero-reveal hero-reveal-two">Web tasarım & film.<br/><span>Hatırlananı</span> üret.</h1>
+          <p className="hero-reveal hero-reveal-three">Markalar için kurumsal web sitesi, e-ticaret ve özel yazılım altyapıları; sinematik tanıtım filmi ve video prodüksiyonları tasarlıyorum.</p>
+          <div className="hero-actions hero-reveal hero-reveal-four">
             <Link className="button" href="/projeler">Projeleri İncele <ArrowRight size={18} /></Link>
             <Link className="text-link" href="/hakkimda"><Play size={15} /> Hikâyemi keşfet</Link>
           </div>
