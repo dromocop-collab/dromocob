@@ -6,11 +6,12 @@ import { usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useState } from "react";
-import { BarChart3, Boxes, CircleGauge, Command, Crown, ExternalLink, FolderKanban, Globe2, KeyRound, LogOut, Mail, Menu, MessageSquare, Package, RadioTower, Rocket, Settings2, Sparkles, X } from "lucide-react";
+import { BarChart3, Boxes, CircleGauge, Command, Crown, ExternalLink, FolderKanban, Globe2, KeyRound, LogOut, Mail, Menu, MessageSquare, Package, RadioTower, Rocket, Settings2, Smartphone, Sparkles, X } from "lucide-react";
 
 const nav = [
   [CircleGauge, "Genel Bakış", "/admin"],
   [BarChart3, "Canlı Analitik", "/admin/analitik"],
+  [Smartphone, "Uygulamalar", "/admin/uygulamalar"],
   [KeyRound, "Lisans Cloud", "/admin/lisanslar"],
   [Crown, "Mobil Hesaplar", "/admin/mobil-hesaplar"],
   [FolderKanban, "Projeler", "/admin/projeler"],

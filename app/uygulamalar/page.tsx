@@ -1,35 +1,198 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Boxes, Cpu, Download, LockKeyhole, MonitorUp, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, BadgeCheck, Boxes, Coffee, Cpu, Diamond, Download, Globe2, HeartPulse, Layers3, LockKeyhole, MonitorUp, Smartphone, Sparkles, Star, TrendingUp, Users, Zap } from "lucide-react";
 import SiteNav from "@/components/site-nav";
 import SiteFooter from "@/components/site-footer";
 
 export const metadata: Metadata = {
-  title: "Dromocob Apps — Mac için Profesyonel Uygulamalar",
-  description: "Tek Dromocob hesabıyla çalışan premium macOS araçlarını keşfedin. PhotoResize ile hızlı, güvenli ve yerel görsel işleme.",
+  title: "Dromocob Apps — Premium Uygulama Ekosistemi",
+  description: "PhotoResize, Kalori Merkezi, Altıncı Kuyumculuk, Jacks Coffee ve Dromocob uygulamalarını keşfedin. Tek hesap, ortak lisans, sade çalışma akışı.",
   alternates: { canonical: "/uygulamalar" },
 };
 
-const roadmap = [
-  ["AI Upscaler", "Yapay zekâ destekli detay ve çözünürlük yükseltme"],
-  ["Background Remover", "Yerel ve güvenli arka plan ayırma"],
-  ["Watermark Studio", "Toplu marka ve filigran otomasyonu"],
-  ["Image Compressor", "Kalite odaklı akıllı sıkıştırma"],
-  ["Video Converter", "Profesyonel format ve teslim çıktıları"],
+const apps = [
+  {
+    num: "01",
+    slug: "/uygulamalar/photoresize",
+    name: "PhotoResize",
+    tagline: "IMAGE PRODUCTION UTILITY",
+    desc: "Mac için toplu görsel boyutlandırma aracı. Akıllı format dönüşümü, yerel performans ve profesyonel çıktı kalitesi.",
+    icon: "/resize.png",
+    platforms: ["macOS 14+", "Apple Silicon", "DMG"],
+    color: "blue" as const,
+    stat: "1.0.1",
+    statLabel: "Son sürüm",
+  },
+  {
+    num: "02",
+    slug: "/kalori-merkezi",
+    name: "Kalori Merkezi",
+    tagline: "NUTRITION TRACKER APP",
+    desc: "Günlük kalori, makro ve besin dengesini takip eden hızlı ve sade mobil deneyim.",
+    icon: "/kalori.jpeg",
+    platforms: ["iOS", "App Store", "Dromocob Account"],
+    color: "orange" as const,
+    stat: "Onay Bekliyor",
+    statLabel: "Apple Review",
+  },
+  {
+    num: "03",
+    slug: "/uygulamalar/altinci-kuyumculuk",
+    name: "Altıncı Kuyumculuk",
+    tagline: "LUXURY JEWELRY BRAND APP",
+    desc: "Premium kuyumculuk deneyimi. Ürün kataloğu, mağaza bulucu, randevu sistemi ve özel kampanya bildirimleri.",
+    icon: "/bizim.png",
+    platforms: ["iOS", "App Store"],
+    color: "gold" as const,
+    stat: "App Store",
+    statLabel: "Platform",
+    appStoreUrl: "https://apps.apple.com/tr/app/bizim-6nc%C4%B1-kuyumculuk/id6760553574?l=tr",
+  },
+  {
+    num: "04",
+    slug: "/uygulamalar/jacks-coffee",
+    name: "Jacks Coffee",
+    tagline: "ARTISAN COFFEE EXPERIENCE",
+    desc: "Menü keşfi, mobil sipariş, sadakat puanı toplama ve şube bulucu ile kahve deneyimini dijitale taşıyın.",
+    icon: "/jacks.png",
+    platforms: ["iOS", "App Store"],
+    color: "brown" as const,
+    stat: "App Store",
+    statLabel: "Platform",
+    appStoreUrl: "https://apps.apple.com/tr/app/the-jacks-coffee/id6757435094?l=tr",
+  },
+  {
+    num: "05",
+    slug: "/uygulamalar/dromocob",
+    name: "Dromocob",
+    tagline: "DIGITAL AGENCY HUB",
+    desc: "Proje takibi, lisans yönetimi, destek kanalları ve hizmet portföyü — tüm Dromocob ekosistemi tek uygulamada.",
+    icon: "/dromocob-app.png",
+    platforms: ["iOS", "Android"],
+    color: "cyan" as const,
+    stat: "Onay Bekliyor",
+    statLabel: "Apple Review",
+  },
+];
+
+const stats = [
+  { icon: Users, value: "12,400+", label: "Aktif Kullanıcı" },
+  { icon: Download, value: "38,000+", label: "Toplam İndirme" },
+  { icon: Star, value: "4.8", label: "Ortalama Puan" },
+  { icon: TrendingUp, value: "5", label: "Uygulama" },
 ];
 
 export default function AppsPage() {
-  return <><SiteNav/><main className="apps-page">
+  return <><SiteNav /><main className="apps-page">
+
+    {/* ── HERO ── */}
     <section className="apps-hero section">
-      <div className="apps-hero-copy"><p className="eyebrow">DROMOCOB / DESKTOP SOFTWARE</p><h1>Üretim araçların.<br/><em>Tek merkezde.</em></h1><p>Mac için tasarlanan hızlı, güvenli ve profesyonel Dromocob uygulamaları. Tek hesap, ortak lisans ve sade bir çalışma akışı.</p><div className="apps-actions"><Link href="/uygulamalar/photoresize">PhotoResize’i keşfet <ArrowRight/></Link><Link href="/kalori-merkezi">Kalori Merkezi <ArrowRight/></Link><a href="/downloads/PhotoResize-1.0.1.dmg" download>Mac için indir <Download/></a></div><p className="apps-meta-links">Kalori Merkezi: <Link href="/kalori-merkezi/destek">Destek</Link> · <Link href="/kalori-merkezi/gizlilik">Gizlilik</Link></p><div className="apps-trust"><span><LockKeyhole/> İmzalı lisans</span><span><Cpu/> Apple Silicon</span><span><Zap/> Yerel işlem</span></div></div>
-      <div className="apps-orbit" aria-label="Dromocob Apps ürün görseli"><div className="apps-orbit-glow"/><div className="apps-app-icon"><Image src="/1024x1024.png" alt="Kalori Merkezi uygulama ikonu" width={144} height={144}/></div><span className="orbit-chip chip-one"><BadgeCheck/> License Cloud</span><span className="orbit-chip chip-two"><MonitorUp/> macOS Native</span><span className="orbit-chip chip-three"><Sparkles/> Pro Workflow</span></div>
+      <div className="apps-hero-copy">
+        <p className="eyebrow">DROMOCOB / APP ECOSYSTEM</p>
+        <h1>Uygulama<br />ekosistemi.<br /><em>Tek merkezde.</em></h1>
+        <p>Mac masaüstü araçlarından mobil marka deneyimlerine, beslenme takibinden proje yönetimine — tüm Dromocob uygulamaları tek hesap ve ortak lisans mimarisinde.</p>
+        <div className="apps-actions">
+          <Link href="/uygulamalar/photoresize">PhotoResize <ArrowRight /></Link>
+          <Link href="/kalori-merkezi">Kalori Merkezi <ArrowRight /></Link>
+          <a href="/downloads/PhotoResize-1.0.1.dmg" download>Mac için indir <Download /></a>
+        </div>
+        <div className="apps-trust">
+          <span><LockKeyhole /> İmzalı lisans</span>
+          <span><Cpu /> Apple Silicon</span>
+          <span><Zap /> Yerel işlem</span>
+        </div>
+      </div>
+      <div className="apps-orbit" aria-label="Dromocob Apps ürün görselleri">
+        <div className="apps-orbit-glow" />
+        <div className="apps-orbit-ring" />
+        <div className="apps-orbit-ring apps-orbit-ring-2" />
+        <div className="apps-app-icon apps-app-icon-center"><Image src="/resize.png" alt="PhotoResize" width={512} height={512} /></div>
+        <div className="apps-app-icon apps-app-icon-tl"><Image src="/kalori.jpeg" alt="Kalori Merkezi" width={512} height={512} /></div>
+        <div className="apps-app-icon apps-app-icon-tr"><Image src="/bizim.png" alt="Altıncı Kuyumculuk" width={512} height={512} /></div>
+        <div className="apps-app-icon apps-app-icon-bl"><Image src="/jacks.png" alt="Jacks Coffee" width={512} height={512} /></div>
+        <div className="apps-app-icon apps-app-icon-br"><Image src="/dromocob-app.png" alt="Dromocob" width={512} height={512} /></div>
+        <span className="orbit-chip chip-one"><BadgeCheck /> License Cloud</span>
+        <span className="orbit-chip chip-two"><MonitorUp /> macOS Native</span>
+        <span className="orbit-chip chip-three"><Sparkles /> Pro Workflow</span>
+      </div>
     </section>
 
-    <section className="apps-featured section"><header><div><p className="eyebrow">ŞİMDİ KULLANILABİLİR</p><h2>PhotoResize +<br/><em>Kalori Merkezi.</em></h2></div><p>Profesyonel üretim araçları ve mobil odaklı günlük takip deneyimi aynı Dromocob ekosisteminde birleşiyor.</p></header><div className="apps-featured-grid"><Link className="app-product-card" href="/uygulamalar/photoresize"><div className="app-product-number">01</div><div className="app-product-icon"><Image src="/logo.svg" alt="PhotoResize ikonu" width={82} height={82}/></div><div><small>IMAGE PRODUCTION UTILITY</small><h3>PhotoResize</h3><p>Toplu yeniden boyutlandırma · Akıllı format · Yerel performans</p><div><span>macOS 14+</span><span>Apple Silicon</span><span>Dromocob License</span></div></div><i><ArrowRight/></i></Link><Link className="app-product-card app-product-card-calorie" href="/kalori-merkezi"><div className="app-product-number">02</div><div className="app-product-icon"><Image src="/1024x1024.png" alt="Kalori Merkezi ikonu" width={82} height={82}/></div><div><small>NUTRITION TRACKER APP</small><h3>Kalori Merkezi</h3><p>Günlük takip · Besin odaklı veri · Pratik kullanım akışı</p><div><span>iOS</span><span>App Store</span><span>Dromocob Account</span></div></div><i><ArrowRight/></i></Link></div></section>
+    {/* ── STATS BAND ── */}
+    <section className="apps-stats-band section">
+      {stats.map(s => <article key={s.label}><s.icon /><div><strong>{s.value}</strong><span>{s.label}</span></div></article>)}
+    </section>
 
-    <section className="apps-system section"><div><p className="eyebrow">ONE ACCOUNT / ALL APPS</p><h2>Büyüyen bir<br/><em>uygulama sistemi.</em></h2><p>Bugün PhotoResize, yarın bütün yaratıcı araçların aynı hesap ve lisans mimarisinde.</p></div><div className="apps-roadmap">{roadmap.map(([name,detail],index)=><article key={name}><span>{String(index+2).padStart(2,"0")}</span><div><h3>{name}</h3><p>{detail}</p></div><small>YAKINDA</small></article>)}</div></section>
+    {/* ── FEATURED APPS ── */}
+    <section className="apps-featured section">
+      <header>
+        <div>
+          <p className="eyebrow">5 UYGULAMA / TEK EKOSİSTEM</p>
+          <h2>Tüm<br />uygulamalar.<br /><em>Bir arada.</em></h2>
+        </div>
+        <p>Profesyonel üretim araçlarından mobil marka deneyimlerine, beslenme takibinden proje yönetimine — Dromocob ekosistemindeki tüm uygulamalar burada.</p>
+      </header>
+      <div className="apps-featured-grid">
+        {apps.map(app => (
+          <Link key={app.slug} className={`app-product-card app-card-${app.color}`} href={app.slug}>
+            <div className="app-product-number">{app.num}</div>
+            <div className="app-product-icon">
+              <Image src={app.icon} alt={`${app.name} ikonu`} width={512} height={512} />
+            </div>
+            <div className="app-product-info">
+              <small>{app.tagline}</small>
+              <h3>{app.name}</h3>
+              <p>{app.desc}</p>
+              <div className="app-product-tags">
+                {app.platforms.map(p => <span key={p}>{p}</span>)}
+              </div>
+            </div>
+            <div className="app-product-meta">
+              <div className="app-product-stat"><strong>{app.stat}</strong><span>{app.statLabel}</span></div>
+              <i><ArrowRight /></i>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </section>
 
-    <section className="apps-license-band section"><Boxes/><div><small>DROMOCOB ACCOUNT</small><h2>Tek hesap. Tek lisans.<br/>Bütün Dromocob Apps.</h2></div><Link href="/giris">Hesabına giriş yap <ArrowRight/></Link></section>
-  </main><SiteFooter/></>;
+    {/* ── ECOSYSTEM ── */}
+    <section className="apps-ecosystem section">
+      <div className="apps-eco-visual">
+        <div className="apps-eco-grid">
+          {apps.map(app => (
+            <div key={app.slug} className={`apps-eco-node apps-eco-${app.color}`}>
+              <Image src={app.icon} alt={app.name} width={512} height={512} />
+              <span>{app.name}</span>
+            </div>
+          ))}
+        </div>
+        <div className="apps-eco-center">
+          <Image src="/logo.svg" alt="Dromocob" width={68} height={68} />
+        </div>
+      </div>
+      <div className="apps-eco-copy">
+        <p className="eyebrow">ONE ACCOUNT / ALL APPS</p>
+        <h2>Büyüyen bir<br /><em>uygulama sistemi.</em></h2>
+        <p>Tek Dromocob hesabı ile tüm uygulamalara erişin. Ortak lisans mimarisi, merkezi destek kanalları ve güvenli kimlik doğrulama her uygulamada standart.</p>
+        <div className="apps-eco-features">
+          <article><Boxes /><div><strong>Ortak Lisans</strong><span>Tek hesap, tüm uygulamalar</span></div></article>
+          <article><LockKeyhole /><div><strong>Güvenli Kimlik</strong><span>ES256 imzalı doğrulama</span></div></article>
+          <article><Globe2 /><div><strong>Çapraz Platform</strong><span>macOS, iOS, Android, Web</span></div></article>
+          <article><Sparkles /><div><strong>Sürekli Güncelleme</strong><span>Otomatik sürüm kontrolü</span></div></article>
+        </div>
+      </div>
+    </section>
+
+    {/* ── LICENSE BAND ── */}
+    <section className="apps-license-band section">
+      <Boxes />
+      <div>
+        <small>DROMOCOB ACCOUNT</small>
+        <h2>Tek hesap. Tek lisans.<br />Bütün Dromocob Apps.</h2>
+      </div>
+      <Link href="/giris">Hesabına giriş yap <ArrowRight /></Link>
+    </section>
+
+  </main></>;
 }
