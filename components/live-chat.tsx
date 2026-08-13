@@ -9,22 +9,28 @@ import {
 } from "react";
 import {
   AlertCircle,
+  Clapperboard,
+  Code2,
   LoaderCircle,
   MessageCircle,
   RotateCcw,
   Send,
+  Sparkles,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import {
   collection,
   doc,
   getDoc,
+  increment,
   limit,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   Timestamp,
+  updateDoc,
   writeBatch,
 } from "firebase/firestore";
 import {
@@ -38,6 +44,11 @@ import { auth, db } from "@/lib/firebase";
 const CHAT_STORAGE_KEY = "dromocob-chat-id";
 const MAX_MESSAGE_LENGTH = 1000;
 const MAX_MESSAGES = 100;
+const quickStarts = [
+  { label: "Web projesi", text: "Merhaba, markam için kurumsal web sitesi planlıyorum. Kapsamı birlikte netleştirebilir miyiz?", icon: Code2 },
+  { label: "Film / video", text: "Merhaba, markam için film veya video prodüksiyonu hakkında bilgi almak istiyorum.", icon: Clapperboard },
+  { label: "Fikir danışmak", text: "Merhaba, bir proje fikrim var ama nereden başlamam gerektiğinden emin değilim.", icon: Sparkles },
+] as const;
 
 type MessageSender = "visitor" | "admin";
 
@@ -53,6 +64,10 @@ type ChatMessage = {
 type ChatSession = {
   ownerUid?: string;
   status?: "open" | "closed";
+  visitorName?: string;
+  visitorEmail?: string;
+  visitorPhone?: string;
+  consentAccepted?: boolean;
 };
 
 type ChatStatus =
@@ -161,6 +176,11 @@ export default function LiveChat() {
     useState<ChatStatus>("initializing");
   const [errorMessage, setErrorMessage] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+  const [profile, setProfile] = useState({ name: "", email: "", phone: "" });
+  const [consent, setConsent] = useState(false);
+  const [profileComplete, setProfileComplete] = useState(false);
+  const [profileStored, setProfileStored] = useState(false);
+  const [profileError, setProfileError] = useState("");
 
   const messagesEndRef = useRef<HTMLDivElement | null>(
     null
@@ -318,6 +338,10 @@ export default function LiveChat() {
           sessionExistsRef.current = true;
           const session =
             sessionSnapshot.data() as ChatSession;
+          const hasProfile = Boolean(session.visitorName?.trim() && /^\S+@\S+\.\S+$/.test(session.visitorEmail || "") && (session.visitorPhone || "").replace(/\D/g, "").length >= 10 && session.consentAccepted === true);
+          setProfileComplete(hasProfile);
+          setProfileStored(hasProfile);
+          if (hasProfile) setProfile({ name: session.visitorName || "", email: session.visitorEmail || "", phone: session.visitorPhone || "" });
 
           /*
            * Eski session başka anonim kullanıcıya aitse
@@ -399,6 +423,9 @@ export default function LiveChat() {
             setMessages(nextMessages);
             setStatus("ready");
             setErrorMessage("");
+            if (nextMessages.some(message => message.sender === "admin")) {
+              void updateDoc(doc(db, "chat_sessions", activeSessionId), { unreadVisitor: 0, updatedAt: serverTimestamp() }).catch(() => undefined);
+            }
           },
           (error) => {
             if (cancelled) {
@@ -465,7 +492,7 @@ export default function LiveChat() {
       !sessionId ||
       !currentUser ||
       !isReady ||
-      isSending
+      isSending || !profileComplete
     ) {
       return;
     }
@@ -493,18 +520,21 @@ export default function LiveChat() {
 
       if (sessionExistsRef.current) {
         batch.update(sessionReference, {
+          ...(!profileStored ? { visitorName: profile.name.trim(), visitorEmail: profile.email.trim().toLocaleLowerCase("tr-TR"), visitorPhone: profile.phone.trim(), consentAccepted: true, consentAcceptedAt: serverTimestamp() } : {}),
           lastMessage: cleanText,
           lastMessageAt: serverTimestamp(),
-          unreadAdmin: 1,
+          unreadAdmin: increment(1),
           updatedAt: serverTimestamp(),
         });
       } else {
         batch.set(sessionReference, {
           ownerUid: currentUser.uid,
           status: "open",
-          visitorName: currentUser.displayName || "",
-          visitorEmail: currentUser.email || "",
-          visitorPhone: "",
+          visitorName: profile.name.trim(),
+          visitorEmail: profile.email.trim().toLocaleLowerCase("tr-TR"),
+          visitorPhone: profile.phone.trim(),
+          consentAccepted: true,
+          consentAcceptedAt: serverTimestamp(),
           lastMessage: cleanText,
           lastMessageAt: serverTimestamp(),
           unreadAdmin: 1,
@@ -523,6 +553,7 @@ export default function LiveChat() {
       });
       await batch.commit();
       sessionExistsRef.current = true;
+      setProfileStored(true);
 
       setText("");
       setStatus("ready");
@@ -559,6 +590,20 @@ export default function LiveChat() {
     }
   }
 
+  function unlockChat(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const cleanName = profile.name.trim();
+    const cleanEmail = profile.email.trim().toLocaleLowerCase("tr-TR");
+    const cleanPhone = profile.phone.replace(/\D/g, "");
+    if (cleanName.length < 2) return setProfileError("Lütfen adınızı ve soyadınızı yazın.");
+    if (!/^\S+@\S+\.\S+$/.test(cleanEmail)) return setProfileError("Geçerli bir e-posta adresi yazın.");
+    if (cleanPhone.length < 10 || cleanPhone.length > 15) return setProfileError("Geçerli bir telefon numarası yazın.");
+    if (!consent) return setProfileError("Canlı destek için aydınlatma onayını vermeniz gerekiyor.");
+    setProfile({ name: cleanName.slice(0, 120), email: cleanEmail.slice(0, 320), phone: profile.phone.trim().slice(0, 30) });
+    setProfileError("");
+    setProfileComplete(true);
+  }
+
   function retryChat(): void {
     listenerUnsubscribeRef.current?.();
     listenerUnsubscribeRef.current = null;
@@ -583,6 +628,8 @@ export default function LiveChat() {
         aria-expanded={open}
         aria-controls="dromocob-live-chat"
       >
+        {!open && messages.some(message => message.sender === "admin" && !message.read) && <span className="chat-unread">!</span>}
+        <span className="chat-launcher-pulse" aria-hidden="true"/>
         {open ? (
           <X aria-hidden="true" />
         ) : (
@@ -597,16 +644,18 @@ export default function LiveChat() {
           aria-label="Dromocob canlı destek"
         >
           <div className="chat-head">
-            <div>
-              <strong>Dromocob Canlı Destek</strong>
+            <div className="chat-agent">
+              <div className="chat-agent-avatar"><span>DC</span><i/></div>
+              <div><small>DROMOCOB / LIVE CONCIERGE</small><strong>Proje Danışmanı</strong>
 
               <span>
                 <i aria-hidden="true" />
 
                 {status === "error"
                     ? "Bağlantı sorunu"
-                    : "Çevrimiçi"}
+                    : "Çevrimiçi · Genellikle aynı gün dönüş"}
               </span>
+              </div>
             </div>
 
             <button
@@ -619,16 +668,28 @@ export default function LiveChat() {
             </button>
           </div>
 
-          <div
+          {!profileComplete ? <form className="chat-identity-gate" onSubmit={unlockChat}>
+            <div className="chat-lock-visual"><span><i/><i/><i/></span><ShieldCheck/><small>SECURE SESSION</small></div>
+            <div><small>DROMOCOB / VERIFIED CONVERSATION</small><h3>Görüşmeyi güvenle başlat.</h3><p>Size doğru şekilde dönüş yapabilmemiz ve konuşmayı yalnız size bağlayabilmemiz için bilgilerinizi doğrulayın.</p></div>
+            <label>Ad soyad *<input value={profile.name} onChange={event => setProfile({...profile,name:event.target.value})} autoComplete="name" maxLength={120} required/></label>
+            <label>E-posta *<input type="email" value={profile.email} onChange={event => setProfile({...profile,email:event.target.value})} autoComplete="email" maxLength={320} required/></label>
+            <label>Telefon *<input type="tel" value={profile.phone} onChange={event => setProfile({...profile,phone:event.target.value})} autoComplete="tel" maxLength={30} placeholder="05xx xxx xx xx" required/></label>
+            <label className="chat-consent"><input type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)}/><span>Canlı destek talebimin yanıtlanması için bilgilerimin işlenmesini kabul ediyorum.</span></label>
+            {profileError && <div className="chat-profile-error"><AlertCircle/>{profileError}</div>}
+            <button type="submit"><ShieldCheck/> Güvenli görüşmeyi aç</button>
+            <small className="chat-privacy-note">Bilgileriniz yalnızca talebinizi yanıtlamak ve görüşme güvenliğini sağlamak için kullanılır.</small>
+          </form> : <><div
             className="chat-body"
             role="log"
             aria-live="polite"
             aria-relevant="additions"
           >
             <div className="message admin-message">
-              Selam 👋 Projen için buradayım. Ne inşa
-              etmek istiyorsun?
+              <small>DROMOCOB CONCIERGE</small>
+              <span>Selam 👋 Projen için buradayım. Ne inşa etmek istiyorsun?</span>
             </div>
+
+            {messages.length === 0 && <div className="chat-quick-starts"><small>HIZLI BAŞLANGIÇ</small>{quickStarts.map(({ label, text: quickText, icon: Icon }) => <button type="button" key={label} onClick={() => setText(quickText)}><Icon/><span>{label}</span><b>↗</b></button>)}</div>}
 
             {messages.map((message) => (
               <div
@@ -639,9 +700,11 @@ export default function LiveChat() {
                     : "admin-message"
                 }`}
               >
-                {message.text}
+                <small>{message.sender === "visitor" ? "SİZ" : "DROMOCOB"}</small><span>{message.text}</span>
               </div>
             ))}
+
+            {(status === "initializing" || isSending) && <div className="chat-typing" aria-label="Mesaj hazırlanıyor"><span/><span/><span/><small>{isSending ? "Mesaj gönderiliyor" : "Güvenli bağlantı kuruluyor"}</small></div>}
 
             {status === "error" && (
               <div
@@ -678,7 +741,7 @@ export default function LiveChat() {
             className="chat-form"
             onSubmit={send}
           >
-            <input
+            <div className="chat-input-shell"><small>MESAJ / {text.length}/{MAX_MESSAGE_LENGTH}</small><input
               value={text}
               onChange={(event) =>
                 setText(event.target.value)
@@ -692,7 +755,7 @@ export default function LiveChat() {
               disabled={!isReady || isSending}
               aria-label="Mesaj"
               autoComplete="off"
-            />
+            /></div>
 
             <button
               type="submit"
@@ -714,7 +777,7 @@ export default function LiveChat() {
                 <Send size={18} aria-hidden="true" />
               )}
             </button>
-          </form>
+          </form></>}
         </aside>
       )}
     </>

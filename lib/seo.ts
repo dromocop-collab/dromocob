@@ -126,6 +126,7 @@ export const organizationJsonLd = {
   "@type": "ProfessionalService",
   "@id": `${siteUrl}/#organization`,
   name: siteName,
+  alternateName: ["Dromocob Film Web Growth", "Dromocob Türkiye"],
   url: siteUrl,
   logo: {
     "@type": "ImageObject",
@@ -152,6 +153,7 @@ export const organizationJsonLd = {
   },
   serviceType: [
     "Film production",
+    "Drone çekimi",
     "Web development",
     "Digital growth systems",
     "SEO",
@@ -162,7 +164,8 @@ export const organizationJsonLd = {
     "@type": "OfferCatalog",
     name: "Dromocob hizmetleri",
     itemListElement: [
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Kurumsal web tasarım ve web yazılım" } },
+      { "@type": "Offer", price: 10000, priceCurrency: "TRY", itemOffered: { "@type": "Service", name: "Kurumsal web tasarım ve web yazılım" } },
+      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Profesyonel drone çekimi ve hava görüntüleme" } },
       { "@type": "Offer", itemOffered: { "@type": "Service", name: "Video prodüksiyon ve film yapım" } },
       { "@type": "Offer", itemOffered: { "@type": "Service", name: "Teknik SEO ve dijital büyüme" } },
     ],
@@ -185,6 +188,7 @@ export const websiteJsonLd = {
   "@id": `${siteUrl}/#website`,
   url: siteUrl,
   name: siteName,
+  alternateName: "Dromocob Film Web Growth",
   description: defaultDescription,
   inLanguage: "tr-TR",
   publisher: { "@id": `${siteUrl}/#organization` },

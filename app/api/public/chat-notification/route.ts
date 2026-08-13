@@ -3,6 +3,7 @@ import { FieldValue } from "firebase-admin/firestore";
 
 import { enqueueMail } from "@/lib/auth-code-mail";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { notifyDromocobApp } from "@/lib/dromocob-app-notifications";
 import { siteEmail, siteUrl } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -48,10 +49,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false }, { status: 403 });
     }
 
-    if (message.emailNotificationQueuedAt) {
-      return NextResponse.json({ ok: true, duplicate: true });
-    }
-
     const messageText = String(message.text || "").trim().slice(0, 1000);
     if (!messageText) return NextResponse.json({ ok: false }, { status: 400 });
 
@@ -61,10 +58,26 @@ export async function POST(request: NextRequest) {
     const text = `Yeni canlı destek mesajı\n\n${messageText}\n\nOturum: ${sessionId}\nDestek ekranı: ${adminUrl}`;
     const html = `<!doctype html><html lang="tr"><body style="margin:0;background:#eef1e9;font-family:Arial,Helvetica,sans-serif;color:#11140f;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 14px;"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#fff;border:1px solid #dce2d5;border-radius:22px;overflow:hidden;"><tr><td style="padding:20px 28px;background:#10140f;color:#d9ff43;font-size:11px;font-weight:900;letter-spacing:.14em;">DROMOCOB / LIVE SUPPORT</td></tr><tr><td style="padding:30px 28px;"><p style="margin:0 0 9px;color:#798273;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;">Yeni ziyaretçi mesajı</p><h1 style="margin:0 0 22px;font-size:28px;letter-spacing:-.035em;">${escapeHtml(visitorName)}</h1><div style="padding:20px;border-left:4px solid #d9ff43;border-radius:4px 14px 14px 4px;background:#f3f5ef;color:#252a22;font-size:16px;line-height:1.65;white-space:pre-wrap;">${escapeHtml(messageText)}</div><p style="margin:18px 0 24px;color:#8a9285;font-size:10px;">Oturum: ${escapeHtml(sessionId)}</p><a href="${adminUrl}" style="display:inline-block;padding:14px 20px;border-radius:999px;background:#10140f;color:#d9ff43;font-size:12px;font-weight:900;text-decoration:none;">Mesajı yanıtla →</a></td></tr></table></td></tr></table></body></html>`;
 
-    await enqueueMail({ to: siteEmail, subject, text, html });
-    await messageRef.update({ emailNotificationQueuedAt: FieldValue.serverTimestamp() });
+    if (!message.emailNotificationQueuedAt) {
+      await enqueueMail({ to: siteEmail, subject, text, html });
+      await messageRef.update({ emailNotificationQueuedAt: FieldValue.serverTimestamp() });
+    }
 
-    return NextResponse.json({ ok: true });
+    try {
+      await notifyDromocobApp({
+        eventId: `chat:${sessionId}:${messageId}`,
+        kind: "chat_message",
+        entityId: sessionId,
+        title: "Yeni canlı destek mesajı",
+        body: `${visitorName}: ${messageText}`.slice(0, 240),
+        deepLink: `${siteUrl}/admin/destek?session=${encodeURIComponent(sessionId)}`,
+      });
+      await messageRef.update({ appPushAttemptedAt: FieldValue.serverTimestamp() });
+    } catch (pushError) {
+      console.error("[CHAT APP NOTIFICATION]", pushError);
+    }
+
+    return NextResponse.json({ ok: true, duplicate: Boolean(message.emailNotificationQueuedAt) });
   } catch (error) {
     console.error("[CHAT EMAIL NOTIFICATION]", error);
     return NextResponse.json({ ok: false }, { status: 500 });

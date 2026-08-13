@@ -11,7 +11,7 @@ const subscribeToClient = () => () => {};
 
 const fallbackQuestions: QuoteQuestion[] = [
   { id: "q1", key: "service", title: "Ne yaptırmak istiyorsun?", type: "single", active: true, order: 1, options: [
-    { label: "Kurumsal web sitesi", value: "web", priceDelta: 12000 },
+    { label: "Kurumsal web sitesi", value: "web", priceDelta: 0 },
     { label: "E-ticaret / özel yazılım", value: "software", priceDelta: 38000 },
     { label: "Video prodüksiyon paketi", value: "video", priceDelta: 15000 },
     { label: "Web + video birleşik dönüşüm", value: "hybrid", priceDelta: 45000 },
@@ -25,7 +25,7 @@ const fallbackQuestions: QuoteQuestion[] = [
   ]},
   { id: "web-scope", key: "webScope", title: "İçerik ve sayfa kapsamı ne kadar geniş?", type: "single", active: true, order: 3, serviceTypes: ["web", "software", "hybrid"], options: [
     { label: "Odaklı landing page / tek sayfa", value: "landing", priceDelta: 0 },
-    { label: "5–8 sayfalı kurumsal yapı", value: "corporate", priceDelta: 12000 },
+    { label: "5–8 sayfalı kurumsal yapı", value: "corporate", priceDelta: 0 },
     { label: "10+ sayfa ve gelişmiş içerik mimarisi", value: "extended", priceDelta: 26000 },
     { label: "Çok dilli / çok markalı platform", value: "enterprise", priceDelta: 42000 }
   ]},
@@ -238,7 +238,7 @@ export default function QuoteWizard({ open, onClose, initialService, initialPack
 
   async function finish() {
     setError("");
-    const quote = calculateQuote(visibleQuestions, rules, answers, isEmergencyDrone ? 18000 : isAiAutomation ? 85000 : 15000);
+    const quote = calculateQuote(visibleQuestions, rules, answers, isEmergencyDrone ? 18000 : isAiAutomation ? 85000 : 10000);
     const answerSelections = visibleQuestions.map(item => {
       const values = Array.isArray(answers[item.key]) ? answers[item.key] as string[] : [String(answers[item.key] || "")];
       return { key: item.key, title: item.title, values, labels: values.map(value => item.options?.find(option => option.value === value)?.label || value) };
@@ -322,7 +322,7 @@ export default function QuoteWizard({ open, onClose, initialService, initialPack
             <p>Bu otomatik ön analizdir. Final kapsam, teslim süresi ve üretim yoğunluğuna göre net teklif hazırlanır.</p>
             {result.notes.map(note => <div className="note" key={note}>{note}</div>)}
             {error && <div className="auth-error quote-error">{error}</div>}
-            <a className="button" href="/iletisim">Projeyi Konuşalım</a>
+            <button className="button" type="button" onClick={closeWizard}>Kapsam kaydedildi — Tamamla</button>
           </div>
         )}
       </div>

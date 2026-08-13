@@ -21,9 +21,11 @@ type ServiceLandingProps = {
   breadcrumbLabel: string;
   faqs: Array<{ question: string; answer: string }>;
   quoteService: AdvancedQuoteService;
+  expertiseSections?: Array<{ title: string; description: string; points: string[] }>;
+  relatedLinks?: Array<{ title: string; description: string; href: string }>;
 };
 
-export default function ServiceLanding({ eyebrow, title, accent, intro, services, process, cities, schema, media, mediaEyebrow, mediaTitle, path, breadcrumbLabel, faqs, quoteService }: ServiceLandingProps) {
+export default function ServiceLanding({ eyebrow, title, accent, intro, services, process, cities, schema, media, mediaEyebrow, mediaTitle, path, breadcrumbLabel, faqs, quoteService, expertiseSections = [], relatedLinks = [] }: ServiceLandingProps) {
   const breadcrumbSchema = breadcrumbJsonLd([
     { name: "Ana Sayfa", path: "/" },
     { name: "Hizmetler", path: "/hizmetler" },
@@ -55,7 +57,15 @@ export default function ServiceLanding({ eyebrow, title, accent, intro, services
       </figure>)}</div>
     </section>
     <section className="service-process section"><p className="eyebrow">Nasıl çalışıyoruz?</p><h2>Net kapsam. Şeffaf süreç.<br/>Ölçülebilir sonuç.</h2><div>{process.map((step, index) => <article key={step.title}><CheckCircle2/><span>0{index + 1}</span><h3>{step.title}</h3><p>{step.description}</p></article>)}</div></section>
+    {expertiseSections.length > 0 && <section className="service-expertise section" aria-labelledby="service-expertise-title">
+      <div className="service-expertise-head"><p className="eyebrow">Uzmanlık rehberi</p><h2 id="service-expertise-title">Karar vermeden önce<br/>bilmeniz gerekenler.</h2></div>
+      <div className="service-expertise-grid">{expertiseSections.map((item, index) => <article key={item.title}>
+        <span>{String(index + 1).padStart(2, "0")}</span><h3>{item.title}</h3><p>{item.description}</p>
+        <ul>{item.points.map(point => <li key={point}><CheckCircle2 aria-hidden="true"/>{point}</li>)}</ul>
+      </article>)}</div>
+    </section>}
     <section className="service-faq section"><div><p className="eyebrow">Sık sorulan sorular</p><h2>Başlamadan önce<br/>netleşmesi gerekenler.</h2></div><div>{faqs.map(item => <details key={item.question}><summary>{item.question}<span>+</span></summary><p>{item.answer}</p></details>)}</div></section>
     <section className="service-turkiye section"><div><p className="eyebrow">Türkiye geneli hizmet</p><h2>Fethiye&apos;den<br/>81 ile üretim.</h2></div><div><p>Keşif, strateji ve proje yönetimini çevrim içi; çekim ve saha üretimini ihtiyaca göre yerinde yürütüyoruz. Türkiye&apos;nin her yerindeki markalarla çalışabilecek üretim ve teslim altyapısına sahibiz.</p><p className="city-list">{cities.join(" · ")} ve tüm Türkiye</p><AdvancedQuoteWizard service={quoteService} buttonLabel="Projenin kapsamını konuşalım"/></div></section>
+    {relatedLinks.length > 0 && <nav className="service-related section" aria-label="İlgili hizmetler"><div><p className="eyebrow">İlgili çözümler</p><h2>Projeyi tamamlayan<br/>uzmanlıklar.</h2></div><div>{relatedLinks.map(item => <Link key={item.href} href={item.href}><span>{item.title}</span><p>{item.description}</p><strong>İncele →</strong></Link>)}</div></nav>}
   </>;
 }

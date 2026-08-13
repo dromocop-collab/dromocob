@@ -10,16 +10,17 @@ import {
   useState,
 } from "react";
 import {
-  addDoc,
   collection,
   doc,
   limit,
+  increment,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   Timestamp,
   updateDoc,
+  writeBatch,
 } from "firebase/firestore";
 import {
   AlertCircle,
@@ -439,6 +440,11 @@ export default function LiveChatAdmin() {
       return;
     }
 
+    if (activeSession?.status === "closed") {
+      setError("Kapalı görüşmeye mesaj gönderilemez. Önce görüşmeyi yeniden açın.");
+      return;
+    }
+
     const currentUser = auth.currentUser;
 
     if (!currentUser) {
@@ -450,33 +456,23 @@ export default function LiveChatAdmin() {
     setError("");
 
     try {
-      await addDoc(
-        collection(
-          db,
-          "chat_sessions",
-          active,
-          "messages"
-        ),
-        {
-          sender: "admin",
-          senderUid: currentUser.uid,
-          text: cleanText,
-          read: false,
-          createdAt: serverTimestamp(),
-        }
-      );
-
-      await updateDoc(
-        doc(db, "chat_sessions", active),
-        {
+      const sessionReference = doc(db, "chat_sessions", active);
+      const messageReference = doc(collection(db, "chat_sessions", active, "messages"));
+      const batch = writeBatch(db);
+      batch.set(messageReference, {
+        sender: "admin",
+        senderUid: currentUser.uid,
+        text: cleanText,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+      batch.update(sessionReference, {
           lastMessage: cleanText,
           lastMessageAt: serverTimestamp(),
-          status: "open",
-          unreadVisitor:
-            (activeSession?.unreadVisitor || 0) + 1,
+          unreadVisitor: increment(1),
           updatedAt: serverTimestamp(),
-        }
-      );
+      });
+      await batch.commit();
 
       setDraft("");
     } catch (sendError) {
@@ -1019,7 +1015,7 @@ export default function LiveChatAdmin() {
                 placeholder="Yanıt yaz... Enter gönderir, Shift+Enter satır açar."
                 autoComplete="off"
                 maxLength={1000}
-                disabled={sending}
+                disabled={sending || activeSession?.status === "closed"}
               />
 
               <div className="support-composer-actions">
@@ -1048,6 +1044,7 @@ export default function LiveChatAdmin() {
                   type="submit"
                   disabled={
                     sending ||
+                    activeSession?.status === "closed" ||
                     draft.trim().length === 0
                   }
                   aria-label="Yanıt gönder"

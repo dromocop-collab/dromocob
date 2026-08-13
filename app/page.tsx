@@ -10,13 +10,17 @@ import InstagramReels from "@/components/instagram-reels";
 import { sitePhone, sitePhoneDisplay } from "@/lib/seo";
 import HomeClientExperience from "@/components/home-client-experience";
 import LaunchOffer from "@/components/launch-offer";
+import HomeMotionController from "@/components/motion/home-motion-controller";
+import PinnedServices from "@/components/motion/pinned-services";
+import ScrollProgress from "@/components/motion/scroll-progress";
+import CodeMission from "@/components/code-mission";
 
 export const metadata = pageMetadata({
-  title: "Kurumsal Web Sitesi ve Video Prodüksiyon",
+  title: "Web Tasarım, Drone Çekimi ve Video Prodüksiyon",
   description:
-    "Kurumsal web sitesi tasarımı, özel web yazılım, e-ticaret altyapısı, kurumsal tanıtım filmi ve video prodüksiyon hizmetleri.",
+    "Profesyonel web tasarım, kurumsal web sitesi, özel web yazılım, drone çekimi, tanıtım filmi ve video prodüksiyon hizmetleri. Fethiye merkezli, Türkiye geneli.",
   path: "/",
-  keywords: ["web sitesi yaptırma", "kurumsal web sitesi", "web tasarım ajansı", "kurumsal tanıtım filmi", "tanıtım videosu", "video prodüksiyon ajansı", "İstanbul web tasarım"],
+  keywords: ["web tasarım", "web tasarımı", "drone", "drone çekimi", "profesyonel drone çekimi", "web sitesi yaptırma", "kurumsal web sitesi", "web tasarım ajansı", "kurumsal tanıtım filmi", "tanıtım videosu", "video prodüksiyon ajansı"],
 });
 
 export default function Home() {
@@ -25,8 +29,10 @@ export default function Home() {
 
   return (
     <div className="home-page">
+      <HomeMotionController />
+      <ScrollProgress />
       <LaunchOffer />
-      <section className="hero section">
+      <section className="hero section" data-motion-section="HERO">
         <div className="hero-noise" />
         <div className="hero-copy">
           <div className="eyebrow hero-reveal hero-reveal-one"><span className="live-dot" /> Fethiye · Türkiye</div>
@@ -83,24 +89,28 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section split-intro">
+      <section className="section split-intro" data-cinematic>
         <div><p className="eyebrow">Tek kişi. Çok disiplin. Tek standart.</p><h2>Fikirden ekrana,<br/>ekrandan <em>sonuca.</em></h2></div>
         <div><p>Bir projeye yalnızca “video”, “site” ya da “reklam” diye bakmıyorum. Markanın bütün dijital yüzünü aynı hikâyenin parçaları olarak tasarlıyorum.</p>
         <div className="pill-row"><span>Strategy</span><span>Production</span><span>Development</span><span>Growth</span></div>
         <div className="motion-expertise"><div><i>AE</i><span><small>POST-PRODUCTION / AFTER EFFECTS</small><strong>Motion & Visual Effects</strong></span></div><div className="motion-expertise-track"><span>Motion Design</span><span>Compositing</span><span>VFX</span><span>Motion Tracking</span><span>Rotoscoping</span><span>Keying</span><span>Expressions</span><span>Title Design</span></div></div></div>
       </section>
 
+      <PinnedServices />
+
+      <CodeMission />
+
       <HomeClientExperience />
 
-      <section className="section home-projects">
+      <section className="section home-projects" data-cinematic data-horizontal-projects data-motion-section="PROJECTS">
         <div className="section-head"><div><p className="eyebrow">Seçili çalışmalar</p><h2>Projeler / <span>01—10</span></h2></div><Link className="text-link" href="/projeler">Tümünü gör <ArrowRight size={16}/></Link></div>
         <div className="mobile-swipe-hint" aria-hidden="true"><span>Kaydırarak keşfet</span><i/><i/><i/><ArrowRight/></div>
         <ProjectGrid />
       </section>
 
-      <InstagramReels />
+      <div data-cinematic data-motion-section="APPS"><InstagramReels /></div>
 
-      <GrowthDiagnostic />
+      <div data-cinematic data-motion-section="ABOUT"><GrowthDiagnostic /></div>
 
       <section className="section dark-panel home-packages" id="paket-sistemleri">
         <div className="section-head"><div><p className="eyebrow"><Sparkles size={15}/> Akıllı hizmet mimarisi</p><h2>Hazır paket değil.<br/><em>Doğru kombinasyon.</em></h2></div><p>İhtiyacına göre kapsamı şekillendir, dinamik teklif motoru yaklaşık bütçeyi anında hesaplasın.</p></div>
@@ -145,7 +155,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section mega-cta">
+      <section className="section mega-cta" data-cinematic data-motion-section="CONTACT">
         <p className="eyebrow">Sıradaki proje seninki olabilir</p>
         <h2>Birlikte dikkat<br/><span>çekelim.</span></h2>
         <QuoteLauncher className="round-link" ariaLabel="Yeni proje teklif motorunu aç"><ArrowRight /></QuoteLauncher>

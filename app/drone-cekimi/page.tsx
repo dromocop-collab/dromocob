@@ -17,6 +17,14 @@ export default function DroneCekimiPage() {
     { question: "Drone çekimi için uçuş izni gerekiyor mu?", answer: "Lokasyona ve bölgeye göre uçuş izni gerekebilir. Çekim öncesinde uçuş uygunluğunu, hava koşullarını ve gerekli izin süreçlerini değerlendirerek operasyon planını netleştiriyoruz." },
     { question: "Fethiye dışında drone çekimi yapıyor musunuz?", answer: "Evet. Fethiye merkezli çalışıyor, Türkiye genelinde kurumsal drone çekimi için seyahat ediyoruz. İstanbul, Ankara, İzmir, Antalya ve diğer illerde operasyon planlayabiliyoruz." },
     { question: "Drone çekimi sonrası teslim süreci nasıl oluyor?", answer: "Çekim sonrası renk düzeltme, stabilizasyon ve kurgu yapılır. İhtiyaca göre 4K yatay video, dikey Reels/Shorts formatları ve ham görüntü teslimi dahil edilebilir." },
+  ]} expertiseSections={[
+    { title: "Drone çekimi hangi sonucu üretir?", description: "Hava görüntüsü yalnızca yüksekten çekilmiş bir plan değildir. Konumu, ölçeği ve çevre ilişkisini tek kadrajda anlatarak otel, villa, tesis ve marka projelerinde güveni hızlandırır.", points: ["Gayrimenkul ve turizm tanıtımı", "Fabrika, şantiye ve kurumsal tesis", "Etkinlik, reklam ve sosyal medya içeriği"] },
+    { title: "Sinematik drone ile FPV farkı", description: "Sinematik drone geniş, kontrollü ve dengeli kadrajlar üretir. FPV drone ise dar alanlardan geçebilen, izleyiciyi hareketin içine alan dinamik bir kamera dili sağlar.", points: ["Klasik hava çekiminde güçlü ölçek algısı", "FPV ile kesintisiz mekân turu", "Yer kamerasıyla uyumlu renk ve kurgu"] },
+    { title: "Güvenli uçuş ve teslim standardı", description: "Her operasyon lokasyon, hava durumu, uçuş bölgesi ve çekim amacı üzerinden planlanır. Görüntüler yalnızca kaydedilmez; seçki, stabilizasyon, renk ve platform formatlarıyla yayına hazırlanır.", points: ["Çekim öncesi saha ve rota değerlendirmesi", "Yedekli kayıt ve kontrollü operasyon", "4K, yatay ve dikey teslim seçenekleri"] },
+  ]} relatedLinks={[
+    { title: "Acil drone çekimi", description: "Hızlı keşif ve uygunluk kontrolü gereken operasyonlar.", href: "/acil-drone-cekimi" },
+    { title: "Video prodüksiyon", description: "Drone görüntülerini tam ölçekli marka filmine dönüştürün.", href: "/video-produksiyon" },
+    { title: "Villa tanıtımı", description: "Gayrimenkul için hava ve iç mekân prodüksiyonu.", href: "/villa-tanitimi" },
   ]} mediaEyebrow="Aerial production fleet" mediaTitle="Drone ve hava çekim sistemlerimiz." media={[
     { src: "/images/services/dji-mini-5-pro-drone.webp", title: "DJI Mini 5 Pro", detail: "Kompakt yapıda 4K sinematik hava görüntüleme ve çevik operasyon.", alt: "DJI Mini 5 Pro drone ile profesyonel havadan video çekimi" },
     { src: "/images/services/dji-avata-2-fpv-drone.webp", title: "DJI Avata 2 FPV", detail: "Mekânın içine giren sürükleyici ve dinamik FPV drone planları.", alt: "DJI Avata 2 FPV drone ile sinematik dinamik çekim" },

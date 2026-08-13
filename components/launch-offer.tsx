@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { ArrowRight, Check, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import AdvancedQuoteWizard from "@/components/advanced-quote-wizard";
 
 const STORAGE_KEY = "dromocob-launch-offer-v1";
 
 export default function LaunchOffer() {
   const [visible, setVisible] = useState(false);
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
   useEffect(() => {
     if (window.sessionStorage.getItem(STORAGE_KEY)) return;
@@ -33,7 +35,7 @@ export default function LaunchOffer() {
     setVisible(false);
   }
 
-  if (!visible) return null;
+  if (!visible) return quoteOpen ? <AdvancedQuoteWizard service="web" initiallyOpen hideTrigger onClose={() => setQuoteOpen(false)}/> : null;
 
   return (
     <div className="launch-offer" role="dialog" aria-modal="true" aria-labelledby="launch-offer-title">
@@ -59,7 +61,7 @@ export default function LaunchOffer() {
           </div>
           <div className="launch-offer-actions">
             <Link href="/web-tasarim" onClick={close}>Kampanyayı incele <ArrowRight /></Link>
-            <Link href="/iletisim" onClick={close}>Hemen konuşalım</Link>
+            <button type="button" onClick={() => { close(); setQuoteOpen(true); }}>10.000 TL&apos;den kapsam oluştur</button>
           </div>
           <small>* Başlangıç fiyatıdır. Kapsama göre proje bütçesi değişebilir.</small>
         </div>

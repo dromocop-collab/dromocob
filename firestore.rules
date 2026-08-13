@@ -1290,6 +1290,8 @@ service cloud.firestore {
           "visitorName",
           "visitorEmail",
           "visitorPhone",
+          "consentAccepted",
+          "consentAcceptedAt",
           "lastMessage",
           "lastMessageAt",
           "unreadAdmin",
@@ -1299,21 +1301,14 @@ service cloud.firestore {
         ])
         && request.resource.data.ownerUid == currentUid()
         && request.resource.data.status == "open"
-        && isOptionalString(
-          request.resource.data,
-          "visitorName",
-          120
-        )
-        && isOptionalString(
-          request.resource.data,
-          "visitorEmail",
-          320
-        )
-        && isOptionalString(
-          request.resource.data,
-          "visitorPhone",
-          30
-        )
+        && isNonEmptyString(request.resource.data.visitorName, 120)
+        && request.resource.data.visitorName.size() >= 2
+        && isNonEmptyString(request.resource.data.visitorEmail, 320)
+        && request.resource.data.visitorEmail.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+        && isNonEmptyString(request.resource.data.visitorPhone, 30)
+        && request.resource.data.visitorPhone.matches('^.*[0-9].*[0-9].*[0-9].*[0-9].*[0-9].*[0-9].*[0-9].*[0-9].*[0-9].*[0-9].*$')
+        && request.resource.data.consentAccepted == true
+        && request.resource.data.consentAcceptedAt == request.time
         && isOptionalString(
           request.resource.data,
           "lastMessage",
@@ -1365,31 +1360,36 @@ service cloud.firestore {
             .diff(resource.data)
             .affectedKeys()
             .hasOnly([
+              "lastMessage",
               "visitorName",
               "visitorEmail",
               "visitorPhone",
-              "lastMessage",
+              "consentAccepted",
+              "consentAcceptedAt",
               "lastMessageAt",
               "unreadAdmin",
+              "unreadVisitor",
               "updatedAt"
             ])
 
-          && isOptionalString(
-            request.resource.data,
-            "visitorName",
-            120
-          )
-
-          && isOptionalString(
-            request.resource.data,
-            "visitorEmail",
-            320
-          )
-
-          && isOptionalString(
-            request.resource.data,
-            "visitorPhone",
-            30
+          && (
+            (
+              request.resource.data.visitorName == resource.data.visitorName
+              && request.resource.data.visitorEmail == resource.data.visitorEmail
+              && request.resource.data.visitorPhone == resource.data.visitorPhone
+              && request.resource.data.consentAccepted == resource.data.consentAccepted
+              && request.resource.data.consentAcceptedAt == resource.data.consentAcceptedAt
+            )
+            || (
+              (!("consentAccepted" in resource.data) || resource.data.consentAccepted != true)
+              && isNonEmptyString(request.resource.data.visitorName, 120)
+              && request.resource.data.visitorName.size() >= 2
+              && isNonEmptyString(request.resource.data.visitorEmail, 320)
+              && request.resource.data.visitorEmail.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')
+              && isNonEmptyString(request.resource.data.visitorPhone, 30)
+              && request.resource.data.consentAccepted == true
+              && request.resource.data.consentAcceptedAt == request.time
+            )
           )
 
           && isOptionalString(
@@ -1409,6 +1409,7 @@ service cloud.firestore {
               request.resource.data.unreadAdmin
             )
           )
+          && (!("unreadVisitor" in request.resource.data) || request.resource.data.unreadVisitor == 0)
 
           && hasValidUpdatedAt(request.resource.data)
         );
@@ -1445,9 +1446,18 @@ service cloud.firestore {
             && parentSession().data.status == "open";
         }
 
+        function sessionHasVerifiedContact() {
+          return parentSessionExists()
+            && isNonEmptyString(parentSession().data.visitorName, 120)
+            && isNonEmptyString(parentSession().data.visitorEmail, 320)
+            && isNonEmptyString(parentSession().data.visitorPhone, 30)
+            && parentSession().data.consentAccepted == true;
+        }
+
         allow create: if (
             isSessionOwner()
             && sessionIsOpen()
+            && sessionHasVerifiedContact()
 
             && request.resource.data.keys().hasOnly([
               "sender",

@@ -27,7 +27,7 @@ export function calculateQuote(
   questions: QuoteQuestion[],
   rules: QuoteRule[],
   answers: Answers,
-  basePrice = 15000
+  basePrice = 10000
 ) {
   let price = basePrice;
   const notes: string[] = [];

@@ -12,6 +12,7 @@ import CookieConsent from "@/components/cookie-consent";
 import ContactDock from "@/components/contact-dock";
 import ContextualEntryModal from "@/components/contextual-entry-modal";
 import type { PublicTrackingSettings } from "@/lib/runtime-tracking";
+import SmoothScrollProvider from "@/components/motion/smooth-scroll-provider";
 import { CONSENT_STORAGE_KEY, type ConsentChoice } from "@/lib/google-consent";
 
 type RuntimeSiteSettings = {
@@ -287,16 +288,16 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
           </div>
         </div>
       ) : (
-        <>
+        <SmoothScrollProvider>
           {!isWorkspaceRoute && <a className="skip-link" href="#main-content">Ana içeriğe geç</a>}
           {!isWorkspaceRoute && <SiteNav />}
-          <main id="main-content" className={isWorkspaceRoute ? "admin-route-main" : undefined}>{children}</main>
+          <main id="main-content" className={isWorkspaceRoute ? "admin-route-main" : pathname === "/" ? "home-route-main" : undefined}>{children}</main>
           {!isWorkspaceRoute && <SiteFooter />}
           {!isWorkspaceRoute && settings.features?.liveChatEnabled !== false && <LiveChat />}
           {!isWorkspaceRoute && <ContactDock />}
           {!isWorkspaceRoute && <ContextualEntryModal />}
           {!isWorkspaceRoute && trackingEnabled && <CookieConsent />}
-        </>
+        </SmoothScrollProvider>
       )}
     </>
   );

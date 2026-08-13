@@ -22,8 +22,8 @@ type PublicRoute = {
 };
 
 const updated = {
-  core: "2026-07-21",
-  services: "2026-07-21",
+  core: "2026-08-13",
+  services: "2026-08-13",
   packages: "2026-07-21",
   legal: "2026-07-19",
 } as const;

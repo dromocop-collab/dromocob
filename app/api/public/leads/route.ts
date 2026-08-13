@@ -6,7 +6,8 @@ import { createHash } from "node:crypto";
 
 import { adminDb } from "@/lib/firebase-admin";
 import { enqueueMail } from "@/lib/auth-code-mail";
-import { siteEmail } from "@/lib/seo";
+import { notifyDromocobApp } from "@/lib/dromocob-app-notifications";
+import { siteEmail, siteUrl } from "@/lib/seo";
 
 type LeadPayload = {
   type?: "contact" | "quote" | "newsletter";
@@ -183,7 +184,7 @@ export async function POST(
         );
       }
 
-      await adminDb
+      const contactReference = await adminDb
         .collection("contacts")
         .add({
           name,
@@ -210,6 +211,19 @@ export async function POST(
         text: mailText,
         html: mailHtml,
       });
+
+      try {
+        await notifyDromocobApp({
+          eventId: `contact:${contactReference.id}`,
+          kind: "contact_request",
+          entityId: contactReference.id,
+          title: "Yeni proje talebi",
+          body: `${name}${company ? ` / ${company}` : ""} · ${subject || "Genel proje"}`.slice(0, 240),
+          deepLink: `${siteUrl}/admin/talepler?contact=${encodeURIComponent(contactReference.id)}`,
+        });
+      } catch (pushError) {
+        console.error("[CONTACT APP NOTIFICATION]", pushError);
+      }
 
       return NextResponse.json({ ok: true });
     }
@@ -316,6 +330,20 @@ export async function POST(
       const text = `Yeni teklif talebi\nReferans: ${quoteReference.id}\nHizmet: ${serviceLabel}\nAd: ${contact.name}\nFirma: ${contact.company}\nE-posta: ${contact.email}\nTelefon: ${contact.phone}\nŞehir: ${contact.city}\nTercih: ${contact.preferredContact}\nÖn kapsam: ${estimatedPrice.toLocaleString("tr-TR")} TL+\n\n${answerSelections.map(item => `${item.title}: ${item.labels.join(", ")}`).join("\n")}`;
       const html = `<!doctype html><html lang="tr"><body style="margin:0;background:#eef1e9;font-family:Arial,Helvetica,sans-serif;color:#11140f;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 14px;"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;background:#fff;border:1px solid #dce2d5;border-radius:22px;overflow:hidden;"><tr><td style="padding:22px 28px;background:#10140f;color:#d9ff43;font-size:12px;font-weight:900;letter-spacing:.14em;">DROMOCOB / NEW SCOPE REQUEST</td></tr><tr><td style="padding:30px 28px;"><p style="margin:0 0 8px;color:#7b8375;font-size:11px;text-transform:uppercase;letter-spacing:.12em;">${escapeHtml(serviceLabel)} · ${escapeHtml(quoteReference.id)}</p><h1 style="margin:0 0 22px;font-size:30px;">${escapeHtml(contact.name)}${contact.company ? ` / ${escapeHtml(contact.company)}` : ""}</h1><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;background:#f3f5ef;border-radius:12px;"><tr><td style="padding:14px;line-height:1.7;font-size:13px;"><strong>E-posta:</strong> ${escapeHtml(contact.email)}<br/><strong>Telefon:</strong> ${escapeHtml(contact.phone)}<br/><strong>Şehir:</strong> ${escapeHtml(contact.city || "Belirtilmedi")}<br/><strong>Tercih:</strong> ${escapeHtml(contact.preferredContact)}<br/><strong>Ön kapsam:</strong> ${estimatedPrice.toLocaleString("tr-TR")} TL+</td></tr></table><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e7eadf;border-radius:12px;overflow:hidden;">${rows}</table></td></tr></table></td></tr></table></body></html>`;
       await enqueueMail({ to: siteEmail, subject, text, html });
+    }
+
+    try {
+      const customerName = contact.name || "Yeni müşteri";
+      await notifyDromocobApp({
+        eventId: `quote:${quoteReference.id}`,
+        kind: "quote_request",
+        entityId: quoteReference.id,
+        title: `Yeni ${serviceLabel} teklif talebi`.slice(0, 80),
+        body: `${customerName}${contact.company ? ` / ${contact.company}` : ""} · ${estimatedPrice.toLocaleString("tr-TR")} TL+`.slice(0, 240),
+        deepLink: `${siteUrl}/admin/talepler?quote=${encodeURIComponent(quoteReference.id)}`,
+      });
+    } catch (pushError) {
+      console.error("[QUOTE APP NOTIFICATION]", pushError);
     }
 
     return NextResponse.json({ ok: true, referenceId: quoteReference.id });
