@@ -1,7 +1,7 @@
 import "server-only";
 
 import { adminDb } from "@/lib/firebase-admin";
-import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID } from "@/lib/google-ads";
+import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID, DEFAULT_GOOGLE_ADS_QUICK_QUOTE_LABEL, DEFAULT_GOOGLE_ADS_SELL_REQUEST_LABEL } from "@/lib/google-ads";
 
 export type PublicTrackingSettings = {
   enabled?: boolean;
@@ -9,6 +9,8 @@ export type PublicTrackingSettings = {
   gtmId?: string;
   googleAdsId?: string;
   googleAdsConversionLabel?: string;
+  googleAdsQuickQuoteLabel?: string;
+  googleAdsSellRequestLabel?: string;
   metaPixelId?: string;
   metaDomainVerification?: string;
   linkedinInsightId?: string;
@@ -59,6 +61,8 @@ export async function getPublicTrackingSettings(): Promise<PublicTrackingSetting
     gtmId: process.env.NEXT_PUBLIC_GTM_ID || "",
     googleAdsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || DEFAULT_GOOGLE_ADS_ID,
     googleAdsConversionLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL || DEFAULT_GOOGLE_ADS_CONVERSION_LABEL,
+    googleAdsQuickQuoteLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_QUICK_QUOTE_LABEL || process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL || DEFAULT_GOOGLE_ADS_QUICK_QUOTE_LABEL,
+    googleAdsSellRequestLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_SELL_REQUEST_LABEL || process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL || DEFAULT_GOOGLE_ADS_SELL_REQUEST_LABEL,
   };
 
   try {
@@ -72,6 +76,8 @@ export async function getPublicTrackingSettings(): Promise<PublicTrackingSetting
       ...stored,
       googleAdsId: String(stored.googleAdsId || fallback.googleAdsId || "").trim(),
       googleAdsConversionLabel: String(stored.googleAdsConversionLabel || fallback.googleAdsConversionLabel || "").trim(),
+      googleAdsQuickQuoteLabel: String(stored.googleAdsQuickQuoteLabel || fallback.googleAdsQuickQuoteLabel || fallback.googleAdsConversionLabel || "").trim(),
+      googleAdsSellRequestLabel: String(stored.googleAdsSellRequestLabel || fallback.googleAdsSellRequestLabel || fallback.googleAdsConversionLabel || "").trim(),
     };
   } catch (error) {
     console.warn("[DROMOCOB TRACKING] Sunucu ayarları okunamadı; env değerleri kullanılıyor.", error);

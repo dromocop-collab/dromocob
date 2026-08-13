@@ -12,7 +12,7 @@ import CookieConsent from "@/components/cookie-consent";
 import ContactDock from "@/components/contact-dock";
 import ContextualEntryModal from "@/components/contextual-entry-modal";
 import type { PublicTrackingSettings } from "@/lib/runtime-tracking";
-import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID } from "@/lib/google-ads";
+import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID, DEFAULT_GOOGLE_ADS_QUICK_QUOTE_LABEL, DEFAULT_GOOGLE_ADS_SELL_REQUEST_LABEL } from "@/lib/google-ads";
 import SmoothScrollProvider from "@/components/motion/smooth-scroll-provider";
 import { CONSENT_STORAGE_KEY, type ConsentChoice } from "@/lib/google-consent";
 
@@ -29,6 +29,8 @@ type RuntimeSiteSettings = {
     gtmId?: string;
     googleAdsId?: string;
     googleAdsConversionLabel?: string;
+    googleAdsQuickQuoteLabel?: string;
+    googleAdsSellRequestLabel?: string;
     metaPixelId?: string;
     metaDomainVerification?: string;
     linkedinInsightId?: string;
@@ -61,6 +63,8 @@ const environmentTracking: NonNullable<RuntimeSiteSettings["tracking"]> = {
   gtmId: process.env.NEXT_PUBLIC_GTM_ID || "",
   googleAdsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || DEFAULT_GOOGLE_ADS_ID,
   googleAdsConversionLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL || DEFAULT_GOOGLE_ADS_CONVERSION_LABEL,
+  googleAdsQuickQuoteLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_QUICK_QUOTE_LABEL || process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL || DEFAULT_GOOGLE_ADS_QUICK_QUOTE_LABEL,
+  googleAdsSellRequestLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_SELL_REQUEST_LABEL || process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL || DEFAULT_GOOGLE_ADS_SELL_REQUEST_LABEL,
 };
 
 function getErrorCode(error: unknown): string {
@@ -188,6 +192,8 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
   const gtmId = trackingEnabled ? validId(tracking?.gtmId, /^GTM-[A-Z0-9]+$/) : "";
   const adsId = trackingEnabled ? validId(tracking?.googleAdsId || environmentTracking.googleAdsId, /^AW-[0-9]+$/) : "";
   const adsConversionLabel = trackingEnabled ? cleanId(tracking?.googleAdsConversionLabel || environmentTracking.googleAdsConversionLabel) : "";
+  const adsQuickQuoteLabel = trackingEnabled ? cleanId(tracking?.googleAdsQuickQuoteLabel || environmentTracking.googleAdsQuickQuoteLabel || adsConversionLabel) : "";
+  const adsSellRequestLabel = trackingEnabled ? cleanId(tracking?.googleAdsSellRequestLabel || environmentTracking.googleAdsSellRequestLabel || adsConversionLabel) : "";
   const pixelId = trackingEnabled ? cleanId(tracking?.metaPixelId) : "";
   const linkedinId = trackingEnabled ? cleanId(tracking?.linkedinInsightId) : "";
   const tiktokId = trackingEnabled ? cleanId(tracking?.tiktokPixelId) : "";
@@ -227,16 +233,17 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
       const detail = (event as CustomEvent<{ id?: string; type?: string; value?: number; currency?: string; service?: string }>).detail || {};
       const browserWindow = window as typeof window & { gtag?: (...args: unknown[]) => void; dataLayer?: unknown[] };
       const payload = { transaction_id: detail.id || "", value: Number(detail.value) || 0, currency: detail.currency || "TRY", conversion_type: detail.type || "lead", service: detail.service || "" };
+      const conversionLabel = detail.type === "quote_submit" ? adsQuickQuoteLabel : detail.type === "contact_submit" ? adsSellRequestLabel : adsConversionLabel;
       if (ga4Id && browserWindow.gtag) browserWindow.gtag("event", "generate_lead", payload);
       // Consent Mode consent sinyalini zaten gtag'e iletir. Dönüşüm olayını burada
       // tamamen engellemek, izin verilmemiş oturumlarda Google'ın cookieless
       // conversion ping'ini ve Tag Assistant doğrulamasını da engelliyordu.
-      if (adsId && adsConversionLabel && browserWindow.gtag) browserWindow.gtag("event", "conversion", { ...payload, send_to: `${adsId}/${adsConversionLabel}` });
+      if (adsId && conversionLabel && browserWindow.gtag) browserWindow.gtag("event", "conversion", { ...payload, send_to: `${adsId}/${conversionLabel}` });
       if (gtmId && browserWindow.dataLayer) browserWindow.dataLayer.push({ event: "dromocob_conversion", ...payload });
     };
     window.addEventListener("dromocob:conversion", handleConversion);
     return () => window.removeEventListener("dromocob:conversion", handleConversion);
-  }, [adsConversionLabel, adsId, consent?.advertising, ga4Id, gtmId]);
+  }, [adsConversionLabel, adsId, adsQuickQuoteLabel, adsSellRequestLabel, consent?.advertising, ga4Id, gtmId]);
 
   return (
     <>

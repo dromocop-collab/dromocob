@@ -4,7 +4,7 @@ import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { Activity, Database, Globe, Gauge, LineChart, LockKeyhole, RotateCcw, Save, ShieldCheck, SlidersHorizontal, Sparkles, Wrench } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID } from "@/lib/google-ads";
+import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID, DEFAULT_GOOGLE_ADS_QUICK_QUOTE_LABEL, DEFAULT_GOOGLE_ADS_SELL_REQUEST_LABEL } from "@/lib/google-ads";
 
 type SiteSettings = {
   active: boolean;
@@ -38,6 +38,8 @@ type SiteSettings = {
     gtmId: string;
     googleAdsId: string;
     googleAdsConversionLabel: string;
+    googleAdsQuickQuoteLabel: string;
+    googleAdsSellRequestLabel: string;
     metaPixelId: string;
     metaDomainVerification: string;
     linkedinInsightId: string;
@@ -105,6 +107,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
     gtmId: "",
     googleAdsId: DEFAULT_GOOGLE_ADS_ID,
     googleAdsConversionLabel: DEFAULT_GOOGLE_ADS_CONVERSION_LABEL,
+    googleAdsQuickQuoteLabel: DEFAULT_GOOGLE_ADS_QUICK_QUOTE_LABEL,
+    googleAdsSellRequestLabel: DEFAULT_GOOGLE_ADS_SELL_REQUEST_LABEL,
     metaPixelId: "",
     metaDomainVerification: "",
     linkedinInsightId: "",
@@ -205,6 +209,8 @@ export default function Page() {
             ...(data.tracking || {}),
             googleAdsId: String(data.tracking?.googleAdsId || DEFAULT_SETTINGS.tracking.googleAdsId),
             googleAdsConversionLabel: String(data.tracking?.googleAdsConversionLabel || DEFAULT_SETTINGS.tracking.googleAdsConversionLabel),
+            googleAdsQuickQuoteLabel: String(data.tracking?.googleAdsQuickQuoteLabel || data.tracking?.googleAdsConversionLabel || DEFAULT_SETTINGS.tracking.googleAdsQuickQuoteLabel),
+            googleAdsSellRequestLabel: String(data.tracking?.googleAdsSellRequestLabel || data.tracking?.googleAdsConversionLabel || DEFAULT_SETTINGS.tracking.googleAdsSellRequestLabel),
           },
           maintenance: {
             ...DEFAULT_SETTINGS.maintenance,
@@ -326,6 +332,8 @@ export default function Page() {
           gtmId: settings.tracking.gtmId.trim(),
           googleAdsId,
           googleAdsConversionLabel: settings.tracking.googleAdsConversionLabel.trim(),
+          googleAdsQuickQuoteLabel: settings.tracking.googleAdsQuickQuoteLabel.trim(),
+          googleAdsSellRequestLabel: settings.tracking.googleAdsSellRequestLabel.trim(),
           metaPixelId: settings.tracking.metaPixelId.trim(),
           metaDomainVerification: settings.tracking.metaDomainVerification.trim(),
           linkedinInsightId: settings.tracking.linkedinInsightId.trim(),
@@ -440,6 +448,8 @@ export default function Page() {
             <label>GTM ID<input value={settings.tracking.gtmId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, gtmId: event.target.value } }))} placeholder="GTM-XXXXXX" /><small>Container kimliğini gir: ör. GTM-ABC1234.</small></label>
             <label>Google Ads etiketi ID<input value={settings.tracking.googleAdsId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsId: event.target.value } }))} placeholder="AW-18343146345" autoCapitalize="characters" spellCheck={false} /><small>AW- ile başlayan etiketi gir. Kaydedildiğinde Google etiketi ziyaretçi sayfalarında otomatik yüklenir.</small></label>
             <label>Ads Conversion Label<input value={settings.tracking.googleAdsConversionLabel} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsConversionLabel: event.target.value } }))} placeholder="abcDEF123..." /></label>
+            <label>Hızlı Teklif Conversion Label<input value={settings.tracking.googleAdsQuickQuoteLabel} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsQuickQuoteLabel: event.target.value } }))} placeholder="Google Ads hızlı teklif etiketi" /><small>Teklif sihirbazı başarıyla gönderildiğinde tetiklenir.</small></label>
+            <label>Satış Talebi Conversion Label<input value={settings.tracking.googleAdsSellRequestLabel} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, googleAdsSellRequestLabel: event.target.value } }))} placeholder="Google Ads satış talebi etiketi" /><small>İletişim formu başarıyla gönderildiğinde tetiklenir.</small></label>
             <label>Meta Pixel ID<input value={settings.tracking.metaPixelId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, metaPixelId: event.target.value } }))} /></label>
             <label>Meta Domain Verification<input value={settings.tracking.metaDomainVerification} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, metaDomainVerification: event.target.value } }))} /></label>
             <label>LinkedIn Insight ID<input value={settings.tracking.linkedinInsightId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, linkedinInsightId: event.target.value } }))} /></label>
