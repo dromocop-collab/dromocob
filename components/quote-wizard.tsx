@@ -6,6 +6,7 @@ import { Check, ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import { fetchQuoteEngine } from "@/lib/data";
 import { calculateQuote } from "@/lib/quote-engine";
 import type { QuoteQuestion, QuoteRule } from "@/lib/types";
+import { reportLeadConversion } from "@/lib/client-conversions";
 
 const subscribeToClient = () => () => {};
 
@@ -275,9 +276,9 @@ export default function QuoteWizard({ open, onClose, initialService, initialPack
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(await response.text());
-      }
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.message || "Teklif kaydedilemedi.");
+      reportLeadConversion({ id: String(result.conversionId || result.referenceId || ""), type: "quote_submit", value: Number(result.conversionValue || quote.price), service: isEmergencyDrone ? "Acil Drone Operasyon" : isAiAutomation ? "AI Automation Suite" : serviceLabels[resolvedService] || "Web & Yazılım" });
     } catch (submitError) {
       setError(
         submitError instanceof Error

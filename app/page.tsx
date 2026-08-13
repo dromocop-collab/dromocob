@@ -73,7 +73,7 @@ export default function Home() {
 
       <section className="marquee"><div>FILM PRODUCTION · WEB SYSTEMS · MOBILE PRODUCTS · CREATIVE DIRECTION · SEO · GROWTH · </div></section>
 
-      <section className="section trust-section">
+      <section className="section trust-section" data-cinematic data-scroll-scene="trust">
         <div className="section-head">
           <div>
             <p className="eyebrow">Kurumsal çalışma standardı</p>
@@ -89,7 +89,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section split-intro" data-cinematic>
+      <section className="section split-intro" data-cinematic data-scroll-scene="expertise">
         <div><p className="eyebrow">Tek kişi. Çok disiplin. Tek standart.</p><h2>Fikirden ekrana,<br/>ekrandan <em>sonuca.</em></h2></div>
         <div><p>Bir projeye yalnızca “video”, “site” ya da “reklam” diye bakmıyorum. Markanın bütün dijital yüzünü aynı hikâyenin parçaları olarak tasarlıyorum.</p>
         <div className="pill-row"><span>Strategy</span><span>Production</span><span>Development</span><span>Growth</span></div>
@@ -112,13 +112,13 @@ export default function Home() {
 
       <div data-cinematic data-motion-section="ABOUT"><GrowthDiagnostic /></div>
 
-      <section className="section dark-panel home-packages" id="paket-sistemleri">
+      <section className="section dark-panel home-packages" id="paket-sistemleri" data-cinematic data-scroll-scene="packages">
         <div className="section-head"><div><p className="eyebrow"><Sparkles size={15}/> Akıllı hizmet mimarisi</p><h2>Hazır paket değil.<br/><em>Doğru kombinasyon.</em></h2></div><p>İhtiyacına göre kapsamı şekillendir, dinamik teklif motoru yaklaşık bütçeyi anında hesaplasın.</p></div>
         <div className="mobile-swipe-hint" aria-hidden="true"><span>Paketleri sağa kaydır</span><i/><i/><i/><ArrowRight/></div>
         <PackageGrid compact />
       </section>
 
-      <section className="section whatsapp-fast-contact" aria-labelledby="whatsapp-contact-title">
+      <section className="section whatsapp-fast-contact" data-cinematic data-scroll-scene="contact" aria-labelledby="whatsapp-contact-title">
         <div className="whatsapp-contact-copy">
           <p className="eyebrow"><span className="whatsapp-live-dot"/> Hızlı iletişim / WhatsApp</p>
           <h2 id="whatsapp-contact-title">Aklındaki projeyi<br/><em>bir mesajla başlat.</em></h2>

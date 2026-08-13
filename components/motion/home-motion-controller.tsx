@@ -27,6 +27,13 @@ export default function HomeMotionController() {
         const rect = section.getBoundingClientRect();
         const progress = clamp((viewport - rect.top) / (viewport + rect.height));
         section.style.setProperty("--section-progress", progress.toFixed(4));
+        const reveal = clamp((progress - .08) / .62);
+        const exit = clamp((progress - .78) / .22);
+        section.style.setProperty("--scene-reveal", reveal.toFixed(4));
+        section.style.setProperty("--scene-exit", exit.toFixed(4));
+        section.querySelectorAll<HTMLElement>(":scope > *").forEach((child, index) => {
+          child.style.setProperty("--scene-order", String(Math.min(index, 8)));
+        });
       });
 
       const services = root.querySelector<HTMLElement>(".pinned-services");

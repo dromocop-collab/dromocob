@@ -12,6 +12,7 @@ import CookieConsent from "@/components/cookie-consent";
 import ContactDock from "@/components/contact-dock";
 import ContextualEntryModal from "@/components/contextual-entry-modal";
 import type { PublicTrackingSettings } from "@/lib/runtime-tracking";
+import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID } from "@/lib/google-ads";
 import SmoothScrollProvider from "@/components/motion/smooth-scroll-provider";
 import { CONSENT_STORAGE_KEY, type ConsentChoice } from "@/lib/google-consent";
 
@@ -58,6 +59,8 @@ const environmentTracking: NonNullable<RuntimeSiteSettings["tracking"]> = {
     process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ||
     "",
   gtmId: process.env.NEXT_PUBLIC_GTM_ID || "",
+  googleAdsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || DEFAULT_GOOGLE_ADS_ID,
+  googleAdsConversionLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL || DEFAULT_GOOGLE_ADS_CONVERSION_LABEL,
 };
 
 function getErrorCode(error: unknown): string {
@@ -183,8 +186,8 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
 
   const ga4Id = trackingEnabled ? validId(tracking?.ga4MeasurementId, /^G-[A-Z0-9]+$/) : "";
   const gtmId = trackingEnabled ? validId(tracking?.gtmId, /^GTM-[A-Z0-9]+$/) : "";
-  const adsId = trackingEnabled ? validId(tracking?.googleAdsId, /^AW-[0-9]+$/) : "";
-  const adsConversionLabel = trackingEnabled ? cleanId(tracking?.googleAdsConversionLabel) : "";
+  const adsId = trackingEnabled ? validId(tracking?.googleAdsId || environmentTracking.googleAdsId, /^AW-[0-9]+$/) : "";
+  const adsConversionLabel = trackingEnabled ? cleanId(tracking?.googleAdsConversionLabel || environmentTracking.googleAdsConversionLabel) : "";
   const pixelId = trackingEnabled ? cleanId(tracking?.metaPixelId) : "";
   const linkedinId = trackingEnabled ? cleanId(tracking?.linkedinInsightId) : "";
   const tiktokId = trackingEnabled ? cleanId(tracking?.tiktokPixelId) : "";
@@ -218,6 +221,19 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
       browserWindow.dataLayer.push({ event: "virtual_page_view", page_path: pathname });
     }
   }, [ga4Id, gtmId, pathname]);
+
+  useEffect(() => {
+    const handleConversion = (event: Event) => {
+      const detail = (event as CustomEvent<{ id?: string; type?: string; value?: number; currency?: string; service?: string }>).detail || {};
+      const browserWindow = window as typeof window & { gtag?: (...args: unknown[]) => void; dataLayer?: unknown[] };
+      const payload = { transaction_id: detail.id || "", value: Number(detail.value) || 0, currency: detail.currency || "TRY", conversion_type: detail.type || "lead", service: detail.service || "" };
+      if (ga4Id && browserWindow.gtag) browserWindow.gtag("event", "generate_lead", payload);
+      if (adsId && adsConversionLabel && browserWindow.gtag && consent?.advertising) browserWindow.gtag("event", "conversion", { ...payload, send_to: `${adsId}/${adsConversionLabel}` });
+      if (gtmId && browserWindow.dataLayer) browserWindow.dataLayer.push({ event: "dromocob_conversion", ...payload });
+    };
+    window.addEventListener("dromocob:conversion", handleConversion);
+    return () => window.removeEventListener("dromocob:conversion", handleConversion);
+  }, [adsConversionLabel, adsId, consent?.advertising, ga4Id, gtmId]);
 
   return (
     <>

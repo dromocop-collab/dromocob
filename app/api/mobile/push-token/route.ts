@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     let uid: string | null = null;
-    var adminAuthorized = false;
+    let adminAuthorized = false;
     const authorization = request.headers.get("authorization") || "";
     if (authorization.startsWith("Bearer ")) {
       try {

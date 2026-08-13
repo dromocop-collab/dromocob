@@ -31,6 +31,18 @@ function analyticsAllowed() {
   }
 }
 
+function captureAdAttribution(searchParams: URLSearchParams) {
+  try {
+    const consent = JSON.parse(localStorage.getItem(CONSENT_STORAGE_KEY) || "null");
+    if (consent?.advertising !== true) return;
+    const keys = ["gclid", "gbraid", "wbraid", "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content"];
+    const incoming = Object.fromEntries(keys.map(key => [key, searchParams.get(key) || ""]).filter(([, value]) => value));
+    if (!Object.keys(incoming).length) return;
+    const payload = { ...incoming, landingPage: location.pathname, capturedAt: new Date().toISOString() };
+    document.cookie = `dc_ad_attribution=${encodeURIComponent(JSON.stringify(payload))}; Path=/; Max-Age=7776000; SameSite=Lax; Secure`;
+  } catch {}
+}
+
 function AnalyticsRuntime() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,6 +51,13 @@ function AnalyticsRuntime() {
   const lastScrollBucket = useRef(0);
   const queue = useRef<Record<string, unknown>[]>([]);
   const flushing = useRef(false);
+
+  useEffect(() => {
+    const capture = () => captureAdAttribution(searchParams);
+    capture();
+    window.addEventListener("dromocob:consent", capture);
+    return () => window.removeEventListener("dromocob:consent", capture);
+  }, [searchParams]);
 
   useEffect(() => {
     if (pathname.startsWith("/admin") || !analyticsAllowed()) return;

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { adminDb } from "@/lib/firebase-admin";
+import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID } from "@/lib/google-ads";
 
 export type PublicTrackingSettings = {
   enabled?: boolean;
@@ -56,6 +57,8 @@ export async function getPublicTrackingSettings(): Promise<PublicTrackingSetting
       process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ||
       "",
     gtmId: process.env.NEXT_PUBLIC_GTM_ID || "",
+    googleAdsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || DEFAULT_GOOGLE_ADS_ID,
+    googleAdsConversionLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_LABEL || DEFAULT_GOOGLE_ADS_CONVERSION_LABEL,
   };
 
   try {
@@ -63,7 +66,13 @@ export async function getPublicTrackingSettings(): Promise<PublicTrackingSetting
     const data = snapshot.data();
     if (!data || data.active === false) return fallback;
 
-    return { ...fallback, ...(data.tracking as PublicTrackingSettings | undefined) };
+    const stored = (data.tracking || {}) as PublicTrackingSettings;
+    return {
+      ...fallback,
+      ...stored,
+      googleAdsId: String(stored.googleAdsId || fallback.googleAdsId || "").trim(),
+      googleAdsConversionLabel: String(stored.googleAdsConversionLabel || fallback.googleAdsConversionLabel || "").trim(),
+    };
   } catch (error) {
     console.warn("[DROMOCOB TRACKING] Sunucu ayarları okunamadı; env değerleri kullanılıyor.", error);
     return fallback;

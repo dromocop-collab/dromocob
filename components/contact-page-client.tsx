@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowRight, ArrowUpRight, Building2, CalendarClock, Check, CircleCheck, Clock3, Globe2, Loader2, Mail, MapPin, MessageSquareText, Phone, ShieldCheck, Sparkles } from "lucide-react";
 import { siteEmail, sitePhone, sitePhoneDisplay } from "@/lib/seo";
 import QuoteLauncher from "@/components/quote-launcher";
+import { reportLeadConversion } from "@/lib/client-conversions";
 
 export default function ContactPageClient() {
   const [sent, setSent] = useState(false);
@@ -43,12 +44,14 @@ export default function ContactPageClient() {
         }
       );
 
+      const result = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(
-          await response.text()
+          result.message || "Form gönderilemedi."
         );
       }
 
+      reportLeadConversion({ id: String(result.conversionId || result.referenceId || ""), type: "contact_submit", value: Number(result.conversionValue || 10000), service: String(data.get("subject") || "Genel proje") });
       setSent(true);
     } catch (submitError) {
       setError(

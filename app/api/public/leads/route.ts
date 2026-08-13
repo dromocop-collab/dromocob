@@ -8,6 +8,7 @@ import { adminDb } from "@/lib/firebase-admin";
 import { enqueueMail } from "@/lib/auth-code-mail";
 import { notifyDromocobApp } from "@/lib/dromocob-app-notifications";
 import { siteEmail, siteUrl } from "@/lib/seo";
+import { recordConversion } from "@/lib/conversion-tracking";
 
 type LeadPayload = {
   type?: "contact" | "quote" | "newsletter";
@@ -225,7 +226,11 @@ export async function POST(
         console.error("[CONTACT APP NOTIFICATION]", pushError);
       }
 
-      return NextResponse.json({ ok: true });
+      let conversionId = `contact_submit_${contactReference.id}`;
+      try { conversionId = await recordConversion({ request: req, kind: "contact_submit", entityId: contactReference.id, name, email, phone, value: 10000, service: subject || "Genel proje", sourcePath: "/iletisim" }); }
+      catch (conversionError) { console.error("[CONTACT CONVERSION]", conversionError); }
+
+      return NextResponse.json({ ok: true, referenceId: contactReference.id, conversionId, conversionValue: 10000 });
     }
 
     if (type === "newsletter") {
@@ -346,7 +351,11 @@ export async function POST(
       console.error("[QUOTE APP NOTIFICATION]", pushError);
     }
 
-    return NextResponse.json({ ok: true, referenceId: quoteReference.id });
+    let conversionId = `quote_submit_${quoteReference.id}`;
+    try { conversionId = await recordConversion({ request: req, kind: "quote_submit", entityId: quoteReference.id, name: contact.name || "Teklif müşterisi", email: contact.email, phone: contact.phone, value: estimatedPrice, service: serviceLabel, sourcePath: normalizeText(body.sourcePath, 300) }); }
+    catch (conversionError) { console.error("[QUOTE CONVERSION]", conversionError); }
+
+    return NextResponse.json({ ok: true, referenceId: quoteReference.id, conversionId, conversionValue: estimatedPrice });
   } catch (error) {
     console.error(
       "[PUBLIC LEADS API]",

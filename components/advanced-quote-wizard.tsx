@@ -7,6 +7,7 @@ import { ArrowRight, Check, ChevronLeft, ChevronRight, CircleCheck, Loader2, Sen
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { advancedQuoteConfig, type AdvancedQuoteQuestion, type AdvancedQuoteService } from "@/lib/advanced-quote-config";
 import { db } from "@/lib/firebase";
+import { reportLeadConversion } from "@/lib/client-conversions";
 
 type Answers = Record<string, string | string[]>;
 type Contact = { name: string; company: string; email: string; phone: string; city: string; preferredContact: string };
@@ -156,6 +157,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(result.message || "Teklif talebi gönderilemedi.");
+      reportLeadConversion({ id: String(result.conversionId || result.referenceId || ""), type: "quote_submit", value: Number(result.conversionValue || estimatedPrice), service: config.shortLabel });
       setReferenceId(String(result.referenceId || ""));
       setSent(true);
     } catch (submitError) {

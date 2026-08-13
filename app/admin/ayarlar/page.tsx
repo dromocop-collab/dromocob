@@ -4,6 +4,7 @@ import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
 import { Check, Globe, LineChart, ShieldCheck, Wrench } from "lucide-react";
 import { db } from "@/lib/firebase";
+import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID } from "@/lib/google-ads";
 
 type SiteSettings = {
   active: boolean;
@@ -102,8 +103,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
     enabled: true,
     ga4MeasurementId: "",
     gtmId: "",
-    googleAdsId: "",
-    googleAdsConversionLabel: "",
+    googleAdsId: DEFAULT_GOOGLE_ADS_ID,
+    googleAdsConversionLabel: DEFAULT_GOOGLE_ADS_CONVERSION_LABEL,
     metaPixelId: "",
     metaDomainVerification: "",
     linkedinInsightId: "",
@@ -202,6 +203,8 @@ export default function Page() {
           tracking: {
             ...DEFAULT_SETTINGS.tracking,
             ...(data.tracking || {}),
+            googleAdsId: String(data.tracking?.googleAdsId || DEFAULT_SETTINGS.tracking.googleAdsId),
+            googleAdsConversionLabel: String(data.tracking?.googleAdsConversionLabel || DEFAULT_SETTINGS.tracking.googleAdsConversionLabel),
           },
           maintenance: {
             ...DEFAULT_SETTINGS.maintenance,

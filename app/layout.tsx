@@ -89,7 +89,7 @@ export default async function RootLayout({children}:{children:React.ReactNode}) 
     sameAs: seoSettings.socialProfiles?.length ? seoSettings.socialProfiles : undefined,
   };
 
-  return <html lang="tr" data-scroll-behavior="smooth">
+  return <html lang="tr" data-scroll-behavior="smooth" suppressHydrationWarning>
     <head>{[
       <Script key="consent-bootstrap" id="dromocob-consent-bootstrap" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: getConsentBootstrapScript() }} />,
       seoSettings.googleSiteVerification ? <meta key="google-verification" name="google-site-verification" content={seoSettings.googleSiteVerification} /> : null,
