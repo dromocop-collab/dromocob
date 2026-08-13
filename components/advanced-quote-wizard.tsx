@@ -85,10 +85,23 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
     if (!open) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && close();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") return close();
+      if ((event.target as HTMLElement)?.matches("input,textarea,select")) return;
+      const optionIndex = Number(event.key) - 1;
+      const selectedOption = !isContactStep ? question?.options?.[optionIndex] : undefined;
+      if (selectedOption && question) setAnswers(currentAnswers => {
+        if (question.type !== "multi") return { ...currentAnswers, [question.key]: selectedOption.value };
+        const current = Array.isArray(currentAnswers[question.key]) ? currentAnswers[question.key] as string[] : [];
+        return { ...currentAnswers, [question.key]: current.includes(selectedOption.value) ? current.filter(item => item !== selectedOption.value) : [...current, selectedOption.value] };
+      });
+      const currentAnswer = question ? answers[question.key] : undefined;
+      const stepReady = Boolean(question?.optional) || (Array.isArray(currentAnswer) ? currentAnswer.length > 0 : Boolean(currentAnswer?.trim()));
+      if (event.key === "Enter" && stepReady && !isContactStep) setStep(value => Math.min(value + 1, config.questions.length));
+    };
     window.addEventListener("keydown", onKeyDown);
     return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", onKeyDown); };
-  }, [open, close]);
+  }, [open, close, isContactStep, question, answers, contact, consent, config.questions.length]);
 
   const estimatedPrice = useMemo(() => config.basePrice + config.questions.reduce((total, item) => {
     const answer = answers[item.key];
@@ -170,11 +183,12 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
   return <>
     {!hideTrigger && <button type="button" className="button" onClick={() => setOpen(true)}>{buttonLabel} <ArrowRight size={18}/></button>}
     {mounted && open && createPortal(<div className="advanced-quote-backdrop" role="dialog" aria-modal="true" aria-label={config.label}>
-      <div className={`advanced-quote-shell quote-${service}`}>
+      <div className={`advanced-quote-shell quote-${service}`} data-step={step + 1}>
         <header className="advanced-quote-head"><div><Image className="advanced-quote-logo" src="/logo.svg" alt="" width={34} height={34}/><div><small>DROMOCOB / SCOPE INTELLIGENCE</small><strong>{config.label}</strong></div></div><button type="button" onClick={close} aria-label="Teklif motorunu kapat"><X/></button></header>
         <div className="advanced-quote-progress"><span style={{ width: `${((step + 1) / totalSteps) * 100}%` }}/></div>
+        <nav className="advanced-step-rail" aria-label="Teklif adımları">{Array.from({ length: totalSteps }, (_, index) => <button key={index} type="button" className={index === step ? "is-current" : index < step ? "is-complete" : ""} disabled={index > step} onClick={() => index <= step && setStep(index)} aria-label={`${index + 1}. adıma git`}><i>{index < step ? <Check/> : index + 1}</i><span>{index === totalSteps - 1 ? "İletişim" : index === step ? "Aktif adım" : ""}</span></button>)}</nav>
         {!sent ? <form onSubmit={submit} className="advanced-quote-layout">
-          <main className="advanced-quote-main">
+          <main className="advanced-quote-main" key={`${service}-${step}`}>
             <div className="advanced-step-meta"><span>ADIM {String(step + 1).padStart(2, "0")}</span><span>{String(totalSteps).padStart(2, "0")}</span></div>
             {!isContactStep && question ? <>
               <p className="advanced-quote-kicker">{config.shortLabel} kapsam analizi</p>
@@ -182,7 +196,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
               {(question.type === "single" || question.type === "multi") && <div className="advanced-option-grid">{question.options?.map(item => {
                 const current = answers[question.key];
                 const active = Array.isArray(current) ? current.includes(item.value) : current === item.value;
-                return <button type="button" key={item.value} className={active ? "selected" : ""} onClick={() => select(item.value)}><span><strong>{item.label}</strong>{item.hint && <small>{item.hint}</small>}</span><i>{active ? <Check/> : question.type === "multi" ? "+" : "○"}</i></button>;
+                return <button type="button" key={item.value} aria-pressed={active} className={active ? "selected" : ""} onClick={() => select(item.value)}><kbd>{(question.options?.indexOf(item) || 0) + 1}</kbd><span><strong>{item.label}</strong>{item.hint && <small>{item.hint}</small>}</span><i>{active ? <Check/> : question.type === "multi" ? "+" : "○"}</i></button>;
               })}</div>}
               {(question.type === "text" || question.type === "textarea") && <div className="advanced-text-answer">{question.type === "textarea" ? <textarea rows={8} value={String(answers[question.key] || "")} onChange={event => setAnswers({ ...answers, [question.key]: event.target.value })} placeholder={question.placeholder}/> : <input value={String(answers[question.key] || "")} onChange={event => setAnswers({ ...answers, [question.key]: event.target.value })} placeholder={question.placeholder}/>}<small>{question.optional ? "Bu alan isteğe bağlıdır." : "Bu alan gereklidir."}</small></div>}
             </> : <>
@@ -194,7 +208,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
             {error && <div className="advanced-quote-error">{error}</div>}
             <footer className="advanced-quote-actions"><button type="button" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}><ChevronLeft/> Geri</button>{!isContactStep ? <button type="button" className="primary" disabled={!canContinue()} onClick={() => setStep(step + 1)}>{question?.optional && !answers[question.key] ? "Atla" : "Devam"} <ChevronRight/></button> : <button type="submit" className="primary" disabled={!canContinue() || saving}>{saving ? <Loader2 className="spin"/> : <Send/>} Teklif talebini gönder</button>}</footer>
           </main>
-          <aside className="advanced-quote-summary"><p>KAPSAM ÖZETİ</p><div><span>Tamamlanan</span><strong>{completedCount}/{config.questions.length}</strong></div><div><span>Modül</span><strong>{config.shortLabel}</strong></div><div><span>Ön kapsam değeri</span><strong>{estimatedPrice.toLocaleString("tr-TR")} TL+</strong></div><small>Bu değer otomatik kapsam analizidir; resmî fiyat değildir. Nihai teklif ihtiyaç, takvim ve üretim planı doğrulandıktan sonra hazırlanır.</small><div className="summary-track"><span style={{ width: `${(completedCount / config.questions.length) * 100}%` }}/></div></aside>
+          <aside className="advanced-quote-summary"><div className="summary-live"><i/> CANLI KAPSAM HESABI</div><p>KAPSAM ÖZETİ</p><div><span>Tamamlanan</span><strong>{completedCount}/{config.questions.length}</strong></div><div><span>Modül</span><strong>{config.shortLabel}</strong></div><div className="summary-price"><span>Ön kapsam değeri</span><strong key={estimatedPrice}>{estimatedPrice.toLocaleString("tr-TR")} TL+</strong></div><small>Bu değer otomatik kapsam analizidir; resmî fiyat değildir. Nihai teklif ihtiyaç, takvim ve üretim planı doğrulandıktan sonra hazırlanır.</small><div className="summary-shortcuts"><span><kbd>1—9</kbd> seçenek</span><span><kbd>ENTER</kbd> devam</span></div><div className="summary-track"><span style={{ width: `${(completedCount / config.questions.length) * 100}%` }}/></div></aside>
         </form> : <div className="advanced-quote-success"><CircleCheck/><p className="advanced-quote-kicker">Talep başarıyla alındı</p><h2>Kapsam masamızda.</h2><p>Tüm seçimlerin admin paneline kaydedildi ve <strong>info@dromocob.tr</strong> adresine bildirim oluşturuldu. İnceleyip seninle iletişime geçeceğiz.</p>{referenceId && <code>REFERANS / {referenceId}</code>}<button className="button" onClick={close}>Tamamla</button></div>}
       </div>
     </div>, document.body)}

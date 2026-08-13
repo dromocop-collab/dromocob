@@ -1,4 +1,4 @@
-export type AdvancedQuoteService = "web" | "video";
+export type AdvancedQuoteService = "web" | "video" | "web-quick" | "video-quick" | "drone-quick" | "growth-quick" | "apps-quick" | "project-quick" | "fethiye-quick" | "equipment-quick";
 
 export type AdvancedQuoteOption = {
   label: string;
@@ -69,6 +69,102 @@ export const advancedQuoteConfig: Record<AdvancedQuoteService, {
       { key: "budget", title: "Planlanan prodüksiyon bütçesi", subtitle: "Kreatif fikri uygulanabilir ölçeğe yerleştirebilmek için.", type: "single", options: [option("20.000–40.000 TL", "20-40"), option("40.000–80.000 TL", "40-80"), option("80.000–150.000 TL", "80-150"), option("150.000–300.000 TL", "150-300"), option("300.000 TL+", "300+"), option("Henüz bütçe belirlenmedi", "unknown")] },
       { key: "references", title: "Brief, referans video veya marka bağlantıları", subtitle: "YouTube, Vimeo, Drive veya web bağlantılarını alt alta yazabilirsin.", type: "textarea", optional: true, placeholder: "Referanslar, marka sitesi, mevcut içerikler, brief bağlantısı..." },
       { key: "details", title: "Çekim hakkında bilmemiz gereken diğer detaylar", subtitle: "Şehir, tarih, ürün sayısı, konuşmacılar veya listede olmayan özel talepler.", type: "textarea", optional: true, placeholder: "Projeyi kendi cümlelerinizle anlatın..." },
+    ],
+  },
+  "web-quick": {
+    label: "Web Projesi Hızlı Kapsam",
+    shortLabel: "Web Projesi",
+    basePrice: 10000,
+    questions: [
+      { key: "type", title: "Ne yapıyoruz?", subtitle: "En yakın seçeneği seç.", type: "single", options: [option("Kurumsal web sitesi", "corporate"), option("E-ticaret", "commerce", 35000), option("Landing page", "landing"), option("Özel web uygulaması", "custom", 55000)] },
+      { key: "goal", title: "Ana hedef ne?", subtitle: "Önceliğini seç.", type: "single", options: [option("Müşteri kazanmak", "lead", 5000), option("Online satış", "sales", 18000), option("Markayı güçlendirmek", "brand", 4000), option("İşi dijitalleştirmek", "operation", 22000)] },
+      { key: "features", title: "Neler gerekli?", subtitle: "Birden fazla seçebilirsin.", type: "multi", options: [option("Yönetim paneli", "admin", 18000), option("Üyelik", "auth", 18000), option("Ödeme", "payment", 28000), option("Teklif / rezervasyon", "quote", 22000), option("SEO altyapısı", "seo", 10000)] },
+      { key: "timeline", title: "Ne zaman hazır olsun?", subtitle: "Yaklaşık süre yeterli.", type: "single", options: [option("2–4 hafta", "urgent", 20000), option("1–2 ay", "normal", 8000), option("2+ ay", "flexible"), option("Henüz net değil", "unknown")] },
+      { key: "note", title: "Kısaca anlatır mısın?", subtitle: "Bir iki cümle yeterli.", type: "textarea", optional: true, placeholder: "Projenin en önemli ihtiyacı..." },
+    ],
+  },
+  "video-quick": {
+    label: "Prodüksiyon Hızlı Kapsam",
+    shortLabel: "Video Prodüksiyon",
+    basePrice: 18000,
+    questions: [
+      { key: "type", title: "Ne çekiyoruz?", subtitle: "İçerik türünü seç.", type: "single", options: [option("Tanıtım filmi", "corporate", 22000), option("Reklam filmi", "commercial", 28000), option("Reels / kısa video", "social", 14000), option("Etkinlik", "event", 18000)] },
+      { key: "place", title: "Çekim nerede?", subtitle: "Yaklaşık konum yeterli.", type: "single", options: [option("Fethiye / Muğla", "local"), option("Başka şehir", "domestic", 12000), option("Stüdyo", "studio", 12000), option("Henüz belli değil", "unknown")] },
+      { key: "extras", title: "Neler ekleyelim?", subtitle: "İstediğin kadar seç.", type: "multi", options: [option("Drone", "drone", 8000), option("Fotoğraf", "photo", 12000), option("Oyuncu / model", "talent", 18000), option("Motion grafik", "motion", 12000), option("Dikey versiyonlar", "vertical", 7000)] },
+      { key: "timeline", title: "Teslim ne zaman?", subtitle: "Takvimi seç.", type: "single", options: [option("7–10 gün", "urgent", 18000), option("2–3 hafta", "normal", 7000), option("1+ ay", "flexible"), option("Net değil", "unknown")] },
+      { key: "note", title: "Aklındaki fikir ne?", subtitle: "Kısaca yazabilirsin.", type: "textarea", optional: true, placeholder: "Filmde görmek istediğin ana fikir..." },
+    ],
+  },
+  "drone-quick": {
+    label: "Drone Operasyonu Hızlı Kapsam",
+    shortLabel: "Drone Çekimi",
+    basePrice: 10000,
+    questions: [
+      { key: "shot", title: "Nasıl bir çekim?", subtitle: "Uçuş stilini seç.", type: "single", options: [option("Sinematik drone", "cinematic"), option("FPV dinamik çekim", "fpv", 8000), option("Haritalama / inceleme", "survey", 12000), option("Emin değilim", "unknown")] },
+      { key: "subject", title: "Neyi çekiyoruz?", subtitle: "Ana konuyu seç.", type: "single", options: [option("Otel / villa", "hospitality"), option("Emlak / inşaat", "real-estate"), option("Etkinlik", "event", 5000), option("Marka / ürün", "brand", 7000)] },
+      { key: "location", title: "Uçuş nerede?", subtitle: "Bölge yeterli.", type: "single", options: [option("Fethiye", "fethiye"), option("Muğla geneli", "mugla", 3000), option("Başka şehir", "other", 12000), option("Henüz belli değil", "unknown")] },
+      { key: "delivery", title: "Ne teslim edelim?", subtitle: "Birden fazla seçebilirsin.", type: "multi", options: [option("Kurgulu film", "edit", 8000), option("Ham görüntü", "raw", 3000), option("Reels versiyonu", "reels", 5000), option("Fotoğraf kareleri", "stills", 4000)] },
+      { key: "date", title: "Çekim ne zaman?", subtitle: "Yaklaşık tarih yeterli.", type: "text", placeholder: "Örn. Eylülün ikinci haftası" },
+    ],
+  },
+  "growth-quick": {
+    label: "Büyüme Sistemi Hızlı Kapsam",
+    shortLabel: "SEO & Reklam",
+    basePrice: 10000,
+    questions: [
+      { key: "channel", title: "Nerede büyüyelim?", subtitle: "Ana kanalı seç.", type: "single", options: [option("Google SEO", "seo"), option("Google Ads", "google", 5000), option("Meta reklamları", "meta", 5000), option("Hepsi birlikte", "all", 15000)] },
+      { key: "goal", title: "Hedef ne?", subtitle: "Tek öncelik seç.", type: "single", options: [option("Daha fazla müşteri", "lead"), option("Daha fazla satış", "sales"), option("Yerelde görünürlük", "local"), option("Marka bilinirliği", "brand")] },
+      { key: "state", title: "Şu an durum nasıl?", subtitle: "En yakın seçeneği seç.", type: "single", options: [option("Yeni başlıyoruz", "new"), option("Reklamlar aktif", "active"), option("SEO çalışması var", "seo-active"), option("Analiz gerekli", "audit", 5000)] },
+      { key: "budget", title: "Aylık bütçe?", subtitle: "Yaklaşık aralık yeterli.", type: "single", options: [option("10–25 bin TL", "10-25"), option("25–50 bin TL", "25-50"), option("50 bin TL+", "50+"), option("Henüz net değil", "unknown")] },
+      { key: "site", title: "Web sitesi veya hesap", subtitle: "Varsa bağlantıyı bırak.", type: "text", optional: true, placeholder: "https://... veya @hesap" },
+    ],
+  },
+  "apps-quick": {
+    label: "Dijital Ürün Hızlı Kapsam",
+    shortLabel: "Uygulama",
+    basePrice: 35000,
+    questions: [
+      { key: "type", title: "Ne geliştiriyoruz?", subtitle: "Ürün türünü seç.", type: "single", options: [option("Mobil uygulama", "mobile", 30000), option("Web uygulaması", "web", 20000), option("Müşteri paneli", "portal", 18000), option("İç operasyon aracı", "internal", 22000)] },
+      { key: "users", title: "Kim kullanacak?", subtitle: "Ana kullanıcıyı seç.", type: "single", options: [option("Müşteriler", "customers"), option("Çalışanlar", "team"), option("Bayiler", "dealers", 8000), option("Herkes", "public", 5000)] },
+      { key: "core", title: "En önemli özellik?", subtitle: "Birden fazla seçebilirsin.", type: "multi", options: [option("Üyelik", "auth", 10000), option("Ödeme", "payment", 15000), option("Rezervasyon", "booking", 12000), option("Mesajlaşma", "chat", 10000), option("Raporlama", "reports", 12000)] },
+      { key: "stage", title: "Hangi aşamadasın?", subtitle: "Mevcut durumu seç.", type: "single", options: [option("Sadece fikir var", "idea"), option("Tasarım hazır", "design"), option("Çalışan ürün var", "existing"), option("Önce keşif gerekli", "discovery", 5000)] },
+      { key: "note", title: "Ürünü tek cümleyle anlat", subtitle: "Kısa olması yeterli.", type: "textarea", placeholder: "Kullanıcı ... yapabilecek." },
+    ],
+  },
+  "project-quick": {
+    label: "Yeni Proje Hızlı Kapsam",
+    shortLabel: "Yeni Proje",
+    basePrice: 10000,
+    questions: [
+      { key: "area", title: "Hangi alanda?", subtitle: "Başlangıç noktasını seç.", type: "single", options: [option("Web & yazılım", "web"), option("Film & video", "video", 8000), option("SEO & reklam", "growth"), option("Hepsi birlikte", "integrated", 30000)] },
+      { key: "goal", title: "Ne başarmalı?", subtitle: "Ana sonucu seç.", type: "single", options: [option("Müşteri kazandırmalı", "lead"), option("Satış artırmalı", "sales"), option("Markayı yenilemeli", "brand"), option("Süreci hızlandırmalı", "operation")] },
+      { key: "stage", title: "Nereden başlıyoruz?", subtitle: "Mevcut durumu seç.", type: "single", options: [option("Sıfırdan", "new"), option("Mevcut işi geliştiriyoruz", "improve"), option("Fikir hazır", "brief"), option("Keşif gerekli", "discovery", 5000)] },
+      { key: "timeline", title: "Ne zaman başlayalım?", subtitle: "Yaklaşık tarih yeterli.", type: "single", options: [option("Hemen", "now", 8000), option("1 ay içinde", "month"), option("1–3 ay", "quarter"), option("Henüz net değil", "unknown")] },
+      { key: "note", title: "Projeyi kısaca anlat", subtitle: "Bir iki cümle yeterli.", type: "textarea", optional: true, placeholder: "Hedefin ve en önemli ihtiyacın..." },
+    ],
+  },
+  "fethiye-quick": {
+    label: "Fethiye İşletme Hızlı Kapsam",
+    shortLabel: "Fethiye Projesi",
+    basePrice: 10000,
+    questions: [
+      { key: "business", title: "İşletmen hangi alanda?", subtitle: "Sektörünü seç.", type: "single", options: [option("Otel / villa", "hotel"), option("Restoran", "restaurant"), option("Tur / aktivite", "tour"), option("Emlak / inşaat", "real-estate"), option("Diğer", "other")] },
+      { key: "need", title: "Neye ihtiyacın var?", subtitle: "Birden fazla seçebilirsin.", type: "multi", options: [option("Web sitesi", "web"), option("Drone / video", "video", 8000), option("Google görünürlüğü", "seo", 6000), option("Reklam yönetimi", "ads", 6000)] },
+      { key: "goal", title: "Hedefin ne?", subtitle: "Ana hedefi seç.", type: "single", options: [option("Daha fazla rezervasyon", "booking"), option("Daha fazla müşteri", "lead"), option("Yabancı turiste ulaşmak", "tourist", 5000), option("Markayı yenilemek", "brand")] },
+      { key: "start", title: "Ne zaman başlayalım?", subtitle: "Yaklaşık süre yeterli.", type: "single", options: [option("Hemen", "now", 5000), option("Bu ay", "month"), option("Sezon öncesi", "season"), option("Henüz net değil", "unknown")] },
+      { key: "place", title: "İşletmen nerede?", subtitle: "Bölge veya mahalle yeterli.", type: "text", placeholder: "Örn. Ölüdeniz, Çalış, Göcek" },
+    ],
+  },
+  "equipment-quick": {
+    label: "Kamera Ekipmanı Hızlı Plan",
+    shortLabel: "Ekipman & Çekim",
+    basePrice: 10000,
+    questions: [
+      { key: "purpose", title: "Ne çekeceksin?", subtitle: "Kullanım alanını seç.", type: "single", options: [option("Reklam / marka filmi", "commercial"), option("Sosyal medya", "social"), option("Etkinlik", "event"), option("Drone çekimi", "drone")] },
+      { key: "need", title: "Neye ihtiyacın var?", subtitle: "Birden fazla seçebilirsin.", type: "multi", options: [option("Kamera", "camera"), option("Lens", "lens"), option("Işık", "light"), option("Ses", "audio"), option("Gimbal / drone", "motion", 5000)] },
+      { key: "model", title: "Çalışma şekli?", subtitle: "Sana uygun olanı seç.", type: "single", options: [option("Ekiple tam prodüksiyon", "production", 15000), option("Operatör desteği", "operator", 8000), option("Ekipman danışmanlığı", "consulting"), option("Henüz bilmiyorum", "unknown")] },
+      { key: "date", title: "Ne zaman gerekli?", subtitle: "Yaklaşık tarih yeterli.", type: "text", placeholder: "Örn. 20–22 Eylül" },
+      { key: "note", title: "Özel bir detay var mı?", subtitle: "Varsa kısaca yaz.", type: "textarea", optional: true, placeholder: "Lokasyon, çekim süresi veya özel ekipman..." },
     ],
   },
 };

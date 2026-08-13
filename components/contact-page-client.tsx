@@ -93,6 +93,7 @@ export default function ContactPageClient() {
       {sent ? <div className="contact-success-panel"><CircleCheck/><p className="eyebrow">Brief başarıyla iletildi</p><h2>Proje masamızda.</h2><p>Detayları inceleyip en geç bir iş günü içinde belirttiğiniz kanaldan dönüş yapacağız.</p><button className="button" onClick={() => setSent(false)}>Yeni mesaj oluştur</button></div> :
       <form className="contact-enterprise-form" onSubmit={submit}>
         <div className="contact-form-head"><div><MessageSquareText/><span><small>SECURE PROJECT BRIEF</small><strong>Projenizi anlatın</strong></span></div><b>SSL / KVKK</b></div>
+        <div className="contact-form-system"><span><i/> GÜVENLİ BAĞLANTI</span><span>01 İLETİŞİM</span><span>02 KAPSAM</span><span>03 GÖNDERİM</span></div>
         {error && <div className="auth-error">{error}</div>}
         <input type="text" name="website" autoComplete="off" tabIndex={-1} className="hp-field" aria-hidden="true" />
         <div className="contact-field-grid"><label><span>Ad soyad *</span><input name="name" required placeholder="Adınız ve soyadınız" /></label><label><span>Firma / marka</span><div><Building2/><input name="company" placeholder="Markanızın adı" /></div></label></div>

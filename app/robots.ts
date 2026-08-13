@@ -35,7 +35,8 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
       },
       {
         userAgent: "Googlebot-Image",
-        allow: ["/images/", "/opengraph-image"],
+        allow: allowPublic ? ["/images/", "/opengraph-image"] : undefined,
+        disallow: allowPublic ? undefined : "/",
       },
     ],
     sitemap: seo.sitemapEnabled === false ? undefined : `${siteUrl}/sitemap.xml`,

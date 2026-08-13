@@ -22,6 +22,7 @@ export default function DroneCekimiPage() {
     { title: "Sinematik drone ile FPV farkı", description: "Sinematik drone geniş, kontrollü ve dengeli kadrajlar üretir. FPV drone ise dar alanlardan geçebilen, izleyiciyi hareketin içine alan dinamik bir kamera dili sağlar.", points: ["Klasik hava çekiminde güçlü ölçek algısı", "FPV ile kesintisiz mekân turu", "Yer kamerasıyla uyumlu renk ve kurgu"] },
     { title: "Güvenli uçuş ve teslim standardı", description: "Her operasyon lokasyon, hava durumu, uçuş bölgesi ve çekim amacı üzerinden planlanır. Görüntüler yalnızca kaydedilmez; seçki, stabilizasyon, renk ve platform formatlarıyla yayına hazırlanır.", points: ["Çekim öncesi saha ve rota değerlendirmesi", "Yedekli kayıt ve kontrollü operasyon", "4K, yatay ve dikey teslim seçenekleri"] },
   ]} relatedLinks={[
+    { title: "Kamera ve drone ekipmanları", description: "Prodüksiyonda kullandığımız hava ve yer kamera sistemleri.", href: "/kamera-ekipmanlari" },
     { title: "Acil drone çekimi", description: "Hızlı keşif ve uygunluk kontrolü gereken operasyonlar.", href: "/acil-drone-cekimi" },
     { title: "Video prodüksiyon", description: "Drone görüntülerini tam ölçekli marka filmine dönüştürün.", href: "/video-produksiyon" },
     { title: "Villa tanıtımı", description: "Gayrimenkul için hava ve iç mekân prodüksiyonu.", href: "/villa-tanitimi" },

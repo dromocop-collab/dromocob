@@ -1,35 +1,15 @@
-import { pageMetadata, siteEmail, sitePhoneDisplay } from "@/lib/seo";
+import TrustCenterPage from "@/components/trust-center-page";
+import { pageMetadata, sitePhoneDisplay } from "@/lib/seo";
 
-export const metadata = pageMetadata({
-  title: "Destek",
-  description: "Dromocob uygulamaları ve hizmetleri için destek kanalları.",
-  path: "/destek",
-});
+export const metadata = pageMetadata({ title: "Destek Merkezi | Dromocob", description: "Dromocob uygulamaları, web ürünleri, lisanslar ve prodüksiyon hizmetleri için kurumsal destek kanalları ve destek süreci.", path: "/destek", keywords: ["Dromocob destek", "uygulama desteği", "web sitesi teknik destek", "lisans desteği"] });
 
-export default function SupportPage() {
-  return (
-    <section className="section legal-page">
-      <p className="eyebrow">Dromocob / Destek</p>
-      <h1>Destek</h1>
-      <p className="legal-lead">
-        Dromocob uygulamaları ve web ürünleri için teknik destek taleplerinizi bu sayfadaki
-        iletişim kanalları üzerinden iletebilirsiniz.
-      </p>
+const sections = [
+  { id: "kanallar", title: "Destek kanalları", summary: "Teknik ve hesap talepleri için e-posta ana kayıt kanalıdır; gerekli durumlarda telefonla yönlendirme sağlanır.", items: ["E-posta: info@dromocob.tr", `Telefon yönlendirme: ${sitePhoneDisplay}`, "Web sitesi canlı destek alanı", "Müşteri hesabındaki proje ve destek ekranları"] },
+  { id: "talep", title: "Etkili talep hazırlama", summary: "Sorunu yeniden üretebilmemiz için talebin bağlamını güvenli biçimde paylaşın.", items: ["Uygulama, web sitesi veya proje adı", "Kullandığınız sürüm, cihaz ve tarayıcı", "Sorunun oluştuğu adımlar ve yaklaşık zaman", "Kişisel/sır niteliğinde veri içermeyen ekran görüntüsü", "Beklenen sonuç ile gerçekleşen sonuç"] },
+  { id: "oncelik", title: "Önceliklendirme modeli", summary: "Talepler etki alanı, güvenlik riski ve hizmet kullanılabilirliğine göre değerlendirilir.", items: ["Kritik: güvenlik veya hizmetin tamamen kullanılamaması", "Yüksek: temel fonksiyonun ciddi biçimde etkilenmesi", "Normal: sınırlı hata, bilgi veya yapılandırma talebi", "Planlı: özellik önerisi ve geliştirme isteği"] },
+  { id: "sure", title: "Yanıt ve çözüm süreci", summary: "İş günlerinde ilk değerlendirme çoğunlukla 24 saat içinde yapılır; bu süre kesin çözüm süresi değildir.", paragraphs: ["Çözüm süresi problemin yeniden üretilebilirliği, üçüncü taraf sistem bağımlılığı, güvenlik incelemesi ve gerekli sürüm değişikliğine göre farklılaşabilir. Kritik taleplerde geçici önlem ve kalıcı çözüm ayrı aşamalarda sunulabilir."] },
+  { id: "guvenlik", title: "Güvenli destek", summary: "Destek ekibi sizden e-posta veya mesaj yoluyla parola, tek kullanımlık doğrulama kodu ya da tam ödeme kartı bilgisi istemez.", items: ["Parola ve doğrulama kodlarını paylaşmayın", "Hassas verileri ekran görüntüsünden maskeleyin", "Şüpheli mesajları info@dromocob.tr üzerinden doğrulayın", "Güvenlik açığını herkese açık kanalda yayımlamadan bildirin"] },
+  { id: "kapsam", title: "Destek kapsamı", summary: "Aktif hizmet, lisans veya bakım planının içeriğine göre destek kapsamı değişebilir.", paragraphs: ["Üçüncü taraf servis kesintileri, kullanıcı tarafından yapılan izinsiz kod değişiklikleri, kapsam dışı yeni özellikler ve eski sürümlere ilişkin çalışmalar ayrıca planlanabilir."] },
+];
 
-      <div className="legal-block">
-        <h2>1. E-posta desteği</h2>
-        <p>Detaylı destek talepleri için {siteEmail} adresine uygulama adı ve sürüm bilgisiyle yazın.</p>
-      </div>
-
-      <div className="legal-block">
-        <h2>2. Yanıt süresi</h2>
-        <p>İş günlerinde genellikle 24 saat içinde geri dönüş sağlanır.</p>
-      </div>
-
-      <div className="legal-block">
-        <h2>3. Telefon</h2>
-        <p>Gerekli durumlarda {sitePhoneDisplay} numarası üzerinden yönlendirme yapılır.</p>
-      </div>
-    </section>
-  );
-}
+export default function SupportPage() { return <TrustCenterPage eyebrow="TRUST CENTER / SUPPORT" title="Destek" accent="Merkezi" description="Teknik sorunu doğru ekibe, gerekli bağlamla ve güvenli biçimde ulaştırmanız için kurumsal destek sürecini açıklıyoruz." documentCode="DC-SUPPORT / V2.0" updatedAt="13 Ağustos 2026" sections={sections} note="Parolanızı, tek kullanımlık doğrulama kodunuzu veya tam ödeme kartı bilginizi hiçbir destek görüşmesinde paylaşmayın." related={[{ title: "Uygulama Gizliliği", href: "/gizlilik" }, { title: "Gizlilik Politikası", href: "/gizlilik-politikasi" }, { title: "KVKK Aydınlatma", href: "/kvkk-aydinlatma" }]}/>; }

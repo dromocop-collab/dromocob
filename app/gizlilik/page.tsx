@@ -1,35 +1,15 @@
-import { pageMetadata, siteEmail } from "@/lib/seo";
+import TrustCenterPage from "@/components/trust-center-page";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata = pageMetadata({
-  title: "Gizlilik",
-  description: "Dromocob uygulamaları için veri gizliliği ve güvenlik ilkeleri.",
-  path: "/gizlilik",
-});
+export const metadata = pageMetadata({ title: "Uygulama Gizliliği | Dromocob Apps", description: "Dromocob uygulamalarında hesap, lisans, teknik günlük ve destek verilerinin güvenli işlenme yaklaşımı.", path: "/gizlilik", keywords: ["Dromocob uygulama gizliliği", "uygulama veri güvenliği", "lisans verisi"] });
 
-export default function PrivacyPage() {
-  return (
-    <section className="section legal-page">
-      <p className="eyebrow">Dromocob / Gizlilik</p>
-      <h1>Gizlilik</h1>
-      <p className="legal-lead">
-        Dromocob, kullanıcı verilerinin korunmasını önceliklendirir. Uygulamalarımız minimum veri
-        ilkesiyle çalışır ve yalnızca hizmetin sağlanması için gerekli verileri işler.
-      </p>
+const sections = [
+  { id: "minimum", title: "Minimum veri ilkesi", summary: "Uygulamalar, özelliğin çalışması ve hesabın güvenliğinin sağlanması için gereken bilgiyle sınırlı tasarlanır.", items: ["Hesap ve oturum kimliği", "Lisans, abonelik ve yetki durumu", "Uygulama sürümü, cihaz ve hata günlükleri", "Kullanıcının doğrudan ilettiği destek içeriği"] },
+  { id: "kullanim", title: "Verinin kullanım alanı", summary: "Operasyonel veriler ürün işlevi dışında ilgisiz profilleme için kullanılmaz.", items: ["Hesap ve lisans doğrulaması", "Yetkilendirme ve kötüye kullanım önleme", "Hata teşhisi ve performans iyileştirme", "Destek talebinin sonuçlandırılması"] },
+  { id: "guvenlik", title: "Hesap ve altyapı güvenliği", summary: "Erişim kontrolleri, güvenli bağlantı ve teknik kayıt izleme ile çok katmanlı koruma uygulanır.", paragraphs: ["Kullanıcıların güçlü ve benzersiz parola kullanması, doğrulama bilgilerini paylaşmaması ve cihaz güvenliğini koruması hesap güvenliğinin tamamlayıcı parçasıdır."] },
+  { id: "saklama", title: "Saklama ve hesap kapatma", summary: "Hesap verileri hizmet ilişkisi ve zorunlu kayıt süreleri boyunca tutulur.", paragraphs: ["Hesap silme veya veri talebi alındığında devam eden lisans, güvenlik olayı, sözleşmesel yükümlülük ve yasal saklama ihtiyacı değerlendirilir; uygun veriler silinir veya anonimleştirilir."] },
+  { id: "ucuncu", title: "Üçüncü taraf hizmetleri", summary: "Uygulama mağazası, ödeme, barındırma veya bildirim hizmetleri kendi politikaları kapsamında ayrıca veri işleyebilir.", paragraphs: ["Dromocob yalnızca ürünün çalışması için gerekli entegrasyonları kullanmayı ve sağlayıcı erişimini hizmet kapsamıyla sınırlandırmayı hedefler."] },
+  { id: "haklar", title: "Talepler ve haklar", summary: "Hesabınız ve kişisel verileriniz hakkında bilgi, düzeltme veya silme talebinde bulunabilirsiniz.", paragraphs: ["Başvurunuzda uygulama adını, kullandığınız hesabı ve talebin konusunu belirtmeniz güvenli eşleştirme ve daha hızlı değerlendirme sağlar."] },
+];
 
-      <div className="legal-block">
-        <h2>1. Toplanan veriler</h2>
-        <p>Hesap kimliği, lisans durumu ve teknik hata kayıtları gibi operasyonel veriler işlenebilir.</p>
-      </div>
-
-      <div className="legal-block">
-        <h2>2. Veri kullanımı</h2>
-        <p>Veriler yalnızca lisans doğrulama, destek süreçleri ve güvenlik kontrolleri amacıyla kullanılır.</p>
-      </div>
-
-      <div className="legal-block">
-        <h2>3. İletişim</h2>
-        <p>Gizlilik talepleri için {siteEmail} adresinden bize ulaşabilirsiniz.</p>
-      </div>
-    </section>
-  );
-}
+export default function PrivacyPage() { return <TrustCenterPage eyebrow="TRUST CENTER / APPS" title="Uygulama" accent="Gizliliği" description="Dromocob uygulamalarında hesabı, lisansı ve teknik verileri minimum veri yaklaşımıyla nasıl koruduğumuzu açıklıyoruz." documentCode="DC-APPS-PRIVACY / V2.0" updatedAt="13 Ağustos 2026" sections={sections} note="Uygulama verileri yalnızca ürünün çalışması, güvenliği ve destek sürecinin yürütülmesi amacıyla kullanılır." related={[{ title: "Gizlilik Politikası", href: "/gizlilik-politikasi" }, { title: "KVKK Aydınlatma", href: "/kvkk-aydinlatma" }, { title: "Destek Merkezi", href: "/destek" }]}/>; }

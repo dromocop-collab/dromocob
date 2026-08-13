@@ -4,6 +4,7 @@ import { projectCaseStudies } from "@/lib/project-case-studies";
 import { absoluteUrl } from "@/lib/seo";
 import { adminDb } from "@/lib/firebase-admin";
 import { getPublicSeoSettings } from "@/lib/runtime-tracking";
+import { equipmentCatalog } from "@/lib/equipment-catalog";
 
 /**
  * Search engines use the sitemap as a discovery map, not a ranking mechanism.
@@ -62,6 +63,8 @@ const publicRoutes: PublicRoute[] = [
   { path: "/otel-tanitimi", priority: 0.95, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...productionServiceImages] },
   { path: "/insaat-firma-tanitimi", priority: 0.94, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...productionServiceImages] },
   { path: "/kurumsal-fotograf-cekimi", priority: 0.94, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...productionServiceImages] },
+  { path: "/kamera-ekipmanlari", priority: 0.91, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...productionServiceImages] },
+  { path: "/fethiye", priority: 0.95, changeFrequency: "daily", lastModified: updated.services, images: [openGraphImage, ...productionServiceImages] },
   { path: "/seo", priority: 0.95, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages] },
   { path: "/teknik-seo", priority: 0.94, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages] },
   { path: "/yerel-seo", priority: 0.94, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages] },
@@ -185,6 +188,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
+  const equipmentEntries: MetadataRoute.Sitemap = equipmentCatalog.map(item => {
+    const path = `/kamera-ekipmanlari/${item.slug}`;
+    return {
+      url: absoluteUrl(path),
+      lastModified: new Date(`${updated.services}T12:00:00.000Z`),
+      changeFrequency: "monthly",
+      priority: 0.82,
+      alternates: localizedAlternates(path),
+      images: uniqueAbsoluteImages([item.image, openGraphImage]),
+    };
+  });
+
   const firestoreProjectEntries: MetadataRoute.Sitemap = published.projects.map(project => {
     const path = `/projeler/${project.slug}`;
     return {
@@ -199,7 +214,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Guard against accidental duplicate canonical URLs as content grows.
   const seen = new Set<string>();
-  return [...staticEntries, ...packageEntries, ...firestoreProjectEntries, ...projectEntries].filter(item => {
+  return [...staticEntries, ...equipmentEntries, ...packageEntries, ...firestoreProjectEntries, ...projectEntries].filter(item => {
     if (seen.has(item.url)) return false;
     seen.add(item.url);
     return true;

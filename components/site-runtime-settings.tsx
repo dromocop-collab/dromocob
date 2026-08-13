@@ -228,7 +228,10 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
       const browserWindow = window as typeof window & { gtag?: (...args: unknown[]) => void; dataLayer?: unknown[] };
       const payload = { transaction_id: detail.id || "", value: Number(detail.value) || 0, currency: detail.currency || "TRY", conversion_type: detail.type || "lead", service: detail.service || "" };
       if (ga4Id && browserWindow.gtag) browserWindow.gtag("event", "generate_lead", payload);
-      if (adsId && adsConversionLabel && browserWindow.gtag && consent?.advertising) browserWindow.gtag("event", "conversion", { ...payload, send_to: `${adsId}/${adsConversionLabel}` });
+      // Consent Mode consent sinyalini zaten gtag'e iletir. Dönüşüm olayını burada
+      // tamamen engellemek, izin verilmemiş oturumlarda Google'ın cookieless
+      // conversion ping'ini ve Tag Assistant doğrulamasını da engelliyordu.
+      if (adsId && adsConversionLabel && browserWindow.gtag) browserWindow.gtag("event", "conversion", { ...payload, send_to: `${adsId}/${adsConversionLabel}` });
       if (gtmId && browserWindow.dataLayer) browserWindow.dataLayer.push({ event: "dromocob_conversion", ...payload });
     };
     window.addEventListener("dromocob:conversion", handleConversion);

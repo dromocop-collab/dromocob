@@ -6,10 +6,13 @@ import Image from "next/image";
 import {
   ArrowUpRight,
   Check,
+  Camera,
   Clapperboard,
   Code2,
   Loader2,
   Mail,
+  MapPin,
+  Radio,
   Send,
   Sparkles,
 } from "lucide-react";
@@ -67,6 +70,16 @@ export default function SiteFooter() {
     <footer className="site-footer">
       <div className="footer-signal"><span><i/> Fethiye’den dünyaya üretim</span><span>Web Application · Film Production · Growth</span></div>
 
+      <section className="footer-network" aria-label="Dromocob yerel ve prodüksiyon merkezleri">
+        <div className="footer-network-grid" aria-hidden="true"/>
+        <div><span><i/> DROMOCOB NETWORK / ONLINE</span><strong>Yerel bilgi.<br/><em>Global üretim.</em></strong></div>
+        <nav>
+          <Link href="/fethiye"><MapPin/><span><small>CANLI YEREL MERKEZ</small><b>Fethiye gündemi</b></span><ArrowUpRight/></Link>
+          <Link href="/kamera-ekipmanlari"><Camera/><span><small>PRODUCTION STACK</small><b>Kamera ekipmanları</b></span><ArrowUpRight/></Link>
+        </nav>
+        <div className="footer-network-orbit" aria-hidden="true"><i/><i/><Radio/></div>
+      </section>
+
       <section className="footer-cta">
         <div>
           <p className="eyebrow"><Sparkles size={15}/> Sıradaki büyük fikir</p>
@@ -100,7 +113,7 @@ export default function SiteFooter() {
         <nav><p>Web & Yazılım</p><Link href="/web-tasarim">Web Tasarım <Code2/></Link><Link href="/kurumsal-web-tasarim">Kurumsal Web Tasarım <ArrowUpRight/></Link><Link href="/e-ticaret-web-tasarim">E-Ticaret Sitesi <ArrowUpRight/></Link><Link href="/landing-page">Landing Page <ArrowUpRight/></Link><Link href="/mobil-uygulama">Mobil Uygulama <ArrowUpRight/></Link></nav>
         <nav><p>Video & Prodüksiyon</p><Link href="/video-produksiyon">Video Prodüksiyon <Clapperboard/></Link><Link href="/tanitim-filmi">Tanıtım Filmi <ArrowUpRight/></Link><Link href="/drone-cekimi">Drone Çekimi <ArrowUpRight/></Link><Link href="/kurumsal-fotograf-cekimi">Kurumsal Fotoğraf <ArrowUpRight/></Link><Link href="/magaza-tanitimi">Mağaza Tanıtımı <ArrowUpRight/></Link><Link href="/villa-tanitimi">Villa Tanıtımı <ArrowUpRight/></Link><Link href="/restoran-tanitimi">Restoran Tanıtımı <ArrowUpRight/></Link><Link href="/otel-tanitimi">Otel Tanıtımı <ArrowUpRight/></Link><Link href="/insaat-firma-tanitimi">İnşaat Firma Tanıtımı <ArrowUpRight/></Link></nav>
         <nav><p>Dijital Pazarlama</p><Link href="/seo">SEO <ArrowUpRight/></Link><Link href="/teknik-seo">Teknik SEO <ArrowUpRight/></Link><Link href="/yerel-seo">Yerel SEO <ArrowUpRight/></Link><Link href="/google-ads">Google Ads <ArrowUpRight/></Link><Link href="/meta-reklamlari">Meta Reklamları <ArrowUpRight/></Link><Link href="/instagram-yonetimi">Instagram Yönetimi <ArrowUpRight/></Link></nav>
-        <nav><p>Keşfet</p><Link href="/">Anasayfa</Link><Link href="/uygulamalar">Dromocob Apps</Link><Link href="/projeler">Projeler</Link><Link href="/paketler">Paketler <Sparkles/></Link><Link href="/hakkimda">Hakkımda</Link><Link href="/kurumsal">Kurumsal</Link><Link href="/iletisim">İletişim</Link></nav>
+        <nav><p>Keşfet</p><Link href="/">Anasayfa</Link><Link href="/fethiye">Fethiye Gündemi <MapPin/></Link><Link href="/kamera-ekipmanlari">Kamera Ekipmanları <Camera/></Link><Link href="/uygulamalar">Dromocob Apps</Link><Link href="/projeler">Projeler</Link><Link href="/paketler">Paketler <Sparkles/></Link><Link href="/hakkimda">Hakkımda</Link><Link href="/kurumsal">Kurumsal</Link><Link href="/iletisim">İletişim</Link></nav>
         <div className="footer-contact"><p>İletişim</p><a href={`mailto:${siteEmail}`}>{siteEmail} <ArrowUpRight/></a><a href={`tel:${sitePhone}`}>{sitePhoneDisplay} <ArrowUpRight/></a><span>Fethiye, Muğla<br/>Türkiye geneli hizmet</span></div>
       </section>
 

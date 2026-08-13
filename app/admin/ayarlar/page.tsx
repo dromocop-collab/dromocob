@@ -2,7 +2,7 @@
 
 import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { doc, onSnapshot, serverTimestamp, setDoc } from "firebase/firestore";
-import { Check, Globe, LineChart, ShieldCheck, Wrench } from "lucide-react";
+import { Activity, Database, Globe, Gauge, LineChart, LockKeyhole, RotateCcw, Save, ShieldCheck, SlidersHorizontal, Sparkles, Wrench } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID } from "@/lib/google-ads";
 
@@ -373,34 +373,25 @@ export default function Page() {
 
   return (
     <div className="settings-center">
-      <div className="admin-title">
-        <div>
-          <p className="admin-kicker">SETTINGS ORCHESTRATION CENTER</p>
-          <h1>Site Ayarları</h1>
-          <p>SEO, tracking, bakım modu, özellik bayrakları ve entegrasyonları tek merkezden yönet.</p>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button type="button" className="admin-action" onClick={restoreDefaults}><Wrench size={15} /> Varsayılanları Yükle</button>
-          <button type="button" className="admin-action" onClick={saveSettings} disabled={saving}><Check size={15} /> {saving ? "Kaydediliyor..." : "Kaydet ve Yayınla"}</button>
-        </div>
-      </div>
+      <section className="settings-command-hero"><div className="settings-command-copy"><p className="admin-kicker"><i/> SETTINGS ORCHESTRATION / GLOBAL</p><h1>Sistem<br/><em>ayarları.</em></h1><p>SEO, ölçüm, güvenlik, bakım ve ürün özelliklerini tek kontrollü yayın akışında yönet.</p><div className="settings-version"><span><Activity/> SİSTEM AKTİF</span><b>CONFIG v{settings.version}</b><small>FIRESTORE / GLOBAL</small></div></div><aside><div className="settings-orbit"><i/><i/><span><SlidersHorizontal/></span></div><div><small>CONFIGURATION HEALTH</small><strong>{Math.round((seoScore + Math.min(stats.trackingCount * 12, 100) + (settings.tracking.consentModeEnabled ? 100 : 0)) / 3)}%</strong><span><i/> Değişiklikler kontrollü yayınlanır</span></div></aside></section>
+      <div className="settings-publish-bar"><div><span><i/> CANLI YAPILANDIRMA</span><p>Değişiklikler kaydedilene kadar ziyaretçi tarafına yansımaz.</p></div><div><button type="button" onClick={restoreDefaults}><RotateCcw/> Varsayılanları getir</button><button type="button" className="primary" onClick={saveSettings} disabled={saving}>{saving ? <Activity className="spin"/> : <Save/>}{saving ? "Yayınlanıyor..." : "Kaydet ve yayınla"}</button></div></div>
 
       {status && <div className="admin-note">{status}</div>}
       {error && <div className="admin-alert">{error}</div>}
 
       <section className="settings-stats-grid">
-        <article className="admin-panel settings-stat"><small>SEO Sağlık Skoru</small><strong>{seoScore}%</strong></article>
-        <article className="admin-panel settings-stat"><small>Tracking Bağlantı</small><strong>{stats.trackingCount}</strong></article>
-        <article className="admin-panel settings-stat"><small>Bakım Modu</small><strong>{stats.maintenanceStatus}</strong></article>
-        <article className="admin-panel settings-stat"><small>Consent Mode</small><strong>{settings.tracking.consentModeEnabled ? "Aktif" : "Kapalı"}</strong></article>
+        <article className="admin-panel settings-stat"><span><Gauge/></span><div><small>SEO Sağlık Skoru</small><strong>{seoScore}%</strong><i style={{ width: `${seoScore}%` }}/></div></article>
+        <article className="admin-panel settings-stat"><span><LineChart/></span><div><small>Tracking Bağlantısı</small><strong>{stats.trackingCount}<em>/8</em></strong><i style={{ width: `${stats.trackingCount * 12.5}%` }}/></div></article>
+        <article className={`admin-panel settings-stat ${settings.maintenance.enabled ? "is-warning" : ""}`}><span><Wrench/></span><div><small>Bakım Modu</small><strong>{stats.maintenanceStatus}</strong><i style={{ width: settings.maintenance.enabled ? "100%" : "12%" }}/></div></article>
+        <article className="admin-panel settings-stat"><span><LockKeyhole/></span><div><small>Consent Mode v2</small><strong>{settings.tracking.consentModeEnabled ? "Aktif" : "Kapalı"}</strong><i style={{ width: settings.tracking.consentModeEnabled ? "100%" : "0%" }}/></div></article>
       </section>
 
       <div className="admin-segment settings-tabs">
-        <button className={tab === "seo" ? "active" : ""} onClick={() => setTab("seo")}><Globe size={14} /> SEO</button>
-        <button className={tab === "tracking" ? "active" : ""} onClick={() => setTab("tracking")}><LineChart size={14} /> Tracking</button>
-        <button className={tab === "maintenance" ? "active" : ""} onClick={() => setTab("maintenance")}><Wrench size={14} /> Bakım Modu</button>
-        <button className={tab === "features" ? "active" : ""} onClick={() => setTab("features")}><Check size={14} /> Özellik Bayrakları</button>
-        <button className={tab === "integrations" ? "active" : ""} onClick={() => setTab("integrations")}><ShieldCheck size={14} /> Entegrasyon & Güvenlik</button>
+        <button className={tab === "seo" ? "active" : ""} onClick={() => setTab("seo")}><span><Globe/><i>01</i></span><b>SEO & Marka<small>Arama görünümü</small></b></button>
+        <button className={tab === "tracking" ? "active" : ""} onClick={() => setTab("tracking")}><span><LineChart/><i>02</i></span><b>Ölçüm<small>Pixel & analytics</small></b></button>
+        <button className={tab === "maintenance" ? "active" : ""} onClick={() => setTab("maintenance")}><span><Wrench/><i>03</i></span><b>Bakım<small>Yayın erişimi</small></b></button>
+        <button className={tab === "features" ? "active" : ""} onClick={() => setTab("features")}><span><Sparkles/><i>04</i></span><b>Özellikler<small>Feature flags</small></b></button>
+        <button className={tab === "integrations" ? "active" : ""} onClick={() => setTab("integrations")}><span><ShieldCheck/><i>05</i></span><b>Güvenlik<small>API & bağlantılar</small></b></button>
       </div>
 
       <section className="admin-panel settings-form-panel">
@@ -443,6 +434,7 @@ export default function Page() {
 
         {tab === "tracking" && (
           <div className="settings-grid">
+            <div className="settings-module-intro full"><span><LineChart/></span><div><small>MEASUREMENT LAYER / 02</small><h2>Ölçüm ve dönüşüm altyapısı</h2><p>Tekilleştirilmiş etiketlerle ziyaret, reklam ve teklif dönüşümlerini güvenli biçimde izle.</p></div><b>{stats.trackingCount}/8 BAĞLI</b></div>
             <label className="toggle full"><input type="checkbox" checked={settings.tracking.enabled} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, enabled: event.target.checked } }))} /> Tracking scriptlerini aktif et</label>
             <label>GA4 Measurement ID<input value={settings.tracking.ga4MeasurementId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, ga4MeasurementId: event.target.value } }))} placeholder="G-XXXXXXXXXX" /><small>GA4 doğrudan yüklenir. GTM içinde ayrıca aynı GA4 etiketini kurma; çift ölçüm oluşur.</small></label>
             <label>GTM ID<input value={settings.tracking.gtmId} onChange={event => setSettings(current => ({ ...current, tracking: { ...current.tracking, gtmId: event.target.value } }))} placeholder="GTM-XXXXXX" /><small>Container kimliğini gir: ör. GTM-ABC1234.</small></label>
@@ -460,6 +452,7 @@ export default function Page() {
 
         {tab === "maintenance" && (
           <div className="settings-grid">
+            <div className="settings-module-intro full"><span><Wrench/></span><div><small>RELEASE CONTROL / 03</small><h2>Bakım ve erişim kontrolü</h2><p>Planlı çalışmalar sırasında ziyaretçiyi bilgilendir, kritik yönetim yollarını açık tut.</p></div><b>{settings.maintenance.enabled ? "BAKIM AKTİF" : "YAYIN AÇIK"}</b></div>
             <label className="toggle full"><input type="checkbox" checked={settings.maintenance.enabled} onChange={event => setSettings(current => ({ ...current, maintenance: { ...current.maintenance, enabled: event.target.checked } }))} /> Bakım modunu aktif et</label>
             <label>Bakım Başlığı<input value={settings.maintenance.title} onChange={event => setSettings(current => ({ ...current, maintenance: { ...current.maintenance, title: event.target.value } }))} /></label>
             <label>Geri Açılma Zamanı<input value={settings.maintenance.estimatedBackAt} onChange={event => setSettings(current => ({ ...current, maintenance: { ...current.maintenance, estimatedBackAt: event.target.value } }))} placeholder="16 Temmuz 2026 23:00" /></label>
@@ -471,6 +464,7 @@ export default function Page() {
 
         {tab === "features" && (
           <div className="settings-grid">
+            <div className="settings-module-intro full"><span><Sparkles/></span><div><small>FEATURE CONTROL / 04</small><h2>Ürün özellikleri</h2><p>Canlı deneyimde kullanılacak modülleri kod değişikliği olmadan kontrollü şekilde yönet.</p></div><b>{Object.values(settings.features).filter(Boolean).length}/5 AKTİF</b></div>
             <label className="toggle"><input type="checkbox" checked={settings.features.liveChatEnabled} onChange={event => setSettings(current => ({ ...current, features: { ...current.features, liveChatEnabled: event.target.checked } }))} /> Canlı Chat</label>
             <label className="toggle"><input type="checkbox" checked={settings.features.quoteWizardEnabled} onChange={event => setSettings(current => ({ ...current, features: { ...current.features, quoteWizardEnabled: event.target.checked } }))} /> Teklif Sihirbazı</label>
             <label className="toggle"><input type="checkbox" checked={settings.features.registrationEnabled} onChange={event => setSettings(current => ({ ...current, features: { ...current.features, registrationEnabled: event.target.checked } }))} /> Kayıt Sayfası</label>
@@ -481,6 +475,7 @@ export default function Page() {
 
         {tab === "integrations" && (
           <div className="settings-grid">
+            <div className="settings-module-intro full"><span><Database/></span><div><small>SECURITY & INTEGRATIONS / 05</small><h2>Dış sistem bağlantıları</h2><p>Webhook, doğrulama, iletişim ve erişim limitlerini tek güvenlik katmanında yapılandır.</p></div><b>RATE {settings.integrations.rateLimitPerMinute}/DK</b></div>
             <label className="full">CRM Webhook URL<input value={settings.integrations.crmWebhookUrl} onChange={event => setSettings(current => ({ ...current, integrations: { ...current.integrations, crmWebhookUrl: event.target.value } }))} /></label>
             <label className="full">Slack Webhook URL<input value={settings.integrations.slackWebhookUrl} onChange={event => setSettings(current => ({ ...current, integrations: { ...current.integrations, slackWebhookUrl: event.target.value } }))} /></label>
             <label>reCAPTCHA Site Key<input value={settings.integrations.recaptchaSiteKey} onChange={event => setSettings(current => ({ ...current, integrations: { ...current.integrations, recaptchaSiteKey: event.target.value } }))} /></label>

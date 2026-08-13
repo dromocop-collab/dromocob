@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { collection, doc, onSnapshot, serverTimestamp, updateDoc } from "firebase/firestore";
-import { BriefcaseBusiness, CalendarClock, ChevronRight, CircleDollarSign, Mail, MapPin, Phone, Search, UserRound, X } from "lucide-react";
+import { Archive, BriefcaseBusiness, CalendarClock, ChevronRight, CircleDollarSign, Inbox, Mail, MapPin, Phone, Search, UserRound, X } from "lucide-react";
 import { db } from "@/lib/firebase";
 
 type Item = Record<string, unknown> & { id: string };
@@ -37,6 +37,7 @@ export default function RequestsPage() {
   const [subscribers, setSubscribers] = useState<Item[]>([]);
   const [selectedQuote, setSelectedQuote] = useState<Item | null>(null);
   const [filter, setFilter] = useState<"all" | "web" | "video">("all");
+  const [view, setView] = useState<"pipeline" | "lost">("pipeline");
   const [search, setSearch] = useState("");
   const [error, setError] = useState("");
 
@@ -44,15 +45,17 @@ export default function RequestsPage() {
   useEffect(() => onSnapshot(collection(db, "newsletter_subscribers"), snapshot => { setSubscribers(snapshot.docs.map(item => ({ id: item.id, ...item.data() }))); }, snapshotError => { setSubscribers([]); setError(snapshotError.message || "Abone listesi okunamadı."); }), []);
   useEffect(() => onSnapshot(collection(db, "quotes"), snapshot => { const next = snapshot.docs.map(item => ({ id: item.id, ...item.data() })).sort((a, b) => createdMillis(b) - createdMillis(a)); setQuotes(next); setSelectedQuote(current => current ? next.find(item => item.id === current.id) || null : null); setError(""); }, snapshotError => { setQuotes([]); setError(snapshotError.message || "Teklif talepleri okunamadı."); }), []);
 
-  const filteredQuotes = useMemo(() => quotes.filter(item => {
+  const activeQuotes = useMemo(() => quotes.filter(item => String(item.status || "new") !== "lost"), [quotes]);
+  const lostQuotes = useMemo(() => quotes.filter(item => String(item.status || "new") === "lost"), [quotes]);
+  const filteredQuotes = useMemo(() => (view === "lost" ? lostQuotes : activeQuotes).filter(item => {
     if (filter !== "all" && item.service !== filter) return false;
     const contact = contactOf(item);
     const haystack = [item.serviceLabel, contact.name, contact.company, contact.email, contact.phone, item.id].join(" ").toLocaleLowerCase("tr-TR");
     return haystack.includes(search.toLocaleLowerCase("tr-TR"));
-  }), [quotes, filter, search]);
+  }), [activeQuotes, lostQuotes, view, filter, search]);
 
   async function changeStatus(item: Item, status: string) {
-    try { await updateDoc(doc(db, "quotes", item.id), { status, updatedAt: serverTimestamp() }); }
+    try { await updateDoc(doc(db, "quotes", item.id), { status, updatedAt: serverTimestamp() }); if (status === "lost") { setSelectedQuote(null); setView("lost"); } else if (view === "lost") { setSelectedQuote(null); setView("pipeline"); } }
     catch (statusError) { setError(statusError instanceof Error ? statusError.message : "Durum güncellenemedi."); }
   }
 
@@ -60,15 +63,16 @@ export default function RequestsPage() {
   const selectedContact = selectedQuote ? contactOf(selectedQuote) : {};
 
   return <>
-    <div className="admin-title"><div><p className="admin-kicker">LEADS & SCOPE INTAKE</p><h1>Teklif Talepleri</h1><p>Web, yazılım ve prodüksiyon kapsamlarını tek merkezde incele.</p></div><div className="request-count-badge"><strong>{quotes.length}</strong><span>toplam teklif</span></div></div>
+    <div className="admin-title"><div><p className="admin-kicker">LEADS & SCOPE INTAKE</p><h1>Teklif Talepleri</h1><p>Web, yazılım ve prodüksiyon kapsamlarını tek merkezde incele.</p></div><div className="request-count-badge"><strong>{view === "lost" ? lostQuotes.length : activeQuotes.length}</strong><span>{view === "lost" ? "arşiv kaydı" : "aktif teklif"}</span></div></div>
     {error && <div className="admin-alert">{error}</div>}
-    <section className="request-metric-grid"><article><CircleDollarSign/><div><strong>{quotes.filter(item => item.status === "new").length}</strong><span>Yeni talep</span></div></article><article><BriefcaseBusiness/><div><strong>{quotes.filter(item => item.service === "web").length}</strong><span>Web & yazılım</span></div></article><article><CalendarClock/><div><strong>{quotes.filter(item => item.service === "video").length}</strong><span>Video & film</span></div></article><article><Mail/><div><strong>{contacts.length}</strong><span>İletişim formu</span></div></article></section>
-    <div className="request-control-bar"><div className="admin-segment"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Tümü</button><button className={filter === "web" ? "active" : ""} onClick={() => setFilter("web")}>Web</button><button className={filter === "video" ? "active" : ""} onClick={() => setFilter("video")}>Video</button></div><label><Search/><input value={search} onChange={event => setSearch(event.target.value)} placeholder="İsim, firma, e-posta veya referans ara"/></label></div>
+    <section className="request-metric-grid"><article><CircleDollarSign/><div><strong>{activeQuotes.filter(item => item.status === "new").length}</strong><span>Yeni talep</span></div></article><article><BriefcaseBusiness/><div><strong>{activeQuotes.filter(item => item.service === "web").length}</strong><span>Aktif web & yazılım</span></div></article><article><CalendarClock/><div><strong>{activeQuotes.filter(item => item.service === "video").length}</strong><span>Aktif video & film</span></div></article><article className="request-lost-metric"><Archive/><div><strong>{lostQuotes.length}</strong><span>Kaybedilen / arşiv</span></div></article></section>
+    <div className="request-view-switch"><button className={view === "pipeline" ? "active" : ""} onClick={() => setView("pipeline")}><span><Inbox/></span><div><strong>Aktif operasyon</strong><small>Takip edilen teklif ve fırsatlar</small></div><b>{activeQuotes.length}</b></button><button className={view === "lost" ? "active lost" : ""} onClick={() => setView("lost")}><span><Archive/></span><div><strong>Kaybedilenler</strong><small>Ayrı arşiv ve geri kazanım alanı</small></div><b>{lostQuotes.length}</b></button></div>
+    <div className="request-control-bar"><div className="admin-segment"><button className={filter === "all" ? "active" : ""} onClick={() => setFilter("all")}>Tümü</button><button className={filter === "web" ? "active" : ""} onClick={() => setFilter("web")}>Web</button><button className={filter === "video" ? "active" : ""} onClick={() => setFilter("video")}>Video</button></div><label><Search/><input value={search} onChange={event => setSearch(event.target.value)} placeholder={view === "lost" ? "Kaybedilen tekliflerde ara" : "İsim, firma, e-posta veya referans ara"}/></label></div>
     <section className="advanced-request-list" aria-label="Teklif talepleri">{filteredQuotes.length ? filteredQuotes.map(item => {
       const contact = contactOf(item);
       const advanced = item.quoteVersion === "advanced-v1";
       const status = String(item.status || "new");
-      return <button key={item.id} onClick={() => setSelectedQuote(item)}><div className={`request-service-mark is-${String(item.service || "legacy")}`}>{item.service === "video" ? "VF" : item.service === "web" ? "WW" : "QT"}</div><div className="request-primary"><span>{String(item.serviceLabel || "Genel teklif")} {advanced && <i>GELİŞMİŞ</i>}</span><strong>{String(contact.name || "İletişim bilgisi yok")}{contact.company ? ` / ${String(contact.company)}` : ""}</strong><small>{dateLabel(item)} · {item.id}</small></div><div className="request-price"><strong>{Number(item.estimatedPrice || 0).toLocaleString("tr-TR")} TL+</strong><span className={`request-status status-${status}`}>{statusLabels[status] || status}</span></div><ChevronRight aria-hidden="true"/></button> }) : <div className="empty-state">Bu filtrede teklif bulunamadı.</div>}</section>
+      return <button key={item.id} className={view === "lost" ? "is-lost-entry" : ""} onClick={() => setSelectedQuote(item)}><div className={`request-service-mark is-${String(item.service || "legacy")}`}>{item.service === "video" ? "VF" : item.service === "web" ? "WW" : "QT"}</div><div className="request-primary"><span>{String(item.serviceLabel || "Genel teklif")} {advanced && <i>GELİŞMİŞ</i>}</span><strong>{String(contact.name || "İletişim bilgisi yok")}{contact.company ? ` / ${String(contact.company)}` : ""}</strong><small>{dateLabel(item)} · {item.id}</small></div><div className="request-price"><strong>{Number(item.estimatedPrice || 0).toLocaleString("tr-TR")} TL+</strong><span className={`request-status status-${status}`}>{statusLabels[status] || status}</span></div><ChevronRight aria-hidden="true"/></button> }) : <div className="empty-state">{view === "lost" ? "Kaybedilen teklif arşivi boş." : "Bu filtrede aktif teklif bulunamadı."}</div>}</section>
 
     <div className="secondary-request-grid"><section className="admin-panel"><h2>İletişim talepleri <span>{contacts.length}</span></h2><div className="request-list">{contacts.slice(0, 12).map(item => <article key={item.id}><strong>{String(item.name || "İsimsiz")}</strong><small>{String(item.email || "")} · {String(item.phone || "")}</small><p>{String(item.message || "")}</p></article>)}</div></section><section className="admin-panel"><h2>E-posta aboneleri <span>{subscribers.length}</span></h2><div className="request-list">{subscribers.slice(0, 12).map(item => <article key={item.id}><strong>{String(item.email || "")}</strong><small>{String(item.status || "active")} · {String(item.source || "website")}</small></article>)}</div></section></div>
 

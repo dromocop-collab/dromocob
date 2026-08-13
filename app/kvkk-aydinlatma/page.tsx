@@ -1,59 +1,16 @@
+import TrustCenterPage from "@/components/trust-center-page";
 import { pageMetadata } from "@/lib/seo";
 
-export const metadata = pageMetadata({
-  title: "KVKK Aydınlatma Metni",
-  description: "Dromocob KVKK aydınlatma metni ve kişisel veri işleme esasları.",
-  path: "/kvkk-aydinlatma",
-});
+export const metadata = pageMetadata({ title: "KVKK Aydınlatma Metni | Dromocob", description: "6698 sayılı KVKK kapsamında Dromocob kişisel veri işleme amaçları, yöntemleri, hukuki sebepleri, aktarım çerçevesi ve ilgili kişi hakları.", path: "/kvkk-aydinlatma", keywords: ["KVKK aydınlatma metni", "Dromocob KVKK", "kişisel veri başvurusu"] });
 
-export default function KvkkPage() {
-  return (
-    <section className="section legal-page">
-      <p className="eyebrow">Kurumsal / Hukuki</p>
-      <h1>KVKK Aydınlatma Metni</h1>
-      <p className="legal-lead">
-        Bu metin, 6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında Dromocob
-        tarafından elde edilen verilerin hangi amaçla işlendiği ve haklarınızın neler olduğu
-        konusunda sizi bilgilendirmek amacıyla hazırlanmıştır.
-      </p>
+const sections = [
+  { id: "sorumlu", title: "Veri sorumlusu", summary: "Dromocob, dromocob.tr ve doğrudan sunduğu hizmetlerde elde edilen kişisel veriler bakımından ilgili faaliyetin niteliğine göre veri sorumlusu olarak hareket eder.", paragraphs: ["Aydınlatma ve ilgili kişi başvuruları için info@dromocob.tr adresinden iletişim kurulabilir. Başvurunun güvenli sonuçlandırılması amacıyla kimlik veya talep sahipliğini doğrulayıcı ek bilgi istenebilir."] },
+  { id: "kategoriler", title: "İşlenen veri kategorileri", summary: "Hizmet ve iletişim türüne göre sınırlı veri kategorileri işlenebilir.", items: ["Kimlik: ad ve soyad", "İletişim: e-posta, telefon, şehir ve tercih edilen kanal", "Müşteri işlem: teklif seçimleri, talep, proje ve destek mesajları", "İşlem güvenliği: IP, cihaz, tarayıcı, oturum ve teknik günlük bilgileri", "Pazarlama: bülten tercihi ile izin verilen analitik/reklam etkileşimleri"] },
+  { id: "amaclar", title: "İşleme amaçları", summary: "Kişisel veriler yalnızca açıkça belirlenen iş ve güvenlik amaçlarıyla işlenir.", items: ["İletişim, teklif, sözleşme ve proje süreçlerini yürütmek", "Canlı destek ve satış sonrası hizmet sağlamak", "Dijital ürün, lisans ve hesap güvenliğini korumak", "Muhasebe, hukuk ve resmî yükümlülükleri yerine getirmek", "Tercih verilmişse analitik ve reklam performansını ölçmek"] },
+  { id: "yontem", title: "Toplama yöntemi ve hukuki sebep", summary: "Veriler elektronik formlar, canlı destek, e-posta, telefon, sözleşme süreçleri ve teknik günlükler üzerinden otomatik veya kısmen otomatik yöntemlerle elde edilebilir.", paragraphs: ["Faaliyetin niteliğine göre Kanun’da öngörülme, sözleşmenin kurulması veya ifası, hukuki yükümlülüğün yerine getirilmesi, bir hakkın tesisi/kullanılması/korunması, temel haklara zarar vermemek kaydıyla meşru menfaat ve gerektiğinde açık rıza işleme şartlarından uygun olanına dayanılır. Açık rızaya dayanan süreçlerde rıza, aydınlatmadan ayrı olarak alınır ve geri çekilebilir."] },
+  { id: "aktarim", title: "Aktarım yapılan taraflar ve amaç", summary: "Kişisel veriler satılmaz; teknik hizmetin sunumu ve hukuki gerekliliklerle sınırlı aktarım yapılabilir.", items: ["Barındırma, veritabanı, e-posta ve bildirim hizmeti sağlayıcılarına teknik işletim amacıyla", "Analitik ve reklam platformlarına yalnızca ilgili tercih ve ölçüm kapsamıyla", "Mali müşavir, hukuk danışmanı veya iş ortağına hizmetin gerektirdiği ölçüde", "Yetkili kamu kurumlarına hukuken geçerli talep veya yükümlülük halinde"] },
+  { id: "haklar", title: "KVKK kapsamındaki haklar", summary: "Kanun’un 11. maddesi kapsamındaki taleplerinizi veri sorumlusuna iletebilirsiniz.", items: ["Kişisel veri işlenip işlenmediğini öğrenme ve bilgi talep etme", "İşleme amacını ve amaca uygun kullanılıp kullanılmadığını öğrenme", "Aktarılan üçüncü kişileri öğrenme", "Eksik veya yanlış işlenen verinin düzeltilmesini isteme", "Şartları oluştuğunda silme/yok etme ve aktarılan taraflara bildirilmesini isteme", "Otomatik analiz sonucu aleyhe sonuca itiraz etme ve kanuna aykırılık nedeniyle zararın giderilmesini talep etme"] },
+  { id: "basvuru", title: "Başvuru yöntemi", summary: "Talep konusu açıkça belirtilerek info@dromocob.tr adresine başvurulabilir.", paragraphs: ["Başvuruda ad-soyad, ulaşılabilir iletişim bilgisi, talebin konusu ve varsa destekleyici belgelerin bulunması önerilir. Dromocob, başvuruyu mevzuatta öngörülen yöntem ve süreler içinde değerlendirir; kimlik doğrulaması ve güvenli yanıt için ek bilgi talep edebilir."] },
+];
 
-      <div className="legal-block">
-        <h2>1. Veri sorumlusu</h2>
-        <p>Dromocob, ilgili mevzuat kapsamında veri sorumlusu sıfatıyla hareket eder.</p>
-      </div>
-
-      <div className="legal-block">
-        <h2>2. İşlenen veri kategorileri</h2>
-        <p>Ad-soyad, e-posta, telefon, talep icerigi, teknik erisim verileri ve teklif verileri.</p>
-      </div>
-
-      <div className="legal-block">
-        <h2>3. İşleme amaçları</h2>
-        <p>
-          Talebinizi değerlendirmek, sizinle iletişime geçmek, sözleşme süreçlerini yürütmek,
-          hizmet kalitesi ve güvenlik süreçlerini sürdürmek.
-        </p>
-      </div>
-
-      <div className="legal-block">
-        <h2>4. Hukuki sebep</h2>
-        <p>
-          Açık rızanız, sözleşmenin kurulması/ifa edilmesi ve veri sorumlusunun meşru menfaati
-          hukuki sebeplerine dayalı olarak veri işlenebilir.
-        </p>
-      </div>
-
-      <div className="legal-block">
-        <h2>5. Haklarınız</h2>
-        <p>
-          KVKK 11. madde kapsamında; verilerinize erişme, düzeltme, silme, işlemeye itiraz etme
-          ve zarar halinde tazmin talep etme haklarına sahipsiniz.
-        </p>
-      </div>
-
-      <div className="legal-note">
-        Başvuru ve talepleriniz için: info@dromocob.tr
-      </div>
-    </section>
-  );
-}
+export default function KvkkPage() { return <TrustCenterPage eyebrow="TRUST CENTER / KVKK" title="KVKK" accent="Aydınlatma Metni" description="Kişisel verilerinizin kim tarafından, hangi amaç ve hukuki sebeple işlendiğini; kimlere aktarılabileceğini ve haklarınızı açıklıyoruz." documentCode="DC-KVKK / V2.0" updatedAt="13 Ağustos 2026" sections={sections} note="Aydınlatma yükümlülüğü açık rızadan bağımsızdır; açık rıza gereken süreçlerde ayrıca ve aktif tercihinizle alınır." related={[{ title: "Gizlilik Politikası", href: "/gizlilik-politikasi" }, { title: "Uygulama Gizliliği", href: "/gizlilik" }, { title: "Destek Merkezi", href: "/destek" }]}/>; }

@@ -1,54 +1,18 @@
+import TrustCenterPage from "@/components/trust-center-page";
 import { pageMetadata } from "@/lib/seo";
 
-export const metadata = pageMetadata({
-  title: "Gizlilik Politikası",
-  description: "Dromocob gizlilik politikası ve veri güvenliği yaklaşımı.",
-  path: "/gizlilik-politikasi",
-});
+export const metadata = pageMetadata({ title: "Gizlilik Politikası | Veri Güvenliği ve Çerezler", description: "Dromocob web sitesi, formlar, canlı destek, analitik ve reklam ölçüm sistemlerinde kişisel verilerin nasıl işlendiğini açıklayan gizlilik politikası.", path: "/gizlilik-politikasi", keywords: ["Dromocob gizlilik politikası", "kişisel veri güvenliği", "çerez politikası", "web sitesi gizlilik"] });
 
-export default function PrivacyPolicyPage() {
-  return (
-    <section className="section legal-page">
-      <p className="eyebrow">Kurumsal / Hukuki</p>
-      <h1>Gizlilik Politikası</h1>
-      <p className="legal-lead">
-        Dromocob, ziyaretçi ve müşteri verilerinin gizliliğini korumayı temel prensip kabul eder.
-        Bu politika, hangi verilerin hangi koşullarda toplandığını ve nasıl korunduğunu açıklar.
-      </p>
+const sections = [
+  { id: "kapsam", title: "Politikanın kapsamı", summary: "Bu politika dromocob.tr, müşteri iletişim kanalları ve Dromocob tarafından sunulan dijital hizmetlerdeki veri işleme yaklaşımını açıklar.", paragraphs: ["Üçüncü taraf sitelere verilen bağlantılar ilgili sitelerin kendi gizlilik koşullarına tabidir. Haber ve resmî kaynak bağlantılarında kullanıcı, bağlantının hedefindeki kaynağın politikasını ayrıca değerlendirmelidir."] },
+  { id: "veriler", title: "Toplanan bilgi kategorileri", summary: "Yalnızca talebi karşılamak, hizmeti güvenli sunmak ve ölçümlemek için gerekli veri kategorileri işlenir.", items: ["İletişim ve teklif formlarında ad, e-posta, telefon, firma, şehir ve proje kapsamı", "Canlı destek başlatılırken paylaşılan kimlik ve iletişim bilgileri ile mesaj içeriği", "Bülten kaydında e-posta adresi ve abonelik durumu", "IP adresi, tarayıcı, cihaz, sayfa ve hata kaydı gibi güvenlik/teknik günlükler", "Çerez tercihinize bağlı analitik ve reklam etkileşim verileri"] },
+  { id: "amac", title: "Kullanım amaçları", summary: "Veriler belirtilen işlev için ve ölçülülük ilkesiyle kullanılır.", items: ["Talebi yanıtlamak, kapsamı değerlendirmek ve teklif hazırlamak", "Müşteri ilişkileri, proje teslimi ve destek süreçlerini yürütmek", "Kötüye kullanım, sahte talep ve güvenlik olaylarını önlemek", "Açık tercihinize bağlı olarak performans ve reklam dönüşümü ölçmek", "Yasal yükümlülükleri yerine getirmek ve uyuşmazlıklarda hakları korumak"] },
+  { id: "cerezler", title: "Çerezler ve ölçüm teknolojileri", summary: "Zorunlu teknolojiler temel işlevleri çalıştırır; analitik ve reklam depolaması tercih panelindeki seçiminize göre yönetilir.", paragraphs: ["Site ilk açıldığında analitik ve reklam depolaması varsayılan olarak reddedilmiş durumdadır. Tümünü kabul et, reddet veya tercihleri ayrı ayrı yönet seçenekleri sunulur. Tercihiniz tarayıcınızda saklanır ve daha sonra güncellenebilir."], items: ["Zorunlu: güvenlik, oturum ve tercihlerin hatırlanması", "Analitik: sayfa kullanımı ve performans ölçümü", "Reklam: kampanya dönüşümlerinin ve ilişkilendirmenin ölçülmesi"] },
+  { id: "paylasim", title: "Hizmet sağlayıcılar ve aktarım", summary: "Veriler satılmaz. Yalnızca hizmetin teknik olarak sunulması veya hukuki yükümlülük için gerekli olduğunda sınırlı erişim sağlanabilir.", paragraphs: ["Barındırma, veritabanı, e-posta bildirimi, analitik, reklam ölçümü ve güvenlik altyapısı sunan hizmet sağlayıcılar kendi görevleriyle sınırlı olarak veri işleyebilir. Yetkili kamu kurumlarından hukuka uygun talep gelmesi halinde mevzuat kapsamındaki bilgiler paylaşılabilir."] },
+  { id: "saklama", title: "Saklama ve silme", summary: "Veriler işleme amacı, iş ilişkisi, güvenlik ihtiyacı ve uygulanabilir yasal süreler boyunca tutulur.", paragraphs: ["Saklama ihtiyacı sona erdiğinde veri; sistemin niteliğine göre silinir, yok edilir veya kimliği belirli bir kişiyle ilişkilendirilemeyecek şekilde anonimleştirilir. Bir silme talebi, devam eden sözleşmesel veya hukuki saklama zorunluluğu bulunup bulunmadığı değerlendirilerek sonuçlandırılır."] },
+  { id: "guvenlik", title: "Teknik ve idari güvenlik", summary: "Erişim sınırlandırma, kimlik doğrulama, güvenli iletişim ve kayıt izleme gibi katmanlı kontroller uygulanır.", items: ["Yetki ihtiyacına göre sınırlandırılmış erişim", "Formlarda doğrulama, hız sınırlama ve kötüye kullanım kontrolleri", "Aktarım sırasında şifreli bağlantı kullanımı", "Güvenlik ve hata kayıtlarının düzenli izlenmesi", "Hizmet sağlayıcı ve erişim yapılandırmalarının gözden geçirilmesi"] },
+  { id: "haklar", title: "Tercihleriniz ve haklarınız", summary: "Kişisel verileriniz hakkında bilgi talep edebilir ve uygulanabilir mevzuat kapsamındaki haklarınızı kullanabilirsiniz.", items: ["Veri işlenip işlenmediğini ve işleme amacını öğrenme", "Eksik veya yanlış verinin düzeltilmesini isteme", "Şartları oluştuğunda silme veya yok etme talep etme", "Otomatik analiz sonucuna ve hukuka aykırı işlemeye itiraz etme", "Çerez tercihlerini kabul, ret veya özelleştirme yoluyla yönetme"] },
+  { id: "degisiklik", title: "Politika değişiklikleri", summary: "Hizmetler veya mevzuat değiştiğinde politika güncellenebilir.", paragraphs: ["Önemli değişiklikler bu sayfada güncel tarih ile yayımlanır. Politikanın yürürlükteki sürümü her zaman bu adresteki metindir."] },
+];
 
-      <div className="legal-block">
-        <h2>1. Toplanan bilgiler</h2>
-        <p>İletişim formları, teklif formları ve temel teknik günlük verileri toplanabilir.</p>
-      </div>
-
-      <div className="legal-block">
-        <h2>2. Kullanım amacı</h2>
-        <p>
-          İletişim talebini yanıtlamak, teklif sürecini yönetmek, hizmet kalitesini artırmak ve
-          güvenlik kontrolleri sağlamak.
-        </p>
-      </div>
-
-      <div className="legal-block">
-        <h2>3. Veri güvenliği</h2>
-        <p>
-          Veriler, yetkisiz erişime karşı teknik ve idari önlemlerle korunur. Kritik alanlarda
-          doğrulama ve sınırlama mekanizmaları uygulanır.
-        </p>
-      </div>
-
-      <div className="legal-block">
-        <h2>4. Saklama süresi</h2>
-        <p>
-          Mevzuat ve iş süreçlerinin gerektirdiği süre boyunca saklanır; süre dolduğunda silme,
-          yok etme veya anonimleştirme işlemleri uygulanır.
-        </p>
-      </div>
-
-      <div className="legal-block">
-        <h2>5. İletişim</h2>
-        <p>Gizlilik talepleri için info@dromocob.tr adresi üzerinden bize ulaşabilirsiniz.</p>
-      </div>
-    </section>
-  );
-}
+export default function PrivacyPolicyPage() { return <TrustCenterPage eyebrow="TRUST CENTER / PRIVACY" title="Gizlilik" accent="Politikası" description="Veriye saygılı, açık ve kontrol edilebilir bir dijital deneyim için hangi bilgiyi neden işlediğimizi sade biçimde açıklıyoruz." documentCode="DC-PRIVACY / V2.0" updatedAt="13 Ağustos 2026" sections={sections} note="Verilerinizi ticari veri listesi olarak satmayız; ölçüm tercihlerinizi çerez paneli üzerinden yönetebilirsiniz." related={[{ title: "KVKK Aydınlatma Metni", href: "/kvkk-aydinlatma" }, { title: "Uygulama Gizliliği", href: "/gizlilik" }, { title: "Destek Merkezi", href: "/destek" }]}/>; }
