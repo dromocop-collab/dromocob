@@ -34098,6 +34098,78 @@ html.lenis, html.lenis body { height: auto; }
 @media(max-width:650px){.home-page .trust-section{padding:82px 20px}.home-page .trust-section::before{top:25px;right:20px}.home-page .trust-section .section-head{margin-bottom:35px}.home-page .trust-section .section-head h2{font-size:clamp(54px,17vw,76px)}.home-page .trust-section .section-head>p{padding:16px 0 0;border-left:0;border-top:2px solid #a8cc29;font-size:15px}.home-page .trust-grid{grid-template-columns:1fr}.home-page .trust-grid article{min-height:245px;padding:24px}.home-page .trust-grid h3{font-size:28px}.home-page .trust-grid p{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.home-page .trust-grid article{transition:none}}
 
+/* Mobile viewport guardrail: keep cinematic rails and fixed UI inside the device. */
+@media (max-width: 700px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    overscroll-behavior-x: none;
+  }
+
+  body {
+    background: #070a07;
+  }
+
+  main.home-route-main,
+  main.home-route-main > .home-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+    background: var(--bg);
+  }
+
+  .home-page > *,
+  .home-page section,
+  .split-intro > div,
+  .section-head > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .home-page [data-scroll-scene] > *,
+  .home-page [data-scroll-scene="expertise"] > div,
+  .home-page [data-scroll-scene="contact"] .whatsapp-contact-copy,
+  .home-page [data-scroll-scene="contact"] .whatsapp-visual {
+    transform: none;
+  }
+
+  .home-page .hero-system {
+    width: min(100%, 390px);
+    max-width: 100%;
+  }
+
+  .motion-expertise,
+  .motion-expertise-track {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .motion-expertise-track {
+    margin-right: 0;
+    padding-right: 0;
+  }
+
+  .home-page .project-grid,
+  .home-packages .package-grid,
+  .instagram-reels-track {
+    width: 100%;
+    max-width: 100%;
+    margin-right: 0;
+  }
+
+  .chat-panel,
+  .contact-dock-panel {
+    max-width: calc(100dvw - 24px);
+  }
+
+  .site-footer {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
 /* =========================================================
    ADMIN CONTROL OS V3 — final contrast, forms and navigation
    ========================================================= */

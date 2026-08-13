@@ -8,6 +8,7 @@ export default function ScrollProgress() {
   const lineRef = useRef<HTMLElement>(null);
   const labelRef = useRef<HTMLElement>(null);
   useEffect(() => {
+    if (window.matchMedia("(max-width: 900px), (pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
     let frame = 0;
     const update = () => {
       frame = 0;

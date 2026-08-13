@@ -10,12 +10,22 @@ export default function HomeMotionController() {
     if (!root) return;
     const reducedQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const desktopQuery = window.matchMedia("(min-width: 901px)");
+    const coarseQuery = window.matchMedia("(pointer: coarse)");
     let frame = 0;
     const readyTimer = window.setTimeout(() => root.classList.add("is-motion-ready"), 1300);
 
+    // The mobile layout is already static. Avoid doing dozens of layout reads on
+    // every touch scroll; this directly protects INP and battery usage.
+    if (!desktopQuery.matches || coarseQuery.matches || reducedQuery.matches) {
+      root.classList.add("is-motion-ready");
+      return () => {
+        window.clearTimeout(readyTimer);
+        root.classList.remove("is-motion-ready");
+      };
+    }
+
     const update = () => {
       frame = 0;
-      if (reducedQuery.matches) return;
       const viewport = window.innerHeight;
       const hero = root.querySelector<HTMLElement>(".hero");
       if (hero) {

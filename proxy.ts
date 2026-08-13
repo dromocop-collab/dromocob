@@ -18,6 +18,39 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(url, 301);
   }
 
+  // Preserve authority from the retired Turkish/PHP site instead of returning 404s.
+  // Search Console still discovers these addresses from historical external links.
+  let decodedPath = request.nextUrl.pathname;
+  try {
+    decodedPath = decodeURIComponent(decodedPath);
+  } catch {
+    // Keep the original path when a legacy URL contains malformed encoding.
+  }
+
+  const normalizedLegacyPath = decodedPath
+    .normalize("NFC")
+    .toLocaleLowerCase("tr-TR")
+    .replace(/\/+$/, "") || "/";
+  const legacyDestinations: Record<string, string> = {
+    "/index.html": "/",
+    "/iletişim": "/iletisim",
+    "/iletişim/index.html": "/iletisim",
+    "/iletişim/index.php": "/iletisim",
+    "/hakkımızda": "/hakkimda",
+    "/hakkımızda/index.html": "/hakkimda",
+    "/hakkımızda/index.php": "/hakkimda",
+    "/hakkimda/index.php": "/hakkimda",
+    "/products": "/projeler",
+    "/products/index.php": "/projeler",
+    "/products/view.php": "/projeler",
+    "/bakim": "/",
+  };
+  const legacyDestination = legacyDestinations[normalizedLegacyPath];
+
+  if (legacyDestination) {
+    return NextResponse.redirect(new URL(legacyDestination, "https://dromocob.tr"), 301);
+  }
+
   // Unknown endpoints from the retired PHP site are permanently gone.
   // A 410 avoids turning unrelated legacy URLs into soft-404 home redirects.
   if (request.nextUrl.pathname.toLowerCase().endsWith(".php")) {

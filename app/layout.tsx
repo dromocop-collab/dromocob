@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { AuthProvider } from "@/components/auth/auth-provider";
@@ -17,6 +17,18 @@ import { getConsentBootstrapScript } from "@/lib/google-consent";
 import FirstPartyAnalytics from "@/components/first-party-analytics";
 
 export const revalidate = 60;
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f0e8" },
+    { media: "(prefers-color-scheme: dark)", color: "#070a07" },
+  ],
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getPublicSeoSettings();

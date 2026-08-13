@@ -72,7 +72,6 @@ const navItems: NavItem[] = [
 export default function SiteNav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [hidden, setHidden] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
   const pathname = usePathname();
@@ -80,22 +79,19 @@ export default function SiteNav() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let previous = window.scrollY;
     let frame = 0;
     const handleScroll = () => {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         const current = window.scrollY;
         setScrolled(current > 18);
-        setHidden(current > 180 && current > previous + 7 && !open);
-        previous = current;
         frame = 0;
       });
     };
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => { cancelAnimationFrame(frame); window.removeEventListener("scroll", handleScroll); };
-  }, [open]);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -165,7 +161,7 @@ export default function SiteNav() {
     return () => ++i;
   })();
 
-  return <header className={`nav-shell ${scrolled ? "is-scrolled" : ""} ${hidden ? "is-hidden" : ""} ${open ? "menu-open" : ""}`}>
+  return <header className={`nav-shell ${scrolled ? "is-scrolled" : ""} ${open ? "menu-open" : ""}`}>
     <Link className="brand" href="/" aria-label="Dromocob ana sayfa" onClick={() => setOpen(false)}>
       <span className="brand-monogram"><Image src="/logo.svg" alt="" width={43} height={43} priority /></span>
       <span className="brand-copy"><b>DROMOCOB</b><small>Film · Web · Growth</small></span>

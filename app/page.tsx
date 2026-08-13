@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight, Bot, Camera, CheckCheck, Code2, Film, Gauge, 
 import ProjectGrid from "@/components/project-grid";
 import PackageGrid from "@/components/package-grid";
 import GrowthDiagnostic from "@/components/growth-diagnostic";
-import { pageMetadata } from "@/lib/seo";
+import { homePageJsonLd, pageMetadata, primaryServicesJsonLd } from "@/lib/seo";
 import QuoteLauncher from "@/components/quote-launcher";
 import InstagramReels from "@/components/instagram-reels";
 import { sitePhone, sitePhoneDisplay } from "@/lib/seo";
@@ -29,6 +29,7 @@ export default function Home() {
 
   return (
     <div className="home-page">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": [homePageJsonLd, primaryServicesJsonLd] }).replace(/</g, "\\u003c") }} />
       <HomeMotionController />
       <ScrollProgress />
       <LaunchOffer />

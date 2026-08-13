@@ -193,3 +193,41 @@ export const websiteJsonLd = {
   inLanguage: "tr-TR",
   publisher: { "@id": `${siteUrl}/#organization` },
 };
+
+export const homePageJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${siteUrl}/#webpage`,
+  url: siteUrl,
+  name: "Web Tasarım, Web Yazılım ve Video Prodüksiyon | Dromocob",
+  description: defaultDescription,
+  inLanguage: "tr-TR",
+  isPartOf: { "@id": `${siteUrl}/#website` },
+  about: { "@id": `${siteUrl}/#organization` },
+  primaryImageOfPage: { "@type": "ImageObject", url: absoluteUrl("/opengraph-image") },
+};
+
+export const primaryServicesJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "@id": `${siteUrl}/#primary-services`,
+  name: "Dromocob ana hizmetleri",
+  itemListElement: [
+    ["Web Tasarım", "/web-tasarim", "Kurumsal, hızlı ve SEO uyumlu web sitesi tasarımı"],
+    ["Kurumsal Web Tasarım", "/kurumsal-web-tasarim", "Markalar için kurumsal web tasarım ve özel yazılım"],
+    ["SEO Hizmeti", "/seo", "Teknik, yerel ve içerik odaklı arama motoru optimizasyonu"],
+    ["Video Prodüksiyon", "/video-produksiyon", "Kurumsal tanıtım filmi ve sinematik video prodüksiyon"],
+    ["Drone Çekimi", "/drone-cekimi", "Profesyonel 4K drone çekimi"],
+  ].map(([name, path, description], index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    item: {
+      "@type": "Service",
+      name,
+      description,
+      url: absoluteUrl(path),
+      provider: { "@id": `${siteUrl}/#organization` },
+      areaServed: { "@type": "Country", name: "Türkiye" },
+    },
+  })),
+};

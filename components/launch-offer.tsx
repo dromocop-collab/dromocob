@@ -13,7 +13,10 @@ export default function LaunchOffer() {
 
   useEffect(() => {
     if (window.sessionStorage.getItem(STORAGE_KEY)) return;
-    const timer = window.setTimeout(() => setVisible(true), 450);
+    // Do not interrupt mobile visitors during the Core Web Vitals measurement
+    // window. The same offer remains reachable from the web-design CTAs.
+    if (window.matchMedia("(max-width: 700px), (pointer: coarse)").matches) return;
+    const timer = window.setTimeout(() => setVisible(true), 6000);
     return () => window.clearTimeout(timer);
   }, []);
 
