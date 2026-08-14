@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Check, Sparkles, X } from "lucide-react";
+import { ArrowRight, Check, Gauge, ShieldCheck, Sparkles, Timer, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import AdvancedQuoteWizard from "@/components/advanced-quote-wizard";
 
-const STORAGE_KEY = "dromocob-launch-offer-v1";
+const STORAGE_KEY = "dromocob-launch-offer-v2";
 
 export default function LaunchOffer() {
   const [visible, setVisible] = useState(false);
@@ -38,6 +38,12 @@ export default function LaunchOffer() {
     setVisible(false);
   }
 
+  function openQuote() {
+    window.sessionStorage.setItem(STORAGE_KEY, "seen");
+    setVisible(false);
+    setQuoteOpen(true);
+  }
+
   if (!visible) return quoteOpen ? <AdvancedQuoteWizard service="web" initiallyOpen hideTrigger onClose={() => setQuoteOpen(false)}/> : null;
 
   return (
@@ -62,9 +68,14 @@ export default function LaunchOffer() {
             <span><Check /> Mobil uyum + SEO altyapısı</span>
             <span><Check /> Hızlı teslim planı</span>
           </div>
+          <div className="launch-offer-system" aria-label="Kampanya sistem özellikleri">
+            <span><Timer /><small>PLANLANAN TESLİM</small><strong>3—5 HAFTA</strong></span>
+            <span><Gauge /><small>PERFORMANS HEDEFİ</small><strong>90+ SKOR</strong></span>
+            <span><ShieldCheck /><small>TEKNİK GÜVENCE</small><strong>SEO READY</strong></span>
+          </div>
           <div className="launch-offer-actions">
-            <Link href="/web-tasarim" onClick={close}>Kampanyayı incele <ArrowRight /></Link>
-            <button type="button" onClick={() => { close(); setQuoteOpen(true); }}>10.000 TL&apos;den kapsam oluştur</button>
+            <button className="launch-offer-primary" type="button" onClick={openQuote}>10.000 TL&apos;den kapsam oluştur <ArrowRight /></button>
+            <Link className="launch-offer-secondary" href="/web-tasarim" onClick={close}>Detayları incele</Link>
           </div>
           <small>* Başlangıç fiyatıdır. Kapsama göre proje bütçesi değişebilir.</small>
         </div>

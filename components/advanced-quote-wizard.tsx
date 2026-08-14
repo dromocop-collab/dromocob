@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { FormEvent, type WheelEvent as ReactWheelEvent, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, CircleCheck, Loader2, Send, X } from "lucide-react";
@@ -27,6 +27,8 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
   const [sent, setSent] = useState(false);
   const [referenceId, setReferenceId] = useState("");
   const [error, setError] = useState("");
+  const optionScrollTarget = useRef(0);
+  const optionScrollFrame = useRef<number | null>(null);
   const mounted = useSyncExternalStore(subscribeToClient, () => true, () => false);
 
   useEffect(() => onSnapshot(
@@ -83,6 +85,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
 
   useEffect(() => {
     if (!open) return;
+    window.dispatchEvent(new Event("dromocob:quote-open"));
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
@@ -125,6 +128,35 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
     }
     setAnswers({ ...answers, [question.key]: value });
   }
+
+  function scrollOptions(event: ReactWheelEvent<HTMLDivElement>) {
+    const area = event.currentTarget;
+    const maxScroll = area.scrollHeight - area.clientHeight;
+    if (maxScroll <= 0) return;
+    event.stopPropagation();
+    event.preventDefault();
+    const multiplier = event.deltaMode === 1 ? 20 : event.deltaMode === 2 ? area.clientHeight : 1;
+    const delta = event.deltaY * multiplier;
+    optionScrollTarget.current = Math.max(0, Math.min(maxScroll, optionScrollFrame.current === null ? area.scrollTop + delta : optionScrollTarget.current + delta));
+    if (optionScrollFrame.current !== null) return;
+
+    const animate = () => {
+      const distance = optionScrollTarget.current - area.scrollTop;
+      if (Math.abs(distance) < .5) {
+        area.scrollTop = optionScrollTarget.current;
+        optionScrollFrame.current = null;
+        return;
+      }
+      area.scrollTop += distance * .2;
+      optionScrollFrame.current = window.requestAnimationFrame(animate);
+    };
+    optionScrollFrame.current = window.requestAnimationFrame(animate);
+  }
+
+  useEffect(() => () => {
+    if (optionScrollFrame.current !== null) window.cancelAnimationFrame(optionScrollFrame.current);
+    optionScrollFrame.current = null;
+  }, [step]);
 
   function canContinue() {
     if (isContactStep) return contact.name.trim().length >= 2 && /^\S+@\S+\.\S+$/.test(contact.email) && contact.phone.replace(/\D/g, "").length >= 10 && consent;
@@ -193,7 +225,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
             {!isContactStep && question ? <>
               <p className="advanced-quote-kicker">{config.shortLabel} kapsam analizi</p>
               <h2>{question.title}</h2><p className="advanced-quote-subtitle">{question.subtitle}</p>
-              {(question.type === "single" || question.type === "multi") && <div className="advanced-option-grid">{question.options?.map(item => {
+              {(question.type === "single" || question.type === "multi") && <div className="advanced-option-grid" onWheel={scrollOptions}>{question.options?.map(item => {
                 const current = answers[question.key];
                 const active = Array.isArray(current) ? current.includes(item.value) : current === item.value;
                 return <button type="button" key={item.value} aria-pressed={active} className={active ? "selected" : ""} onClick={() => select(item.value)}><kbd>{(question.options?.indexOf(item) || 0) + 1}</kbd><span><strong>{item.label}</strong>{item.hint && <small>{item.hint}</small>}</span><i>{active ? <Check/> : question.type === "multi" ? "+" : "○"}</i></button>;

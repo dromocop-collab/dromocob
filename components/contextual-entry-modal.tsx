@@ -107,10 +107,17 @@ export default function ContextualEntryModal() {
     if (window.sessionStorage.getItem(key)) return;
     const timer = window.setTimeout(() => {
       window.sessionStorage.setItem(key, "shown");
+      if (document.querySelector(".advanced-quote-backdrop, .modal-backdrop")) return;
       setOpenPath(pathname);
     }, 850);
     return () => window.clearTimeout(timer);
   }, [isExcluded, pathname, theme]);
+
+  useEffect(() => {
+    const closeForQuote = () => setOpenPath(null);
+    window.addEventListener("dromocob:quote-open", closeForQuote);
+    return () => window.removeEventListener("dromocob:quote-open", closeForQuote);
+  }, []);
 
   useEffect(() => {
     if (openPath !== pathname) return;
