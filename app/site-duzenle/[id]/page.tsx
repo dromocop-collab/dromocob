@@ -281,7 +281,7 @@ export default function SiteEditorPage() {
     setSaving(true);
     setError("");
     try {
-      await saveCustomerSite(site.ownerId || user.uid, { template: site.template, accent: site.accent, businessName: site.businessName, headline: site.headline, subdomain: site.subdomain, pages, siteSettings: settings }, site.id);
+      await saveCustomerSite(site.ownerId || user.uid, { template: site.template, accent: site.accent, businessName: site.businessName, headline: site.headline, subdomain: site.subdomain, brief: site.brief, pages, siteSettings: settings }, site.id);
       setSite({ ...site, pages, siteSettings: settings });
       setSaved(true);
       window.setTimeout(() => setSaved(false), 2200);

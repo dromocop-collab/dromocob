@@ -319,7 +319,8 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
           {!isWorkspaceRoute && <SiteNav />}
           <main id="main-content" className={isWorkspaceRoute ? "admin-route-main" : pathname === "/" ? "home-route-main" : undefined}>{children}</main>
           {!isWorkspaceRoute && <SiteFooter />}
-          {!isWorkspaceRoute && (settings.features?.liveChatEnabled !== false ? <LiveChat /> : <ContactDock />)}
+          {!isWorkspaceRoute && settings.features?.liveChatEnabled !== false && <LiveChat />}
+          {!isWorkspaceRoute && <ContactDock />}
           {!isWorkspaceRoute && <ContextualEntryModal />}
           {!isWorkspaceRoute && trackingEnabled && <CookieConsent />}
         </SmoothScrollProvider>

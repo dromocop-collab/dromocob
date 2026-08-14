@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ArrowUpRight, Bot, Camera, CheckCheck, Code2, Film, Gauge, Layers3, MessageCircle, Play, Radar, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Bot, Building2, Camera, CheckCheck, Code2, Film, Gauge, Layers3, MessageCircle, Play, Radar, Search, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import ProjectGrid from "@/components/project-grid";
 import PackageGrid from "@/components/package-grid";
 import GrowthDiagnostic from "@/components/growth-diagnostic";
@@ -16,12 +16,75 @@ import ScrollProgress from "@/components/motion/scroll-progress";
 import CodeMission from "@/components/code-mission";
 
 export const metadata = pageMetadata({
-  title: "Web Tasarım, Drone Çekimi ve Video Prodüksiyon",
+  title: "Web Tasarım, SEO ve Dijital Reklam Ajansı",
   description:
-    "Profesyonel web tasarım, kurumsal web sitesi, özel web yazılım, drone çekimi, tanıtım filmi ve video prodüksiyon hizmetleri. Fethiye merkezli, Türkiye geneli.",
+    "Web tasarım, işletme tanıtımı, SEO, Meta reklamları, sosyal medya yönetimi, tanıtım filmi ve video prodüksiyon hizmetleri. Fethiye merkezli, Türkiye geneli.",
   path: "/",
-  keywords: ["web tasarım", "web tasarımı", "drone", "drone çekimi", "profesyonel drone çekimi", "web sitesi yaptırma", "kurumsal web sitesi", "web tasarım ajansı", "kurumsal tanıtım filmi", "tanıtım videosu", "video prodüksiyon ajansı"],
+  keywords: ["web tasarım", "web tasarımı", "işletme tanıtımı", "dijital reklam ajansı", "Meta reklamları", "Instagram yönetimi", "SEO hizmeti", "drone çekimi", "profesyonel drone çekimi", "web sitesi yaptırma", "kurumsal web sitesi", "web tasarım ajansı", "kurumsal tanıtım filmi", "tanıtım videosu", "video prodüksiyon ajansı"],
 });
+
+const growthTerms = [
+  {
+    number: "01",
+    icon: Code2,
+    title: "Web tasarımı",
+    definition: "Bir işletmenin dijital merkezini; marka kimliği, kullanıcı deneyimi, mobil uyumluluk, hız ve dönüşüm hedefleriyle birlikte planlama sürecidir.",
+    outcome: "SEO uyumlu web sitesi · Kurumsal güven · Daha fazla teklif",
+    href: "/web-tasarim",
+    linkLabel: "Web tasarım hizmetini incele",
+    signal: "PERFORMANCE / UX",
+  },
+  {
+    number: "02",
+    icon: Building2,
+    title: "İşletme tanıtımı",
+    definition: "Firmanın hikâyesini, hizmetlerini ve farkını web sitesi, tanıtım filmi ve dijital içeriklerle doğru müşteriye anlaşılır biçimde aktarmaktır.",
+    outcome: "Marka bilinirliği · Güven veren sunum · Yerel görünürlük",
+    href: "/tanitim-filmi",
+    linkLabel: "İşletme tanıtım çözümlerini keşfet",
+    signal: "BRAND / STORY",
+  },
+  {
+    number: "03",
+    icon: Search,
+    title: "SEO çalışması",
+    definition: "Web sitesinin Google tarafından doğru anlaşılması ve kullanıcıların yaptığı ilgili aramalarda organik olarak görünmesi için uygulanan teknik ve içerik odaklı iyileştirmelerdir.",
+    outcome: "Teknik SEO · Yerel SEO · Organik trafik",
+    href: "/seo",
+    linkLabel: "SEO hizmetinin detaylarını gör",
+    signal: "SEARCH / ORGANIC",
+  },
+  {
+    number: "04",
+    icon: Radar,
+    title: "Meta reklamları",
+    definition: "Facebook ve Instagram üzerinde doğru hedef kitleye ulaşmak; mesaj, form, satış veya web sitesi dönüşümü elde etmek için ölçümlenen reklam kampanyalarıdır.",
+    outcome: "Hedef kitle · A/B test · Dönüşüm takibi",
+    href: "/meta-reklamlari",
+    linkLabel: "Meta reklam yönetimini incele",
+    signal: "ADS / CONVERSION",
+  },
+  {
+    number: "05",
+    icon: MessageCircle,
+    title: "Sosyal medya yönetimi",
+    definition: "Markanın Instagram ve diğer sosyal kanallardaki içerik stratejisi, paylaşım ritmi, Reels üretimi, topluluk iletişimi ve performans analizinin bütünüdür.",
+    outcome: "İçerik planı · Reels üretimi · Topluluk büyümesi",
+    href: "/instagram-yonetimi",
+    linkLabel: "Instagram yönetimini keşfet",
+    signal: "SOCIAL / CONTENT",
+  },
+  {
+    number: "06",
+    icon: Camera,
+    title: "Video prodüksiyon",
+    definition: "Tanıtım filmi, reklam videosu, ürün çekimi ve sosyal medya içeriklerinin fikir, senaryo, çekim, kurgu, renk ve ses aşamalarıyla profesyonel olarak üretilmesidir.",
+    outcome: "Tanıtım filmi · Reklam videosu · Reels ve kısa video",
+    href: "/video-produksiyon",
+    linkLabel: "Video prodüksiyon hizmetini gör",
+    signal: "FILM / MOTION",
+  },
+] as const;
 
 export default function Home() {
   const whatsappMessage = encodeURIComponent("Merhaba Dromocob, projem hakkında hızlıca bilgi almak istiyorum.");
@@ -98,6 +161,39 @@ export default function Home() {
       </section>
 
       <PinnedServices />
+
+      <section className="section growth-glossary" data-cinematic data-scroll-scene="glossary" aria-labelledby="growth-glossary-title">
+        <div className="growth-glossary-head">
+          <div>
+            <p className="eyebrow"><Sparkles size={15}/> Dijital büyüme sözlüğü</p>
+            <h2 id="growth-glossary-title">İşletmeni internette<br/><em>büyüten terimler.</em></h2>
+          </div>
+          <div className="growth-glossary-intro">
+            <span>NE / NEDEN / NASIL</span>
+            <p>Web tasarımı, işletme tanıtımı, SEO ve dijital reklam birbiriyle bağlantılı çalışır. Her kavramın ne anlama geldiğini ve işletmene hangi sonucu sağladığını açıkça keşfet.</p>
+          </div>
+        </div>
+
+        <div className="growth-glossary-grid">
+          {growthTerms.map(({ number, icon: Icon, title, definition, outcome, href, linkLabel, signal }) => (
+            <article key={title}>
+              <header><span>{number}</span><small>{signal}</small><i><Icon /></i></header>
+              <div className="growth-term-copy">
+                <p>KISACA NEDİR?</p>
+                <h3>{title}</h3>
+                <p>{definition}</p>
+              </div>
+              <div className="growth-term-outcome"><span>İŞLETMENE ETKİSİ</span><strong>{outcome}</strong></div>
+              <Link href={href} aria-label={linkLabel}><span>{linkLabel}</span><ArrowUpRight /></Link>
+            </article>
+          ))}
+        </div>
+
+        <footer className="growth-glossary-footer">
+          <div><i/><span><small>TEK TEK HİZMET DEĞİL</small><strong>Birbirini besleyen dijital büyüme sistemi</strong></span></div>
+          <Link href="/hizmetler">Tüm hizmetleri karşılaştır <ArrowRight /></Link>
+        </footer>
+      </section>
 
       <CodeMission />
 

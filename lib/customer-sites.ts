@@ -4,12 +4,28 @@ import { db } from "@/lib/firebase";
 
 export type CustomerSiteTemplate = "studio" | "restaurant" | "portfolio";
 
+export type CustomerBusinessIndustry = "creative" | "restaurant" | "beauty" | "health" | "construction" | "real-estate" | "ecommerce" | "professional";
+export type CustomerSiteGoal = "whatsapp" | "call" | "appointment" | "quote" | "sales";
+export type CustomerBrandTone = "bold" | "premium" | "warm" | "minimal";
+
+export type CustomerSiteBrief = {
+  industry: CustomerBusinessIndustry;
+  location: string;
+  audience: string;
+  services: string[];
+  primaryGoal: CustomerSiteGoal;
+  contactValue: string;
+  differentiator: string;
+  brandTone: CustomerBrandTone;
+};
+
 export type CustomerSiteDraft = {
   template: CustomerSiteTemplate;
   accent: string;
   businessName: string;
   headline: string;
   subdomain: string;
+  brief?: CustomerSiteBrief;
   pages?: CustomerSitePage[];
   siteSettings?: CustomerSiteSettings;
 };
@@ -70,6 +86,85 @@ export function resolveCustomerSection(section: CustomerSiteSectionValue | null 
   if (!section) return createCustomerSection("text", fallbackId);
   const defaults = createCustomerSection(section.type, section.id || fallbackId);
   return { ...defaults, ...section, items: Array.isArray(section.items) ? section.items : defaults.items };
+}
+
+const industryLabels: Record<CustomerBusinessIndustry, string> = {
+  creative: "Yaratıcı stüdyo",
+  restaurant: "Restoran ve gastronomi",
+  beauty: "Güzellik ve bakım",
+  health: "Sağlık ve danışmanlık",
+  construction: "İnşaat ve mimarlık",
+  "real-estate": "Gayrimenkul",
+  ecommerce: "E-ticaret ve perakende",
+  professional: "Profesyonel hizmetler",
+};
+
+const goalCopy: Record<CustomerSiteGoal, { label: string; url: string; contactTitle: string }> = {
+  whatsapp: { label: "WhatsApp'tan yazın", url: "https://wa.me/", contactTitle: "Hızlıca konuşalım." },
+  call: { label: "Hemen arayın", url: "tel:", contactTitle: "Bizi doğrudan arayın." },
+  appointment: { label: "Randevu oluşturun", url: "/iletisim", contactTitle: "Size uygun zamanı seçelim." },
+  quote: { label: "Teklif alın", url: "/iletisim", contactTitle: "İhtiyacınızı birlikte netleştirelim." },
+  sales: { label: "Ürünleri keşfedin", url: "#hizmetler", contactTitle: "Aradığınızı birlikte bulalım." },
+};
+
+export function createCustomerSitePages(input: Pick<CustomerSiteDraft, "businessName" | "headline" | "brief">): CustomerSitePage[] {
+  const businessName = input.businessName.trim() || "Markanız";
+  const brief = input.brief;
+  const services = brief?.services?.filter(Boolean).slice(0, 6) || [];
+  const industry = brief ? industryLabels[brief.industry] : "Yeni nesil işletme";
+  const location = brief?.location?.trim() || "Türkiye";
+  const audience = brief?.audience?.trim() || "doğru müşteriler";
+  const difference = brief?.differentiator?.trim() || "İhtiyacı anlayan, güven veren ve sonuç odaklı bir deneyim sunuyoruz.";
+  const goal = goalCopy[brief?.primaryGoal || "quote"];
+  const contactValue = brief?.contactValue?.trim() || "";
+  const contactDigits = contactValue.replace(/\D/g, "");
+  const goalUrl = brief?.primaryGoal === "whatsapp" && contactDigits
+    ? `https://wa.me/${contactDigits}`
+    : brief?.primaryGoal === "call" && contactValue
+      ? `tel:${contactValue.replace(/\s/g, "")}`
+      : brief?.primaryGoal === "appointment" && /^https?:\/\//.test(contactValue)
+        ? contactValue
+        : goal.url;
+  const serviceItems = services.length ? services : ["Stratejik danışmanlık", "Uçtan uca hizmet", "Sürekli destek"];
+
+  return [
+    {
+      id: "home",
+      title: "Anasayfa",
+      slug: "/",
+      type: "home",
+      visible: true,
+      sections: [
+        { id: "home-hero", type: "hero", eyebrow: `${industry.toUpperCase()} · ${location.toUpperCase()}`, title: input.headline, description: `${businessName}, ${audience} için net, güvenilir ve özenli çözümler üretir.`, items: [], ctaLabel: goal.label, ctaUrl: goalUrl },
+        { id: "home-services", type: "services", eyebrow: "UZMANLIK ALANLARIMIZ", title: "İhtiyacınıza göre şekillenen hizmetler.", description: difference, items: serviceItems },
+        { id: "home-text", type: "text", eyebrow: `NEDEN ${businessName.toUpperCase()}?`, title: "İyi iş, doğru anlayışla başlar.", description: difference, items: ["İhtiyaca özel yaklaşım", `${location} odaklı hizmet`, "Şeffaf ve hızlı iletişim"] },
+        { id: "home-cta", type: "cta", eyebrow: "SIRADAKİ ADIM", title: goal.contactTitle, description: `${businessName} ekibiyle iletişime geçin; ihtiyacınızı dinleyip en doğru rotayı birlikte oluşturalım.`, items: [], ctaLabel: goal.label, ctaUrl: goalUrl },
+      ],
+    },
+    {
+      id: "about",
+      title: "Hakkımızda",
+      slug: "/hakkimizda",
+      type: "standard",
+      visible: true,
+      sections: [
+        { id: "about-hero", type: "hero", eyebrow: `${businessName.toUpperCase()} · ${industry.toUpperCase()}`, title: `${location}'dan daha iyisini üretmek için çalışıyoruz.`, description: difference, items: [], ctaLabel: goal.label, ctaUrl: goalUrl },
+        { id: "about-story", type: "text", eyebrow: "YAKLAŞIMIMIZ", title: `${audience} için tasarlanmış gerçek çözümler.`, description: `${businessName}, her projeye dikkat, uzmanlık ve açık iletişimle yaklaşır.`, items: serviceItems.slice(0, 3) },
+        { id: "about-process", type: "timeline", eyebrow: "NASIL ÇALIŞIYORUZ", title: "İlk görüşmeden sonuca net bir süreç.", description: "Her adımı görünür ve anlaşılır tutuyoruz.", items: ["01 İhtiyacı dinliyoruz", "02 Doğru çözümü planlıyoruz", "03 Özenle uyguluyoruz", "04 Sonucu birlikte büyütüyoruz"] },
+      ],
+    },
+    {
+      id: "contact",
+      title: "İletişim",
+      slug: "/iletisim",
+      type: "contact",
+      visible: true,
+      sections: [
+        { id: "contact-hero", type: "hero", eyebrow: `${location.toUpperCase()} · İLETİŞİM`, title: goal.contactTitle, description: `Sorunuzu veya ihtiyacınızı paylaşın. ${businessName} ekibi en kısa sürede size dönüş yapsın.`, items: [], ctaLabel: goal.label, ctaUrl: goalUrl },
+        { id: "contact-form", type: "contact", eyebrow: "BİZE ULAŞIN", title: "Mesajınızı bırakın.", description: "Kısa bilgilerinizi paylaşın, görüşmeyi biz başlatalım.", items: ["Ad soyad", "Telefon / E-posta", "Nasıl yardımcı olabiliriz?"], ctaLabel: "Mesajı gönder", ctaUrl: "#contact" },
+      ],
+    },
+  ];
 }
 
 export type CustomerSiteSettings = {

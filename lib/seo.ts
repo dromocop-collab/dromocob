@@ -216,6 +216,9 @@ export const primaryServicesJsonLd = {
     ["Web Tasarım", "/web-tasarim", "Kurumsal, hızlı ve SEO uyumlu web sitesi tasarımı"],
     ["Kurumsal Web Tasarım", "/kurumsal-web-tasarim", "Markalar için kurumsal web tasarım ve özel yazılım"],
     ["SEO Hizmeti", "/seo", "Teknik, yerel ve içerik odaklı arama motoru optimizasyonu"],
+    ["İşletme Tanıtımı", "/tanitim-filmi", "İşletmeler için tanıtım filmi, marka anlatısı ve dijital tanıtım içerikleri"],
+    ["Meta Reklam Yönetimi", "/meta-reklamlari", "Facebook ve Instagram reklam kampanyası, hedef kitle ve dönüşüm optimizasyonu"],
+    ["Instagram Yönetimi", "/instagram-yonetimi", "İçerik stratejisi, Reels üretimi ve profesyonel sosyal medya yönetimi"],
     ["Video Prodüksiyon", "/video-produksiyon", "Kurumsal tanıtım filmi ve sinematik video prodüksiyon"],
     ["Drone Çekimi", "/drone-cekimi", "Profesyonel 4K drone çekimi"],
   ].map(([name, path, description], index) => ({
