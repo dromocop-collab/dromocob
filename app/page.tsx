@@ -12,6 +12,9 @@ import HomeClientExperience from "@/components/home-client-experience";
 import LaunchOffer from "@/components/launch-offer";
 import HomeMotionController from "@/components/motion/home-motion-controller";
 import PinnedServices from "@/components/motion/pinned-services";
+import SeninRandevunShowcase from "@/components/senin-randevun-showcase";
+import KaloriMerkeziShowcase from "@/components/kalori-merkezi-showcase";
+import "@/components/kalori-merkezi-showcase.css";
 import ScrollProgress from "@/components/motion/scroll-progress";
 import CodeMission from "@/components/code-mission";
 
@@ -161,7 +164,8 @@ export default function Home() {
       </section>
 
       <PinnedServices />
-
+      <KaloriMerkeziShowcase />
+<SeninRandevunShowcase />
       <section className="section growth-glossary" data-cinematic data-scroll-scene="glossary" aria-labelledby="growth-glossary-title">
         <div className="growth-glossary-head">
           <div>

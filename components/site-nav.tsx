@@ -65,6 +65,7 @@ const navItems: NavItem[] = [
   },
   { label: "Projeler", href: "/projeler" },
   { label: "Paketler", href: "/paketler" },
+  { label: "Lisanslar", href: "/lisans" },
   { label: "Kurumsal", href: "/kurumsal" },
   { label: "İletişim", href: "/iletisim" },
 ];

@@ -35916,3 +35916,4 @@ html.lenis, html.lenis body { height: auto; }
   .contact-command-card,.contact-command-card>*,.contact-hq-actions .button,.contact-channel-strip>a,.contact-operating article { transform:none!important; transition:none!important; }
   .contact-hq-ambient>i,.contact-command-core::after,.contact-signal-ticker>div,.contact-response-standard::after,.contact-hq-copy h1 em::after { animation:none!important; }
 }
+@import "../components/senin-randevun-showcase.css";

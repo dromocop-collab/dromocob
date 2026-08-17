@@ -23,10 +23,12 @@ type PublicRoute = {
 };
 
 const updated = {
-  core: "2026-08-13",
-  services: "2026-08-13",
-  packages: "2026-07-21",
-  legal: "2026-07-19",
+  core: "2026-08-17",
+  services: "2026-08-17",
+  products: "2026-08-17",
+  licenses: "2026-08-17",
+  packages: "2026-08-17",
+  legal: "2026-08-17",
 } as const;
 
 const openGraphImage = "/opengraph-image";
@@ -44,7 +46,14 @@ const productionServiceImages = [
   "/images/services/dji-mini-5-pro-drone.webp",
   "/images/services/dji-avata-2-fpv-drone.webp",
 ];
-
+const productImages = {
+  kaloriMerkezi: [
+    "/images/apps/kalori-merkezi-icon.jpg",
+  ],
+  pixelResizer: [
+    "/images/apps/pixel-resizer-icon.png",
+  ],
+} as const;
 const publicRoutes: PublicRoute[] = [
   { path: "/", priority: 1, changeFrequency: "weekly", lastModified: updated.core, images: [openGraphImage] },
   { path: "/hizmetler", priority: 0.93, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages, ...productionServiceImages] },
@@ -65,6 +74,13 @@ const publicRoutes: PublicRoute[] = [
   { path: "/kurumsal-fotograf-cekimi", priority: 0.94, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...productionServiceImages] },
   { path: "/kamera-ekipmanlari", priority: 0.91, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...productionServiceImages] },
   { path: "/fethiye", priority: 0.95, changeFrequency: "daily", lastModified: updated.services, images: [openGraphImage, ...productionServiceImages] },
+ {
+  path: "/lisans",
+  priority: 0.94,
+  changeFrequency: "weekly",
+  lastModified: updated.licenses,
+  images: [openGraphImage],
+},
   { path: "/seo", priority: 0.95, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages] },
   { path: "/teknik-seo", priority: 0.94, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages] },
   { path: "/yerel-seo", priority: 0.94, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages] },
@@ -73,9 +89,33 @@ const publicRoutes: PublicRoute[] = [
   { path: "/instagram-yonetimi", priority: 0.94, changeFrequency: "monthly", lastModified: updated.services, images: [openGraphImage, ...webServiceImages] },
   { path: "/projeler", priority: 0.92, changeFrequency: "weekly", lastModified: updated.core, images: [openGraphImage, ...projectCaseStudies.map(project => project.coverUrl)] },
   { path: "/paketler", priority: 0.92, changeFrequency: "weekly", lastModified: updated.packages, images: [openGraphImage] },
-  { path: "/uygulamalar", priority: 0.94, changeFrequency: "weekly", lastModified: "2026-08-01", images: [openGraphImage] },
-  { path: "/uygulamalar/photoresize", priority: 0.95, changeFrequency: "weekly", lastModified: "2026-08-01", images: [openGraphImage] },
-  { path: "/kalori-merkezi", priority: 0.45, changeFrequency: "monthly", lastModified: updated.legal, images: [openGraphImage] },
+ {
+  path: "/uygulamalar",
+  priority: 0.94,
+  changeFrequency: "weekly",
+  lastModified: updated.products,
+  images: [openGraphImage],
+},
+{
+  path: "/uygulamalar/photoresize",
+  priority: 0.95,
+  changeFrequency: "weekly",
+  lastModified: updated.products,
+  images: [
+    openGraphImage,
+    ...productImages.pixelResizer,
+  ],
+}, 
+{
+  path: "/kalori-merkezi",
+  priority: 0.92,
+  changeFrequency: "weekly",
+  lastModified: updated.products,
+  images: [
+    openGraphImage,
+    ...productImages.kaloriMerkezi,
+  ],
+},
   { path: "/kalori-merkezi/destek", priority: 0.3, changeFrequency: "yearly", lastModified: updated.legal },
   { path: "/kalori-merkezi/gizlilik", priority: 0.3, changeFrequency: "yearly", lastModified: updated.legal },
   { path: "/kurumsal", priority: 0.84, changeFrequency: "monthly", lastModified: updated.core, images: [openGraphImage] },
@@ -114,13 +154,66 @@ type FirestoreSeoEntry = {
   updatedAt?: Date;
 };
 
-function firestoreDate(value: unknown): Date | undefined {
-  if (value && typeof value === "object" && "toDate" in value && typeof value.toDate === "function") {
-    return value.toDate();
+function firestoreDate(
+  value: unknown,
+): Date | undefined {
+  if (
+    !value ||
+    typeof value !== "object" ||
+    !("toDate" in value)
+  ) {
+    return undefined;
   }
-  return undefined;
-}
 
+  const candidate =
+    value as {
+      toDate?: () => Date;
+    };
+
+  if (
+    typeof candidate.toDate !==
+    "function"
+  ) {
+    return undefined;
+  }
+
+  try {
+    const date =
+      candidate.toDate();
+
+    return Number.isNaN(
+      date.getTime(),
+    )
+      ? undefined
+      : date;
+  } catch {
+    return undefined;
+  }
+}
+function safeDate(
+  value: Date | undefined,
+  fallback: string,
+) {
+  if (
+    value &&
+    Number.isFinite(value.getTime())
+  ) {
+    return value;
+  }
+
+  return new Date(
+    `${fallback}T12:00:00.000Z`,
+  );
+}
+function normalizeSlug(
+  value: unknown,
+) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/[^a-z0-9-]/g, "");
+}
 async function getPublishedContent() {
   try {
     const [projectsSnapshot, packagesSnapshot] = await Promise.all([
@@ -131,7 +224,9 @@ async function getPublishedContent() {
     const projects: FirestoreSeoEntry[] = projectsSnapshot.docs.map(document => {
       const data = document.data();
       return {
-        slug: String(data.slug || "").trim(),
+       slug: normalizeSlug(
+  data.slug,
+),
         title: String(data.title || "").trim(),
         image: String(data.coverUrl || data.coverImage || "").trim() || undefined,
         updatedAt: firestoreDate(data.updatedAt) || firestoreDate(data.createdAt),
@@ -142,7 +237,10 @@ async function getPublishedContent() {
       const data = document.data();
       const known = packageDetails.find(item => item.packageId === document.id || item.slug === data.slug);
       return {
-        slug: known?.slug || "",
+        slug: normalizeSlug(
+  known?.slug ||
+  data.slug,
+),
         title: String(data.title || known?.title || "").trim(),
         image: String(data.image || "").trim() || undefined,
         updatedAt: firestoreDate(data.updatedAt) || firestoreDate(data.createdAt),
@@ -167,7 +265,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const live = published.packages.find(entry => entry.slug === item.slug);
     return {
       url: absoluteUrl(path),
-      lastModified: live?.updatedAt || new Date(`${updated.packages}T12:00:00.000Z`),
+   lastModified: safeDate(
+  live?.updatedAt,
+  updated.packages,
+),
       changeFrequency: "monthly",
       priority: item.slug === "digital-flagship" ? 0.94 : 0.9,
       alternates: localizedAlternates(path),
@@ -204,7 +305,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const path = `/projeler/${project.slug}`;
     return {
       url: absoluteUrl(path),
-      lastModified: project.updatedAt || new Date(`${updated.core}T12:00:00.000Z`),
+     lastModified: safeDate(
+  project.updatedAt,
+  updated.core,
+),
       changeFrequency: "monthly",
       priority: 0.86,
       alternates: localizedAlternates(path),
