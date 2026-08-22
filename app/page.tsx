@@ -4,7 +4,7 @@ import { ArrowRight, ArrowUpRight, Bot, Building2, Camera, CheckCheck, Code2, Fi
 import ProjectGrid from "@/components/project-grid";
 import PackageGrid from "@/components/package-grid";
 import GrowthDiagnostic from "@/components/growth-diagnostic";
-import { homePageJsonLd, pageMetadata, primaryServicesJsonLd } from "@/lib/seo";
+import { absoluteUrl, homePageJsonLd, pageMetadata, primaryServicesJsonLd } from "@/lib/seo";
 import QuoteLauncher from "@/components/quote-launcher";
 import InstagramReels from "@/components/instagram-reels";
 import { sitePhone, sitePhoneDisplay } from "@/lib/seo";
@@ -23,8 +23,24 @@ export const metadata = pageMetadata({
   description:
     "Web tasarım, işletme tanıtımı, SEO, Meta reklamları, sosyal medya yönetimi, tanıtım filmi ve video prodüksiyon hizmetleri. Fethiye merkezli, Türkiye geneli.",
   path: "/",
-  keywords: ["web tasarım", "web tasarımı", "işletme tanıtımı", "dijital reklam ajansı", "Meta reklamları", "Instagram yönetimi", "SEO hizmeti", "drone çekimi", "profesyonel drone çekimi", "web sitesi yaptırma", "kurumsal web sitesi", "web tasarım ajansı", "kurumsal tanıtım filmi", "tanıtım videosu", "video prodüksiyon ajansı"],
+  keywords: ["SeninRandevun", "online randevu sistemi", "SaaS yazılım geliştirme", "iOS uygulama geliştirme", "web tasarım", "web tasarımı", "işletme tanıtımı", "dijital reklam ajansı", "Meta reklamları", "Instagram yönetimi", "SEO hizmeti", "drone çekimi", "web sitesi yaptırma", "kurumsal web sitesi", "web tasarım ajansı", "video prodüksiyon ajansı"],
 });
+
+const seninRandevunJsonLd = {
+  "@type": "SoftwareApplication",
+  "@id": `${absoluteUrl("/projeler/senin-randevun")}#software`,
+  name: "SeninRandevun",
+  alternateName: "Senin Randevun",
+  url: "https://seninrandevun.com",
+  mainEntityOfPage: absoluteUrl("/projeler/senin-randevun"),
+  applicationCategory: "BusinessApplication",
+  applicationSubCategory: "Online Appointment Scheduling Software",
+  operatingSystem: "Web, iOS",
+  inLanguage: "tr-TR",
+  description: "Müşteriler için işletme ve hizmet keşfini, işletmeler için randevu, ekip, müşteri, hizmet ve çoklu mağaza yönetimini birleştiren online randevu platformu.",
+  featureList: ["Online randevu", "İşletme paneli", "Çoklu mağaza yönetimi", "Ekip ve hizmet yönetimi", "Müşteri keşfi", "iOS uygulaması"],
+  creator: { "@id": `${absoluteUrl("/")}#organization` },
+};
 
 const growthTerms = [
   {
@@ -95,7 +111,7 @@ export default function Home() {
 
   return (
     <div className="home-page">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": [homePageJsonLd, primaryServicesJsonLd] }).replace(/</g, "\\u003c") }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@graph": [homePageJsonLd, primaryServicesJsonLd, seninRandevunJsonLd] }).replace(/</g, "\\u003c") }} />
       <HomeMotionController />
       <ScrollProgress />
       <LaunchOffer />
@@ -165,7 +181,7 @@ export default function Home() {
 
       <PinnedServices />
       <KaloriMerkeziShowcase />
-<SeninRandevunShowcase />
+      <SeninRandevunShowcase />
       <section className="section growth-glossary" data-cinematic data-scroll-scene="glossary" aria-labelledby="growth-glossary-title">
         <div className="growth-glossary-head">
           <div>

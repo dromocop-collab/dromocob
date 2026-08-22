@@ -9,8 +9,11 @@ import {
   Clock3,
   Globe2,
   LayoutDashboard,
+  Network,
   ShieldCheck,
+  Smartphone,
   Sparkles,
+  Store,
   UsersRound,
 } from "lucide-react";
 
@@ -30,22 +33,22 @@ export default function SeninRandevunShowcase() {
           <div>
             <p className="eyebrow">
               <Sparkles size={15} />
-              DROMOCOB PRODUCT / 01
+              DROMOCOB LABS / PRODUCT 01
             </p>
 
             <h2 id="seninrandevun-title">
-              Randevu almak
+              Bir randevu ürünü değil.
               <br />
-              <em>bu kadar zor olmamalı.</em>
+              <em>İşletmenin dijital merkezi.</em>
             </h2>
           </div>
 
           <div className="sr-head-copy">
-            <span>seninrandevun.com</span>
+            <span>WEB + NATIVE iOS · 2026</span>
             <p>
-              İşletmeler ve müşteriler arasındaki randevu sürecini tek,
-              hızlı ve modern bir deneyimde buluşturan yeni nesil randevu
-              platformu.
+              Keşif, rezervasyon ve işletme operasyonunu aynı veri mimarisinde
+              buluşturan; farklı sektörlere ve çoklu mağaza yapılarına uyarlanan
+              yeni nesil SaaS platformu.
             </p>
           </div>
         </div>
@@ -54,19 +57,25 @@ export default function SeninRandevunShowcase() {
           <div className="sr-product-copy">
             <div className="sr-product-badge">
               <BadgeCheck size={17} />
-              CANLI ÜRÜN
+              DROMOCOB PRODUCT · CANLI
             </div>
 
             <h3>
-              İşletmen için
-              <span>tek merkezden randevu yönetimi.</span>
+              Keşiften operasyona
+              <span>tek, kesintisiz deneyim.</span>
             </h3>
 
             <p>
-              Müşterilerin uygun saatleri görsün, online randevu oluştursun;
-              işletmeler takvimini, hizmetlerini ve müşteri akışını tek
-              panelden yönetsin.
+              Müşteriler doğru hizmeti bulup uygun saati seçer. İşletmeler
+              takvimini, ekibini, hizmetlerini, müşterilerini ve mağazalarını
+              web ile iOS üzerinden tek merkezden yönetir.
             </p>
+
+            <div className="sr-proof-grid" aria-label="SeninRandevun ürün kapsamı">
+              <div><Smartphone size={17}/><span><small>PLATFORM</small><strong>Web + iOS</strong></span></div>
+              <div><Store size={17}/><span><small>OPERASYON</small><strong>Çoklu mağaza</strong></span></div>
+              <div><Network size={17}/><span><small>MİMARİ</small><strong>Ortak veri sistemi</strong></span></div>
+            </div>
 
             <div className="sr-feature-grid">
               <Feature
@@ -77,33 +86,29 @@ export default function SeninRandevunShowcase() {
               <Feature
                 icon={LayoutDashboard}
                 title="İşletme Paneli"
-                text="Takvim, hizmetler ve randevular tek kontrol merkezinde."
+                text="Takvim, hizmet, ekip, müşteri ve mağazalar aynı merkezde."
               />
               <Feature
                 icon={UsersRound}
-                title="Müşteri Akışı"
-                text="Daha düzenli iletişim ve daha profesyonel müşteri deneyimi."
+                title="Akıllı Keşif"
+                text="Kategori, işletme, hizmet ve uygun saat tek akışta."
               />
               <Feature
                 icon={ShieldCheck}
-                title="Güvenli Altyapı"
-                text="Modern, ölçeklenebilir ve işletme odaklı dijital sistem."
+                title="Ölçeklenebilir SaaS"
+                text="Rol, onay ve çoklu mağaza ihtiyaçlarına hazır mimari."
               />
             </div>
 
             <div className="sr-actions">
-              <Link
-                className="sr-primary-link"
-                href="https://seninrandevun.com"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Canlı projeyi keşfet
+              <Link className="sr-primary-link" href="/projeler/senin-randevun">
+                Vaka çalışmasını incele
                 <ArrowUpRight size={17} />
               </Link>
 
-              <Link className="sr-secondary-link" href="/projeler">
-                Dromocob projelerini gör
+              <Link className="sr-secondary-link" href="https://seninrandevun.com" target="_blank" rel="noreferrer">
+                Canlı ürünü aç
+                <Globe2 size={15}/>
               </Link>
             </div>
           </div>
@@ -126,12 +131,12 @@ export default function SeninRandevunShowcase() {
               <div className="sr-browser-body">
                 <div className="sr-browser-top">
                   <div>
-                    <small>RANDEVU MOTORU</small>
-                    <strong>Bugün için uygun saatler</strong>
+                    <small>OPERASYON MERKEZİ</small>
+                    <strong>Bugünün akışı</strong>
                   </div>
                   <span>
                     <CheckCircle2 size={15} />
-                    Sistem aktif
+                    Canlı senkronizasyon
                   </span>
                 </div>
 
@@ -151,9 +156,9 @@ export default function SeninRandevunShowcase() {
 
                 <div className="sr-browser-card">
                   <div>
-                    <small>İŞLETME</small>
-                    <strong>Takvim yönetimi hazır</strong>
-                    <span>Bugün · 12 randevu</span>
+                    <small>İŞLETME MERKEZİ</small>
+                    <strong>Tüm operasyon tek yerde</strong>
+                    <span>Takvim · Ekip · Hizmet · Müşteri</span>
                   </div>
                   <div className="sr-browser-chart">
                     <i />
@@ -168,6 +173,15 @@ export default function SeninRandevunShowcase() {
               </div>
             </div>
 
+            <div className="sr-phone">
+              <div className="sr-phone-island" />
+              <div className="sr-phone-brand"><span>SR</span><div><small>SENİN</small><strong>Randevun</strong></div></div>
+              <div className="sr-phone-hero"><small>SANA ÖZEL KEŞİF</small><strong>İyi hissettiren<br/>hizmeti keşfet.</strong></div>
+              <div className="sr-phone-search">Hizmet veya işletme ara…</div>
+              <div className="sr-phone-cards"><i/><i/><i/></div>
+              <div className="sr-phone-nav"><i/><i/><i/><i/></div>
+            </div>
+
             <div className="sr-status sr-status-booking">
               <CalendarDays size={16} />
               <div>
@@ -180,8 +194,8 @@ export default function SeninRandevunShowcase() {
             <div className="sr-status sr-status-panel">
               <LayoutDashboard size={16} />
               <div>
-                <small>BUSINESS PANEL</small>
-                <strong>READY</strong>
+                <small>MULTI STORE</small>
+                <strong>CONNECTED</strong>
               </div>
               <i />
             </div>
@@ -202,14 +216,14 @@ export default function SeninRandevunShowcase() {
             <i />
             <span>
               <small>PRODUCT STATUS</small>
-              <strong>seninrandevun.com yayında</strong>
+              <strong>SeninRandevun web ve iOS ürünü yayında</strong>
             </span>
           </div>
 
           <div className="sr-footer-signals">
-            <span>BOOKING / LIVE</span>
-            <span>PANEL / ACTIVE</span>
-            <span>MOBILE / READY</span>
+            <span>DISCOVERY / LIVE</span>
+            <span>BUSINESS OS / ACTIVE</span>
+            <span>iOS / NATIVE</span>
           </div>
         </div>
       </div>

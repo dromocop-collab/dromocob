@@ -146,7 +146,11 @@ export const fallbackProjects: Project[] = projectCaseStudies.map<Project>((proj
   title: project.title,
   slug: project.slug,
   category: project.category,
-  projectType: ["cinematic-brand", "social-growth"].includes(project.id) ? "Film" : "Web",
+  projectType: ["cinematic-brand", "social-growth"].includes(project.id)
+    ? "Film"
+    : project.id === "senin-randevun"
+      ? "App"
+      : "Web",
   summary: project.summary,
   description: project.description,
   coverUrl: project.coverUrl,

@@ -7,9 +7,9 @@ import QuoteLauncher from "@/components/quote-launcher";
 export const metadata = pageMetadata({
   title: "Web Tasarım, Film Prodüksiyon ve Growth Projeleri",
   description:
-    "Dromocob tarafından geliştirilen film prodüksiyonu, web sistemi, e-ticaret ve dijital büyüme projelerinden seçili çalışmalar.",
+    "Dromocob tarafından geliştirilen SeninRandevun SaaS platformu, mobil uygulamalar, web sistemleri, e-ticaret, film prodüksiyonu ve dijital büyüme projelerinden seçili çalışmalar.",
   path: "/projeler",
-  keywords: ["web tasarım projeleri", "film prodüksiyon projeleri", "marka filmi örnekleri", "e-ticaret yazılım projesi", "sosyal medya içerik üretimi"],
+  keywords: ["SeninRandevun", "online randevu sistemi projesi", "SaaS yazılım projesi", "iOS uygulama geliştirme", "web tasarım projeleri", "film prodüksiyon projeleri", "e-ticaret yazılım projesi"],
 });
 
 export default function ProjectsPage() {
@@ -38,7 +38,7 @@ export default function ProjectsPage() {
       <section className="page-hero section">
         <p className="eyebrow">Canlı işler / 2025—2026</p>
         <h1>İşler konuşsun.<br/><span>Biz sonucu ölçelim.</span></h1>
-        <p className="hero-description">Yayında olan marka platformları, e-ticaret sistemleri ve dönüşüm odaklı web deneyimleriyle birlikte film ve dijital büyüme alanlarından seçili işler.</p>
+        <p className="hero-description">SeninRandevun gibi yayında olan SaaS ürünleri, mobil uygulamalar, marka platformları, e-ticaret sistemleri ve dönüşüm odaklı dijital deneyimlerden seçili işler.</p>
       </section>
       <section className="section"><ProjectGrid /></section>
       <section className="section project-index-seo">
