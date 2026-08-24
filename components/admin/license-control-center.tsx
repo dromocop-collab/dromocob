@@ -528,7 +528,9 @@ export default function LicenseControlCenter() {
     );
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   // MARK: - Filter

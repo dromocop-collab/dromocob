@@ -260,7 +260,9 @@ export default function LicenseRequestsAdmin() {
     );
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => {
+      void load();
+    });
   }, [load]);
 
   const visibleRequests =
@@ -305,10 +307,12 @@ export default function LicenseRequestsAdmin() {
     ) ?? null;
 
   useEffect(() => {
-    setNote(
-      selected?.adminNote ??
-        "",
-    );
+    queueMicrotask(() => {
+      setNote(
+        selected?.adminNote ??
+          "",
+      );
+    });
   }, [selected]);
 
   const metrics =

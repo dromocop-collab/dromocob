@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 
 import { siteUrl } from "@/lib/seo";
-import { getPublicSeoSettings } from "@/lib/runtime-tracking";
 
 /**
  * DROMOCOB — ROBOTS POLICY
@@ -9,8 +8,8 @@ import { getPublicSeoSettings } from "@/lib/runtime-tracking";
  * Amaç:
  * - Public sayfaların arama motorları tarafından taranabilmesi
  * - Admin, hesap, preview ve API alanlarının crawler'lardan kapatılması
- * - Runtime SEO ayarlarının desteklenmesi
- * - Sitemap'in yalnızca aktif olduğunda yayınlanması
+ * - Veritabanı erişiminden bağımsız, hızlı ve her zaman geçerli yanıt verilmesi
+ * - Canonical sitemap adresinin her yanıtta yayınlanması
  *
  * NOT:
  * robots.txt bir güvenlik mekanizması değildir.
@@ -48,79 +47,6 @@ const privatePaths = [
   "/api/",
 ] as const;
 
-// MARK: - Normalize Path
-
-function normalizePath(
-  value: unknown,
-): string | null {
-  if (
-    typeof value !== "string"
-  ) {
-    return null;
-  }
-
-  let path =
-    value.trim();
-
-  if (
-    !path ||
-    !path.startsWith("/")
-  ) {
-    return null;
-  }
-
-  // Prevent malformed / external-looking entries.
-  if (
-    path.startsWith("//") ||
-    path.includes("://") ||
-    path.includes("\0")
-  ) {
-    return null;
-  }
-
-  // Query/hash fragments do not belong in robots rules.
-  path =
-    path
-      .split("?")[0]
-      .split("#")[0];
-
-  if (!path) {
-    return null;
-  }
-
-  return path;
-}
-
-// MARK: - Build Disallow List
-
-function buildDisallowList(
-  configuredPaths:
-    unknown,
-): string[] {
-  const runtimePaths =
-    Array.isArray(
-      configuredPaths,
-    )
-      ? configuredPaths
-          .map(
-            normalizePath,
-          )
-          .filter(
-            (
-              path,
-            ): path is string =>
-              path !== null,
-          )
-      : [];
-
-  return [
-    ...new Set([
-      ...privatePaths,
-      ...runtimePaths,
-    ]),
-  ].sort();
-}
-
 // MARK: - Normalize Site URL
 
 function normalizeSiteUrl(
@@ -136,57 +62,12 @@ function normalizeSiteUrl(
 
 // MARK: - Robots
 
-export default async function robots():
-  Promise<MetadataRoute.Robots>
-{
-  const seo =
-    await getPublicSeoSettings();
-
+export default function robots(): MetadataRoute.Robots {
   const baseUrl =
     normalizeSiteUrl(
       siteUrl,
     );
-
-  const sitemapEnabled =
-    seo.sitemapEnabled !==
-    false;
-
-  const indexingEnabled =
-    seo.robotsIndex !==
-    false;
-
-  const disallow =
-    buildDisallowList(
-      seo.noIndexPaths,
-    );
-
-  /**
-   * GLOBAL NOINDEX MODE
-   *
-   * Admin panelinden robotsIndex kapatılırsa
-   * crawler erişimini tamamen kapat.
-   *
-   * Bu özellikle staging / bakım / geçici
-   * index kapatma durumları için kullanılabilir.
-   */
-  if (!indexingEnabled) {
-    return {
-      rules: [
-        {
-          userAgent: "*",
-          disallow: "/",
-        },
-      ],
-
-      sitemap:
-        sitemapEnabled
-          ? `${baseUrl}/sitemap.xml`
-          : undefined,
-
-      host:
-        baseUrl,
-    };
-  }
+  const disallow = [...privatePaths].sort();
 
   /**
    * PRODUCTION MODE
@@ -222,10 +103,7 @@ export default async function robots():
       },
     ],
 
-    sitemap:
-      sitemapEnabled
-        ? `${baseUrl}/sitemap.xml`
-        : undefined,
+    sitemap: `${baseUrl}/sitemap.xml`,
 
     host:
       baseUrl,
