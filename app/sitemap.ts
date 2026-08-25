@@ -132,8 +132,42 @@ function localizedAlternates(path: string) {
   return { languages: { "tr-TR": url, "x-default": url } };
 }
 
+/**
+ * Next.js 16.2.x writes sitemap URL values directly into XML without escaping
+ * reserved characters. Firebase download URLs contain query separators such as
+ * "&token=", which must be serialized as "&amp;token=" or the entire sitemap
+ * becomes invalid XML. Keep the real URL intact for crawlers while making the
+ * generated XML well-formed.
+ */
+function escapeSitemapUrl(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function validHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function uniqueAbsoluteImages(images: string[] = []) {
-  return [...new Set(images.filter(Boolean).map(image => absoluteUrl(image)))];
+  return [
+    ...new Set(
+      images
+        .filter(Boolean)
+        .map(image => validHttpUrl(absoluteUrl(image)))
+        .filter((image): image is string => Boolean(image))
+        .map(escapeSitemapUrl),
+    ),
+  ];
 }
 
 function entry(route: PublicRoute): MetadataRoute.Sitemap[number] {
