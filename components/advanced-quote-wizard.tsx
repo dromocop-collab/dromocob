@@ -3,11 +3,13 @@
 import { FormEvent, type WheelEvent as ReactWheelEvent, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
-import { ArrowRight, Check, ChevronLeft, ChevronRight, CircleCheck, Loader2, Send, X } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, ChevronRight, CircleCheck, Loader2, Send, TicketPercent, X } from "lucide-react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { advancedQuoteConfig, type AdvancedQuoteQuestion, type AdvancedQuoteService } from "@/lib/advanced-quote-config";
 import { db } from "@/lib/firebase";
 import { reportLeadConversion } from "@/lib/client-conversions";
+import { useAuth } from "@/components/auth/auth-provider";
+import type { MemberCoupon } from "@/lib/promo-wheel";
 
 type Answers = Record<string, string | string[]>;
 type Contact = { name: string; company: string; email: string; phone: string; city: string; preferredContact: string };
@@ -16,6 +18,7 @@ const emptyContact: Contact = { name: "", company: "", email: "", phone: "", cit
 const subscribeToClient = () => () => {};
 
 export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen için teklif al", initiallyOpen = false, hideTrigger = false, onClose }: { service: AdvancedQuoteService; buttonLabel?: string; initiallyOpen?: boolean; hideTrigger?: boolean; onClose?: () => void }) {
+  const { user, profile } = useAuth();
   const [questionOverrides, setQuestionOverrides] = useState<Array<AdvancedQuoteQuestion & { storedKey: string }>>([]);
   const [open, setOpen] = useState(initiallyOpen);
   const [step, setStep] = useState(0);
@@ -27,6 +30,8 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
   const [sent, setSent] = useState(false);
   const [referenceId, setReferenceId] = useState("");
   const [error, setError] = useState("");
+  const [coupons, setCoupons] = useState<MemberCoupon[]>([]);
+  const [couponCode, setCouponCode] = useState("");
   const optionScrollTarget = useRef(0);
   const optionScrollFrame = useRef<number | null>(null);
   const mounted = useSyncExternalStore(subscribeToClient, () => true, () => false);
@@ -80,7 +85,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
   const close = useCallback(() => {
     setOpen(false);
     onClose?.();
-    window.setTimeout(() => { setStep(0); setAnswers({}); setContact(emptyContact); setConsent(false); setSent(false); setReferenceId(""); setError(""); setSaving(false); }, 250);
+    window.setTimeout(() => { setStep(0); setAnswers({}); setContact(emptyContact); setConsent(false); setSent(false); setReferenceId(""); setError(""); setSaving(false); setCouponCode(""); }, 250);
   }, [onClose]);
 
   useEffect(() => {
@@ -106,6 +111,16 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
     return () => { document.body.style.overflow = previous; window.removeEventListener("keydown", onKeyDown); };
   }, [open, close, isContactStep, question, answers, contact, consent, config.questions.length]);
 
+  useEffect(() => {
+    if (!open || !user) return;
+    let cancelled = false;
+    user.getIdToken().then(token => {
+      if (!cancelled) setContact(current => ({ ...current, name: current.name || profile?.displayName || user.displayName || "", email: current.email || user.email || "", phone: current.phone || profile?.phone || "", company: current.company || profile?.company || "", city: current.city || profile?.city || "" }));
+      return fetch("/api/coupons/me", { headers: { authorization: `Bearer ${token}` }, cache: "no-store" });
+    }).then(response => response.json().then(payload => ({ response, payload }))).then(({ response, payload }) => { if (!cancelled && response.ok) setCoupons((payload.coupons || []).filter((item: MemberCoupon) => item.status === "active")); }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [open, profile?.city, profile?.company, profile?.displayName, profile?.phone, user]);
+
   const estimatedPrice = useMemo(() => config.basePrice + config.questions.reduce((total, item) => {
     const answer = answers[item.key];
     const values = Array.isArray(answer) ? answer : answer ? [answer] : [];
@@ -116,6 +131,8 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
     const value = answers[item.key];
     return Array.isArray(value) ? value.length > 0 : Boolean(value?.trim());
   }).length;
+  const selectedCoupon = coupons.find(item => item.code === couponCode);
+  const discountedPrice = selectedCoupon?.kind === "percent" ? Math.max(0, estimatedPrice - estimatedPrice * selectedCoupon.value / 100) : selectedCoupon?.kind === "fixed" ? Math.max(0, estimatedPrice - selectedCoupon.value) : estimatedPrice;
 
   function select(value: string) {
     if (!question) return;
@@ -184,9 +201,10 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
     setSaving(true);
     setError("");
     try {
+      const token = await user?.getIdToken();
       const response = await fetch("/api/public/leads", {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...(token ? { authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({
           type: "quote",
           website,
@@ -196,6 +214,7 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
           answers,
           answerSelections: answerSelections(),
           estimatedPrice,
+          couponCode,
           quoteVersion: "advanced-v1",
           sourcePath: window.location.pathname,
         }),
@@ -234,13 +253,14 @@ export default function AdvancedQuoteWizard({ service, buttonLabel = "Projen iç
             </> : <>
               <p className="advanced-quote-kicker">Son adım / iletişim</p><h2>Teklifi kime hazırlıyoruz?</h2><p className="advanced-quote-subtitle">Kapsam analizin Firestore&apos;a kaydedilecek ve proje ekibimize e-posta bildirimi gönderilecek.</p>
               <div className="advanced-contact-grid"><label>Ad soyad *<input value={contact.name} onChange={event => setContact({ ...contact, name: event.target.value })} required/></label><label>Firma / marka<input value={contact.company} onChange={event => setContact({ ...contact, company: event.target.value })}/></label><label>E-posta *<input type="email" value={contact.email} onChange={event => setContact({ ...contact, email: event.target.value })} required/></label><label>Telefon *<input type="tel" value={contact.phone} onChange={event => setContact({ ...contact, phone: event.target.value })} placeholder="05xx xxx xx xx" required/></label><label>Şehir<input value={contact.city} onChange={event => setContact({ ...contact, city: event.target.value })}/></label><label>Tercih edilen iletişim<select value={contact.preferredContact} onChange={event => setContact({ ...contact, preferredContact: event.target.value })}><option>Telefon / WhatsApp</option><option>E-posta</option><option>Google Meet</option></select></label></div>
+              {user && <div className="advanced-coupon-box"><div><TicketPercent/><span><strong>Kuponlarım</strong><small>Kazandığın kuponu bu teklife uygula.</small></span></div>{coupons.length ? <div className="advanced-coupon-options"><button type="button" className={!couponCode ? "selected" : ""} onClick={() => setCouponCode("")}>Kuponsuz devam</button>{coupons.map(coupon => <button type="button" key={coupon.code} className={couponCode === coupon.code ? "selected" : ""} onClick={() => setCouponCode(coupon.code)}><span>{coupon.label}<small>{coupon.code}</small></span>{couponCode === coupon.code && <Check/>}</button>)}</div> : <p>Şu anda kullanılabilir kuponun bulunmuyor.</p>}</div>}
               <input className="hp-field" tabIndex={-1} autoComplete="off" value={website} onChange={event => setWebsite(event.target.value)}/>
               <label className="advanced-consent"><input type="checkbox" checked={consent} onChange={event => setConsent(event.target.checked)}/><span>Teklif talebimin değerlendirilmesi için bilgilerimin işlenmesini ve benimle iletişime geçilmesini kabul ediyorum.</span></label>
             </>}
             {error && <div className="advanced-quote-error">{error}</div>}
             <footer className="advanced-quote-actions"><button type="button" onClick={() => setStep(Math.max(0, step - 1))} disabled={step === 0}><ChevronLeft/> Geri</button>{!isContactStep ? <button type="button" className="primary" disabled={!canContinue()} onClick={() => setStep(step + 1)}>{question?.optional && !answers[question.key] ? "Atla" : "Devam"} <ChevronRight/></button> : <button type="submit" className="primary" disabled={!canContinue() || saving}>{saving ? <Loader2 className="spin"/> : <Send/>} Teklif talebini gönder</button>}</footer>
           </main>
-          <aside className="advanced-quote-summary"><div className="summary-live"><i/> CANLI KAPSAM HESABI</div><p>KAPSAM ÖZETİ</p><div><span>Tamamlanan</span><strong>{completedCount}/{config.questions.length}</strong></div><div><span>Modül</span><strong>{config.shortLabel}</strong></div><div className="summary-price"><span>Ön kapsam değeri</span><strong key={estimatedPrice}>{estimatedPrice.toLocaleString("tr-TR")} TL+</strong></div><small>Bu değer otomatik kapsam analizidir; resmî fiyat değildir. Nihai teklif ihtiyaç, takvim ve üretim planı doğrulandıktan sonra hazırlanır.</small><div className="summary-shortcuts"><span><kbd>1—9</kbd> seçenek</span><span><kbd>ENTER</kbd> devam</span></div><div className="summary-track"><span style={{ width: `${(completedCount / config.questions.length) * 100}%` }}/></div></aside>
+          <aside className="advanced-quote-summary"><div className="summary-live"><i/> CANLI KAPSAM HESABI</div><p>KAPSAM ÖZETİ</p><div><span>Tamamlanan</span><strong>{completedCount}/{config.questions.length}</strong></div><div><span>Modül</span><strong>{config.shortLabel}</strong></div>{selectedCoupon && <div className="summary-coupon"><span>Kupon</span><strong>{selectedCoupon.label}</strong></div>}<div className="summary-price"><span>Ön kapsam değeri</span>{selectedCoupon && <del>{estimatedPrice.toLocaleString("tr-TR")} TL+</del>}<strong key={discountedPrice}>{discountedPrice.toLocaleString("tr-TR")} TL+</strong></div><small>Bu değer otomatik kapsam analizidir; resmî fiyat değildir. Nihai teklif ihtiyaç, takvim ve üretim planı doğrulandıktan sonra hazırlanır.</small><div className="summary-shortcuts"><span><kbd>1—9</kbd> seçenek</span><span><kbd>ENTER</kbd> devam</span></div><div className="summary-track"><span style={{ width: `${(completedCount / config.questions.length) * 100}%` }}/></div></aside>
         </form> : <div className="advanced-quote-success"><CircleCheck/><p className="advanced-quote-kicker">Talep başarıyla alındı</p><h2>Kapsam masamızda.</h2><p>Tüm seçimlerin admin paneline kaydedildi ve <strong>info@dromocob.tr</strong> adresine bildirim oluşturuldu. İnceleyip seninle iletişime geçeceğiz.</p>{referenceId && <code>REFERANS / {referenceId}</code>}<button className="button" onClick={close}>Tamamla</button></div>}
       </div>
     </div>, document.body)}

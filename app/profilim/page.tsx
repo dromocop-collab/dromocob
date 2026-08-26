@@ -51,6 +51,7 @@ import { auth, db } from "@/lib/firebase";
 import {
   useAuth,
 } from "@/components/auth/auth-provider";
+import ProfileCoupons from "@/components/profile-coupons";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -689,6 +690,7 @@ export default function ProfilePage() {
         </form>
 
         <aside className="profile-sidebar">
+          <ProfileCoupons />
           <section className="profile-card profile-sites-card">
             <div className="profile-card-head">
               <LayoutDashboard />

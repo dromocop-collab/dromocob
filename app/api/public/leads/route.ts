@@ -9,6 +9,7 @@ import { enqueueMail } from "@/lib/auth-code-mail";
 import { notifyDromocobApp } from "@/lib/dromocob-app-notifications";
 import { siteEmail, siteUrl } from "@/lib/seo";
 import { recordConversion } from "@/lib/conversion-tracking";
+import { getRequestUser } from "@/lib/request-user";
 
 type LeadPayload = {
   type?: "contact" | "quote" | "newsletter";
@@ -31,6 +32,7 @@ type LeadPayload = {
   answerSelections?: Array<{ key?: string; title?: string; values?: unknown[]; labels?: unknown[] }>;
   quoteVersion?: string;
   sourcePath?: string;
+  couponCode?: string;
 };
 
 const RATE_LIMIT_WINDOW_MS =
@@ -312,9 +314,12 @@ export async function POST(
       return NextResponse.json({ message: "İletişim veya kapsam bilgileri eksik." }, { status: 400 });
     }
 
-    const quoteReference = await adminDb
-      .collection("quotes")
-      .add({
+    const couponCode = normalizeText(body.couponCode, 40).toUpperCase();
+    const quoteReference = adminDb.collection("quotes").doc();
+    let finalEstimatedPrice = estimatedPrice;
+    type AppliedCoupon = { code: string; label: string; kind: string; value: number; discountAmount: number };
+    let appliedCoupon: AppliedCoupon | null = null;
+    const quoteData = {
         quoteVersion: advanced ? "advanced-v1" : "legacy",
         service,
         serviceLabel,
@@ -327,13 +332,44 @@ export async function POST(
         source: advanced ? "advanced_service_quote_wizard" : "website_quote_wizard",
         sourcePath: normalizeText(body.sourcePath, 300),
         createdAt: new Date(),
-      });
+      };
+
+    if (couponCode) {
+      const requestUser = await getRequestUser(req.headers.get("authorization"));
+      if (!requestUser) return NextResponse.json({ message: "Kupon kullanmak için üye oturumu gerekli." }, { status: 401 });
+      try {
+        const couponResult = await adminDb.runTransaction(async transaction => {
+          const couponRef = adminDb.collection("coupons").doc(couponCode);
+          const couponSnapshot = await transaction.get(couponRef);
+          const coupon = couponSnapshot.data();
+          if (!couponSnapshot.exists || coupon?.userId !== requestUser.uid) throw new Error("COUPON_NOT_FOUND");
+          if (coupon?.status !== "active") throw new Error("COUPON_USED");
+          if (coupon?.expiresAt?.toDate?.().getTime() < Date.now()) throw new Error("COUPON_EXPIRED");
+          const kind = String(coupon.kind || "gift");
+          const value = Math.max(0, Number(coupon.value || 0));
+          const discountedPrice = kind === "percent" ? Math.max(0, estimatedPrice - estimatedPrice * value / 100) : kind === "fixed" ? Math.max(0, estimatedPrice - value) : estimatedPrice;
+          const applied: AppliedCoupon = { code: couponCode, label: String(coupon.label || "Kupon"), kind, value, discountAmount: estimatedPrice - discountedPrice };
+          transaction.set(quoteReference, { ...quoteData, originalEstimatedPrice: estimatedPrice, estimatedPrice: discountedPrice, coupon: applied });
+          transaction.update(couponRef, { status: "used", usedAt: new Date(), quoteId: quoteReference.id });
+          return { applied, discountedPrice };
+        });
+        appliedCoupon = couponResult.applied;
+        finalEstimatedPrice = couponResult.discountedPrice;
+      } catch (couponError) {
+        const couponMessage = couponError instanceof Error ? couponError.message : "";
+        const message = couponMessage === "COUPON_USED" ? "Bu kupon daha önce kullanılmış." : couponMessage === "COUPON_EXPIRED" ? "Bu kuponun süresi dolmuş." : "Kupon bu hesap için geçerli değil.";
+        return NextResponse.json({ message }, { status: 400 });
+      }
+    } else {
+      await quoteReference.set({ ...quoteData, estimatedPrice: finalEstimatedPrice });
+    }
 
     if (advanced) {
       const rows = answerSelections.map(item => `<tr><td style="padding:10px 12px;border-bottom:1px solid #e7eadf;color:#6d7468;font-size:12px;vertical-align:top;">${escapeHtml(item.title)}</td><td style="padding:10px 12px;border-bottom:1px solid #e7eadf;color:#171a16;font-size:13px;font-weight:700;">${item.labels.map(escapeHtml).join(" · ")}</td></tr>`).join("");
       const subject = `Yeni ${serviceLabel} teklif talebi — ${contact.name}${contact.company ? ` / ${contact.company}` : ""}`;
-      const text = `Yeni teklif talebi\nReferans: ${quoteReference.id}\nHizmet: ${serviceLabel}\nAd: ${contact.name}\nFirma: ${contact.company}\nE-posta: ${contact.email}\nTelefon: ${contact.phone}\nŞehir: ${contact.city}\nTercih: ${contact.preferredContact}\nÖn kapsam: ${estimatedPrice.toLocaleString("tr-TR")} TL+\n\n${answerSelections.map(item => `${item.title}: ${item.labels.join(", ")}`).join("\n")}`;
-      const html = `<!doctype html><html lang="tr"><body style="margin:0;background:#eef1e9;font-family:Arial,Helvetica,sans-serif;color:#11140f;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 14px;"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;background:#fff;border:1px solid #dce2d5;border-radius:22px;overflow:hidden;"><tr><td style="padding:22px 28px;background:#10140f;color:#d9ff43;font-size:12px;font-weight:900;letter-spacing:.14em;">DROMOCOB / NEW SCOPE REQUEST</td></tr><tr><td style="padding:30px 28px;"><p style="margin:0 0 8px;color:#7b8375;font-size:11px;text-transform:uppercase;letter-spacing:.12em;">${escapeHtml(serviceLabel)} · ${escapeHtml(quoteReference.id)}</p><h1 style="margin:0 0 22px;font-size:30px;">${escapeHtml(contact.name)}${contact.company ? ` / ${escapeHtml(contact.company)}` : ""}</h1><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;background:#f3f5ef;border-radius:12px;"><tr><td style="padding:14px;line-height:1.7;font-size:13px;"><strong>E-posta:</strong> ${escapeHtml(contact.email)}<br/><strong>Telefon:</strong> ${escapeHtml(contact.phone)}<br/><strong>Şehir:</strong> ${escapeHtml(contact.city || "Belirtilmedi")}<br/><strong>Tercih:</strong> ${escapeHtml(contact.preferredContact)}<br/><strong>Ön kapsam:</strong> ${estimatedPrice.toLocaleString("tr-TR")} TL+</td></tr></table><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e7eadf;border-radius:12px;overflow:hidden;">${rows}</table></td></tr></table></td></tr></table></body></html>`;
+      const couponLine = appliedCoupon ? `\nKupon: ${appliedCoupon.label} (${appliedCoupon.code})\nİndirim sonrası: ${finalEstimatedPrice.toLocaleString("tr-TR")} TL+` : "";
+      const text = `Yeni teklif talebi\nReferans: ${quoteReference.id}\nHizmet: ${serviceLabel}\nAd: ${contact.name}\nFirma: ${contact.company}\nE-posta: ${contact.email}\nTelefon: ${contact.phone}\nŞehir: ${contact.city}\nTercih: ${contact.preferredContact}\nÖn kapsam: ${estimatedPrice.toLocaleString("tr-TR")} TL+${couponLine}\n\n${answerSelections.map(item => `${item.title}: ${item.labels.join(", ")}`).join("\n")}`;
+      const html = `<!doctype html><html lang="tr"><body style="margin:0;background:#eef1e9;font-family:Arial,Helvetica,sans-serif;color:#11140f;"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:28px 14px;"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:760px;background:#fff;border:1px solid #dce2d5;border-radius:22px;overflow:hidden;"><tr><td style="padding:22px 28px;background:#10140f;color:#d9ff43;font-size:12px;font-weight:900;letter-spacing:.14em;">DROMOCOB / NEW SCOPE REQUEST</td></tr><tr><td style="padding:30px 28px;"><p style="margin:0 0 8px;color:#7b8375;font-size:11px;text-transform:uppercase;letter-spacing:.12em;">${escapeHtml(serviceLabel)} · ${escapeHtml(quoteReference.id)}</p><h1 style="margin:0 0 22px;font-size:30px;">${escapeHtml(contact.name)}${contact.company ? ` / ${escapeHtml(contact.company)}` : ""}</h1><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;background:#f3f5ef;border-radius:12px;"><tr><td style="padding:14px;line-height:1.7;font-size:13px;"><strong>E-posta:</strong> ${escapeHtml(contact.email)}<br/><strong>Telefon:</strong> ${escapeHtml(contact.phone)}<br/><strong>Şehir:</strong> ${escapeHtml(contact.city || "Belirtilmedi")}<br/><strong>Tercih:</strong> ${escapeHtml(contact.preferredContact)}<br/><strong>Ön kapsam:</strong> ${estimatedPrice.toLocaleString("tr-TR")} TL+${appliedCoupon ? `<br/><strong>Kupon:</strong> ${escapeHtml(appliedCoupon.label)} (${escapeHtml(appliedCoupon.code)})<br/><strong>İndirim sonrası:</strong> ${finalEstimatedPrice.toLocaleString("tr-TR")} TL+` : ""}</td></tr></table><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e7eadf;border-radius:12px;overflow:hidden;">${rows}</table></td></tr></table></td></tr></table></body></html>`;
       await enqueueMail({ to: siteEmail, subject, text, html });
     }
 
@@ -344,7 +380,7 @@ export async function POST(
         kind: "quote_request",
         entityId: quoteReference.id,
         title: `Yeni ${serviceLabel} teklif talebi`.slice(0, 80),
-        body: `${customerName}${contact.company ? ` / ${contact.company}` : ""} · ${estimatedPrice.toLocaleString("tr-TR")} TL+`.slice(0, 240),
+        body: `${customerName}${contact.company ? ` / ${contact.company}` : ""} · ${finalEstimatedPrice.toLocaleString("tr-TR")} TL+`.slice(0, 240),
         deepLink: `${siteUrl}/admin/talepler?quote=${encodeURIComponent(quoteReference.id)}`,
       });
     } catch (pushError) {
@@ -352,10 +388,10 @@ export async function POST(
     }
 
     let conversionId = `quote_submit_${quoteReference.id}`;
-    try { conversionId = await recordConversion({ request: req, kind: "quote_submit", entityId: quoteReference.id, name: contact.name || "Teklif müşterisi", email: contact.email, phone: contact.phone, value: estimatedPrice, service: serviceLabel, sourcePath: normalizeText(body.sourcePath, 300) }); }
+    try { conversionId = await recordConversion({ request: req, kind: "quote_submit", entityId: quoteReference.id, name: contact.name || "Teklif müşterisi", email: contact.email, phone: contact.phone, value: finalEstimatedPrice, service: serviceLabel, sourcePath: normalizeText(body.sourcePath, 300) }); }
     catch (conversionError) { console.error("[QUOTE CONVERSION]", conversionError); }
 
-    return NextResponse.json({ ok: true, referenceId: quoteReference.id, conversionId, conversionValue: estimatedPrice });
+    return NextResponse.json({ ok: true, referenceId: quoteReference.id, conversionId, conversionValue: finalEstimatedPrice, couponApplied: appliedCoupon });
   } catch (error) {
     console.error(
       "[PUBLIC LEADS API]",

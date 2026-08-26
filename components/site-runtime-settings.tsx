@@ -10,6 +10,7 @@ import SiteFooter from "@/components/site-footer";
 import LiveChat from "@/components/live-chat";
 import CookieConsent from "@/components/cookie-consent";
 import ContactDock from "@/components/contact-dock";
+import PromoWheel from "@/components/promo-wheel";
 import ContextualEntryModal from "@/components/contextual-entry-modal";
 import type { PublicTrackingSettings } from "@/lib/runtime-tracking";
 import { DEFAULT_GOOGLE_ADS_CONVERSION_LABEL, DEFAULT_GOOGLE_ADS_ID, DEFAULT_GOOGLE_ADS_QUICK_QUOTE_LABEL, DEFAULT_GOOGLE_ADS_SELL_REQUEST_LABEL } from "@/lib/google-ads";
@@ -319,6 +320,7 @@ export default function SiteRuntimeSettings({ children, initialTracking }: { chi
           {!isWorkspaceRoute && <SiteNav />}
           <main id="main-content" className={isWorkspaceRoute ? "admin-route-main" : pathname === "/" ? "home-route-main" : undefined}>{children}</main>
           {!isWorkspaceRoute && <SiteFooter />}
+          {!isWorkspaceRoute && <PromoWheel />}
           {!isWorkspaceRoute && settings.features?.liveChatEnabled !== false && <LiveChat />}
           {!isWorkspaceRoute && <ContactDock />}
           {!isWorkspaceRoute && <ContextualEntryModal />}

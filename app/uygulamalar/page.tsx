@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Boxes, Coffee, Cpu, Diamond, Download, Globe2, HeartPulse, Layers3, LockKeyhole, MonitorUp, Smartphone, Sparkles, Star, TrendingUp, Users, Zap } from "lucide-react";
+import { ArrowRight, BadgeCheck, Boxes, Cpu, Download, Globe2, LockKeyhole, MonitorUp, Sparkles, Star, TrendingUp, Users, Zap } from "lucide-react";
 import SiteNav from "@/components/site-nav";
-import SiteFooter from "@/components/site-footer";
+import AppStoreLive from "@/components/app-store-live";
 
 export const metadata: Metadata = {
   title: "Dromocob Apps — Premium Uygulama Ekosistemi",
@@ -122,6 +122,8 @@ export default function AppsPage() {
     <section className="apps-stats-band section">
       {stats.map(s => <article key={s.label}><s.icon /><div><strong>{s.value}</strong><span>{s.label}</span></div></article>)}
     </section>
+
+    <AppStoreLive />
 
     {/* ── FEATURED APPS ── */}
     <section className="apps-featured section">

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useState } from "react";
-import { BarChart3, Boxes, CircleGauge, Command, Crown, ExternalLink, FolderKanban, Globe2, KeyRound, LogOut, Mail, Megaphone, Menu, MessageSquare, Package, RadioTower, Rocket, Settings2, Smartphone, Sparkles, X } from "lucide-react";
+import { BarChart3, Boxes, CircleGauge, Command, Crown, ExternalLink, FolderKanban, GalleryVerticalEnd, Gift, Globe2, KeyRound, LogOut, Mail, Megaphone, Menu, MessageSquare, Package, RadioTower, Rocket, Settings2, Smartphone, Sparkles, X } from "lucide-react";
 
 const nav = [
   { icon: CircleGauge, label: "Genel Bakış", href: "/admin", group: "Komuta" },
@@ -18,6 +18,8 @@ const nav = [
   { icon: FolderKanban, label: "Projeler", href: "/admin/projeler", group: "İçerik" },
   { icon: Package, label: "Paketler", href: "/admin/paketler", group: "İçerik" },
   { icon: Sparkles, label: "Teklif Motoru", href: "/admin/teklif", group: "İçerik" },
+  { icon: Gift, label: "Hediye Çarkı", href: "/admin/cark", group: "İçerik" },
+  { icon: GalleryVerticalEnd, label: "Açılış Reklamları", href: "/admin/reklamlar", group: "İçerik" },
   { icon: MessageSquare, label: "Canlı Destek", href: "/admin/destek", group: "Operasyon", live: true },
   { icon: RadioTower, label: "Site Control Center", href: "/admin/siteler", group: "Operasyon" },
   { icon: Globe2, label: "Müşteri Siteleri", href: "/admin/musteri-siteleri", group: "Operasyon" },

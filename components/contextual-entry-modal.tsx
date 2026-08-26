@@ -2,10 +2,11 @@
 
 import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { Aperture, ArrowRight, Camera, Check, Clapperboard, Code2, Crosshair, Globe2, Layers3, MapPin, Megaphone, Plane, Search, Sparkles, X, Zap } from "lucide-react";
 import AdvancedQuoteWizard from "@/components/advanced-quote-wizard";
 import type { AdvancedQuoteService } from "@/lib/advanced-quote-config";
+import { DEFAULT_ENTRY_ADS_CONFIG, normalizeEntryAdsConfig, routeMatches, type EntryAdsConfig } from "@/lib/entry-ads";
 
 type ModalTheme = {
   id: string;
@@ -89,29 +90,61 @@ const themes: ModalTheme[] = [
   },
 ];
 
-const excludedPrefixes = ["/admin", "/giris", "/kayit", "/profilim", "/sitelerim", "/site-", "/hesap-dogrulama", "/destek", "/gizlilik", "/kvkk", "/iletisim", "/kalori-merkezi"];
 const subscribeToClient = () => () => {};
 
 export default function ContextualEntryModal() {
   const pathname = usePathname();
   const [openPath, setOpenPath] = useState<string | null>(null);
   const [quoteService, setQuoteService] = useState<AdvancedQuoteService | null>(null);
+  const [config, setConfig] = useState<EntryAdsConfig>(DEFAULT_ENTRY_ADS_CONFIG);
+  const [mobile, setMobile] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
   const mounted = useSyncExternalStore(subscribeToClient, () => true, () => false);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const theme = useMemo(() => themes.find(item => item.match(pathname)), [pathname]);
-  const isExcluded = pathname === "/" || excludedPrefixes.some(prefix => pathname.startsWith(prefix));
+  const campaign = useMemo(() => config.campaigns.filter(item => item.active).sort((a, b) => b.priority - a.priority).find(item => {
+    if (currentTime && item.startAt && new Date(item.startAt).getTime() > currentTime) return false;
+    if (currentTime && item.endAt && new Date(item.endAt).getTime() < currentTime) return false;
+    if (item.device === "mobile" && !mobile) return false;
+    if (item.device === "desktop" && mobile) return false;
+    return routeMatches(pathname, item.routePatterns);
+  }), [config.campaigns, currentTime, mobile, pathname]);
+  const visualTheme = useMemo(() => themes.find(item => item.id === campaign?.id) || themes.find(item => item.match(pathname)) || themes[0], [campaign?.id, pathname]);
+  const theme = useMemo(() => campaign ? { ...campaign, icon: visualTheme.icon } : undefined, [campaign, visualTheme.icon]);
+  const isExcluded = !config.active || config.excludedPaths.some(pattern => routeMatches(pathname, [pattern]));
 
   useEffect(() => {
-    if (!theme || isExcluded) return;
-    const key = `dromocob-context-entry:${pathname}`;
-    if (window.sessionStorage.getItem(key)) return;
+    let cancelled = false;
+    fetch("/api/public/entry-ads", { cache: "no-store" }).then(response => response.json()).then(payload => { if (!cancelled) setConfig(normalizeEntryAdsConfig(payload.config)); }).catch(() => undefined);
+    const updateDevice = () => { setMobile(window.matchMedia("(max-width: 700px)").matches); setCurrentTime(Date.now()); };
+    const frame = window.requestAnimationFrame(updateDevice);
+    window.addEventListener("resize", updateDevice);
+    return () => { cancelled = true; window.cancelAnimationFrame(frame); window.removeEventListener("resize", updateDevice); };
+  }, []);
+
+  const track = useCallback((event: "impression" | "cta" | "dismiss") => {
+    if (!campaign) return;
+    void fetch("/api/public/entry-ads", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ campaignId: campaign.id, event }) });
+  }, [campaign]);
+
+  const dismiss = useCallback(() => { track("dismiss"); setOpenPath(null); }, [track]);
+
+  useEffect(() => {
+    if (!theme || !campaign || isExcluded) return;
+    const key = `dromocob-entry-ad:${campaign.id}`;
+    const sessionCount = Number(window.sessionStorage.getItem("dromocob-entry-ad:count") || 0);
+    if (sessionCount >= config.maxShowsPerSession) return;
+    if (config.frequency === "once_session" && window.sessionStorage.getItem(key)) return;
+    if (config.frequency === "once_day" && window.localStorage.getItem(key) === new Date().toISOString().slice(0, 10)) return;
     const timer = window.setTimeout(() => {
-      window.sessionStorage.setItem(key, "shown");
       if (document.querySelector(".advanced-quote-backdrop, .modal-backdrop")) return;
+      window.sessionStorage.setItem("dromocob-entry-ad:count", String(sessionCount + 1));
+      if (config.frequency === "once_session") window.sessionStorage.setItem(key, "shown");
+      if (config.frequency === "once_day") window.localStorage.setItem(key, new Date().toISOString().slice(0, 10));
       setOpenPath(pathname);
-    }, 850);
+      track("impression");
+    }, config.delayMs);
     return () => window.clearTimeout(timer);
-  }, [isExcluded, pathname, theme]);
+  }, [campaign, config.delayMs, config.frequency, config.maxShowsPerSession, isExcluded, pathname, theme, track]);
 
   useEffect(() => {
     const closeForQuote = () => setOpenPath(null);
@@ -139,11 +172,11 @@ export default function ContextualEntryModal() {
 
   return <>{openPath === pathname && createPortal(
     <div className={`context-entry context-entry-${theme.id}`} data-theme={theme.id} style={{ "--entry-accent": theme.color, "--entry-accent-2": theme.color2 } as React.CSSProperties} role="dialog" aria-modal="true" aria-labelledby="context-entry-title">
-      <button className="context-entry-backdrop" type="button" onClick={() => setOpenPath(null)} aria-label="Tanıtım penceresini kapat" />
+      <button className="context-entry-backdrop" type="button" onClick={dismiss} aria-label="Tanıtım penceresini kapat" />
       <section className="context-entry-card">
         <div className="context-entry-grid" aria-hidden="true" />
         <div className="context-entry-aurora" aria-hidden="true" />
-        <button ref={closeRef} className="context-entry-close" type="button" onClick={() => setOpenPath(null)} aria-label="Kapat"><X /></button>
+        <button ref={closeRef} className="context-entry-close" type="button" onClick={dismiss} aria-label="Kapat"><X /></button>
 
         <div className="context-entry-copy">
           <p className="context-entry-eyebrow"><i/><Icon /> {theme.eyebrow}</p>
@@ -151,8 +184,8 @@ export default function ContextualEntryModal() {
           <p>{theme.description}</p>
           <div className="context-entry-chips">{theme.chips.map((chip, index) => <span key={chip}><Check /> <b>0{index + 1}</b>{chip}</span>)}</div>
           <div className="context-entry-actions">
-            <button type="button" onClick={() => { setOpenPath(null); setQuoteService(theme.quoteService); }}>{theme.cta}<ArrowRight /></button>
-            <button type="button" onClick={() => setOpenPath(null)}>Sayfayı keşfet</button>
+            <button type="button" onClick={() => { track("cta"); setOpenPath(null); setQuoteService(theme.quoteService); }}>{theme.cta}<ArrowRight /></button>
+            <button type="button" onClick={dismiss}>Sayfayı keşfet</button>
           </div>
           <small><i/> Şu an yeni proje talepleri açık</small>
         </div>
