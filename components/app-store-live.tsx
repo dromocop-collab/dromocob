@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowUpRight, BellRing, Box, CircleCheck, Cloud, RefreshCw, Rocket, Rss, Sparkles } from "lucide-react";
+import { ArrowUpRight, BellRing, Box, CircleCheck, Clock3, Cloud, RefreshCw, Rocket, Rss, Sparkles } from "lucide-react";
 import type { StorePulse } from "@/lib/app-store-monitor";
 
 const REFRESH_MS = 5 * 60 * 1000;
@@ -23,9 +23,9 @@ export default function AppStoreLive() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (force = false) => {
     try {
-      const response = await fetch("/api/public/app-store", { cache: "no-store" });
+      const response = await fetch(`/api/public/app-store${force ? "?force=1" : ""}`, { cache: "no-store" });
       if (!response.ok) throw new Error("STORE_PULSE_FAILED");
       const next = await response.json() as StorePulse;
       setPulse(next);
@@ -58,7 +58,7 @@ export default function AppStoreLive() {
           <span><Cloud/> APPLE LOOKUP NODE</span>
           <strong>{loading ? "BAĞLANIYOR" : error ? "BAĞLANTI BEKLİYOR" : "SENKRONİZE"}</strong>
           <small>{pulse ? `Son kontrol ${relativeTime(pulse.checkedAt)}` : "15 dakikalık mağaza taraması"}</small>
-          <button type="button" onClick={() => { setLoading(true); void refresh(); }} disabled={loading}><RefreshCw className={loading ? "is-spinning" : ""}/> Şimdi kontrol et</button>
+          <button type="button" onClick={() => { setLoading(true); void refresh(true); }} disabled={loading}><RefreshCw className={loading ? "is-spinning" : ""}/> Şimdi kontrol et</button>
         </div>
       </div>
 
@@ -99,7 +99,7 @@ export default function AppStoreLive() {
       )}
 
       <footer className="store-pulse-footer">
-        <span><BellRing/> Yeni ürün algılama</span><span><Box/> Versiyon karşılaştırma</span><span><RefreshCw/> 15 dk otomatik tarama</span>
+        <span><BellRing/> Yeni ürün algılama</span><span><Box/> Versiyon karşılaştırma</span><span><RefreshCw/> 15 dk otomatik tarama</span><span className="store-pulse-pending"><Clock3/> SeninRandevun · Apple Review</span>
         {pulse?.artistUrl && <a href={pulse.artistUrl} target="_blank" rel="noreferrer">{pulse.artistName} mağazasını aç <ArrowUpRight/></a>}
       </footer>
     </section>

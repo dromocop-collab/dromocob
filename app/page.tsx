@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ArrowUpRight, Bot, Building2, Camera, CheckCheck, Code2, Film, Gauge, Layers3, MessageCircle, Play, Radar, Search, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Building2, Camera, CheckCheck, Code2, ExternalLink, MessageCircle, MonitorSmartphone, MousePointer2, Palette, Play, Radar, Search, ShieldCheck, Sparkles, UserRound, Zap } from "lucide-react";
 import ProjectGrid from "@/components/project-grid";
 import PackageGrid from "@/components/package-grid";
 import GrowthDiagnostic from "@/components/growth-diagnostic";
@@ -119,38 +119,40 @@ export default function Home() {
         <div className="hero-noise" />
         <div className="hero-copy">
           <div className="eyebrow hero-reveal hero-reveal-one"><span className="live-dot" /> Fethiye · Türkiye</div>
-          <h1 className="hero-reveal hero-reveal-two">Web tasarım & film.<br/><span>Hatırlananı</span> üret.</h1>
-          <p className="hero-reveal hero-reveal-three">Markalar için kurumsal web sitesi, e-ticaret ve özel yazılım altyapıları; sinematik tanıtım filmi ve video prodüksiyonları tasarlıyorum.</p>
+          <h1 className="hero-reveal hero-reveal-two">Dijitalde güçlü görün.<br/><span>Hatırlanan</span> bir marka kur.</h1>
+          <p className="hero-reveal hero-reveal-three">Web tasarımını, özel yazılımı ve sinematik film prodüksiyonunu tek yaratıcı sistemde birleştiriyorum. Markan anlaşılır görünür, hızlı çalışır ve büyümeye hazır olur.</p>
           <div className="hero-actions hero-reveal hero-reveal-four">
             <Link className="button" href="/projeler">Projeleri İncele <ArrowRight size={18} /></Link>
             <Link className="text-link" href="/hakkimda"><Play size={15} /> Hikâyemi keşfet</Link>
           </div>
         </div>
-        <div className="hero-system">
-          <div className="system-grid" />
-          <div className="system-scan" />
-          <div className="system-orbit orbit-outer"><i/><i/><i/></div>
-          <div className="system-orbit orbit-one"><i/><i/></div>
-          <div className="system-orbit orbit-two"><i/></div>
-          <div className="system-core">
-            <span><Image className="brand-round-logo" src="/logo.svg" alt="Dromocob" width={512} height={512} /></span>
-            <small>DIGITAL FLAGSHIP</small>
-            <b><i/> ALL SYSTEMS ACTIVE</b>
+        <div className="hero-system hero-visual-stage" aria-label="Dromocob web tasarım ve film prodüksiyon çalışma sahnesi">
+          <div className="hero-visual-shell">
+            <header><span><i/> LIVE PROJECT DESK</span><b>FETHİYE / TR</b></header>
+            <div className="hero-visual-media">
+              <Image src="/images/projects/cinematic-brand-film.jpg" alt="Profesyonel marka filmi prodüksiyon seti" fill priority sizes="(max-width: 900px) 92vw, 46vw" />
+              <div className="hero-visual-shade"/>
+              <div className="hero-shot-meta"><small>ACTIVE FRAME / 01</small><strong>Hikâyeni görüntüye,<br/>görüntüyü etkiye dönüştür.</strong></div>
+              <span className="hero-record"><i/> REC</span>
+            </div>
+            <footer><span>SONY CINEMA LINE</span><span>WEB / FILM / GROWTH</span><b>00:24:16</b></footer>
           </div>
-          <span className="system-tag tag-film"><Camera size={16} /><span><small>PRODUCTION</small>BRAND FILM</span><b>4K</b></span>
-          <span className="system-tag tag-code"><Code2 size={16} /><span><small>TECHNOLOGY</small>WEB APP</span><b>LIVE</b></span>
-          <span className="system-tag tag-growth"><Radar size={16} /><span><small>INTELLIGENCE</small>GROWTH</span><b>+28%</b></span>
-          <span className="system-tag tag-automation"><Bot size={16} /><span><small>OPERATIONS</small>AUTOMATION</span><b>24/7</b></span>
-          <div className="system-console">
-            <span><Film size={13}/> Video production</span>
-            <span><Layers3 size={13}/> Product system</span>
-            <span><Gauge size={13}/> Performance layer</span>
+          <div className="hero-web-preview">
+            <div><span/><span/><span/><b>WEB EXPERIENCE</b></div>
+            <figure><Image src="/images/services/web-design-system.webp" alt="Masaüstü ve mobil cihazlarda web tasarım sistemi" fill sizes="(max-width: 900px) 58vw, 24vw" /></figure>
+            <footer><span><i/> RESPONSIVE</span><b>98 / 100</b></footer>
           </div>
+          <div className="hero-route-card">
+            <small>PRODUCTION ROUTE</small>
+            <span><b>01</b> Strateji</span><i/><span><b>02</b> Tasarım</span><i/><span><b>03</b> Yayın</span>
+          </div>
+          <span className="hero-cursor"><MousePointer2/><b>CIHAT</b></span>
+          <div className="hero-signal-stack"><span><Code2/> Web sistemi <b>LIVE</b></span><span><Camera/> Film prodüksiyonu <b>4K</b></span><span><Radar/> Büyüme altyapısı <b>ON</b></span></div>
         </div>
         <div className="hero-stats">
-          <div><strong>04</strong><span>uzmanlık<br/>tek vizyon</span></div>
-          <div><strong>360°</strong><span>uçtan uca<br/>üretim</span></div>
-          <div><strong>∞</strong><span>ölçeklenebilir<br/>sistem</span></div>
+          <div><strong>01</strong><span>stratejik<br/>başlangıç</span></div>
+          <div><strong>02</strong><span>web + film<br/>üretimi</span></div>
+          <div><strong>03</strong><span>ölçüm +<br/>büyüme</span></div>
         </div>
       </section>
 
@@ -180,6 +182,31 @@ export default function Home() {
       </section>
 
       <PinnedServices />
+      <section className="section cihat-studio" data-cinematic data-scroll-scene="cihat-studio" aria-labelledby="cihat-studio-title">
+        <div className="cihat-studio-copy">
+          <p className="eyebrow"><span/> FOUNDER&apos;S DESIGN OFFICE / CIHATERDEM.COM</p>
+          <h2 id="cihat-studio-title">Web tasarımın<br/><em>daha kişisel yüzü.</em></h2>
+          <p><strong>cihaterdem.com</strong>, Dromocob&apos;un kurucusu Cihat Erdem&apos;in web tasarım, kullanıcı deneyimi ve yaratıcı teknoloji çalışmalarını kendi imzasıyla sunduğu kişisel stüdyo alanıdır.</p>
+          <div className="cihat-studio-proof">
+            <span><UserRound/><b>Cihat Erdem</b><small>Founder · Designer · Developer</small></span>
+            <span><ShieldCheck/><b>Dromocob bağlantılı</b><small>Aynı üretim standardı</small></span>
+          </div>
+          <div className="cihat-studio-actions">
+            <a href="https://cihaterdem.com" target="_blank" rel="noreferrer">cihaterdem.com&apos;u ziyaret et <ExternalLink/></a>
+            <Link href="/web-tasarim">Web tasarım hizmeti <ArrowRight/></Link>
+          </div>
+        </div>
+        <div className="cihat-studio-visual" aria-label="cihaterdem.com web tasarım çalışma alanı">
+          <div className="cihat-browser">
+            <header><span/><span/><span/><b>cihaterdem.com</b><i>CE</i></header>
+            <figure><Image src="/images/services/web-design-system.webp" alt="cihaterdem.com web tasarım yaklaşımını temsil eden masaüstü ve mobil arayüz" fill sizes="(max-width: 900px) 88vw, 45vw" /></figure>
+            <footer><span><i/> DESIGN SYSTEM ONLINE</span><b>2026 / TR</b></footer>
+          </div>
+          <div className="cihat-signature"><span>CE</span><div><small>PERSONAL DESIGN OFFICE</small><strong>Cihat Erdem</strong></div><Palette/></div>
+          <div className="cihat-stack"><span><MonitorSmartphone/> Responsive UI</span><span><Zap/> Performance</span><span><Search/> Technical SEO</span></div>
+          <div className="cihat-ownership"><CheckCheck/><span><small>CREATED &amp; OWNED BY</small><b>CIHAT ERDEM / DROMOCOB</b></span></div>
+        </div>
+      </section>
       <KaloriMerkeziShowcase />
       <SeninRandevunShowcase />
       <section className="section growth-glossary" data-cinematic data-scroll-scene="glossary" aria-labelledby="growth-glossary-title">

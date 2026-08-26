@@ -77,9 +77,13 @@ export default function PromoWheel() {
         <button type="button" className="promo-wheel-close" onClick={() => !spinning && setOpen(false)} aria-label="Çarkı kapat"><X/></button>
         <div className="promo-wheel-stage">
           <div className="promo-wheel-ambient"/><div className="promo-wheel-skyline"/><div className="promo-wheel-scanline"/><div className="promo-wheel-stage-code"><span>VICE / REWARD DISTRICT</span><b>26° 11&apos; 07.4&quot;N</b></div><div className="promo-wheel-pointer"><span/><b>DROP</b></div>
-          <div className="promo-wheel-disc" style={{ background: wheelBackground, transform: `rotate(${rotation}deg)`, "--wheel-turn": `${-rotation}deg` } as CSSProperties}>
+          <div className="promo-wheel-disc" style={{ background: wheelBackground, transform: `rotate(${rotation}deg)` }}>
             <div className="promo-wheel-grid"/>
-            {rewards.map((reward, index) => <span key={reward.id} className="promo-wheel-label" data-kind={reward.kind} style={{ "--label-angle": `${index * slice + slice / 2}deg`, "--label-accent": reward.color } as CSSProperties}><i><RewardIcon reward={reward}/></i><b>{reward.shortLabel}</b></span>)}
+            {rewards.map((reward, index) => {
+              const labelAngle = index * slice + slice / 2;
+              const finalAngle = ((labelAngle + rotation) % 360 + 360) % 360;
+              return <span key={reward.id} className="promo-wheel-label" data-kind={reward.kind} style={{ "--label-angle": `${labelAngle}deg`, "--label-flip": finalAngle > 180 ? "90deg" : "-90deg", "--label-accent": reward.color } as CSSProperties}><i><RewardIcon reward={reward}/></i><b>{reward.shortLabel}</b></span>;
+            })}
             <div className="promo-wheel-core"><span><Gift/><small>DROMOCOB</small></span></div>
           </div>
           <div className="promo-wheel-floor"/><div className="promo-wheel-stage-footer"><span><i/> PRIZE NETWORK ONLINE</span><b>{String(rewards.length).padStart(2,"0")} DROPS LOADED</b></div>

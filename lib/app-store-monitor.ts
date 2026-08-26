@@ -70,9 +70,10 @@ function iso(value: unknown, fallback = new Date(0).toISOString()) {
 
 function normalizeApp(result: AppleResult): StoreApp | null {
   if (!result.trackId || !result.trackName) return null;
+  const name = result.trackName.toLowerCase() === "dromocob" ? "Dromocob" : result.trackName;
   return {
     trackId: result.trackId,
-    name: result.trackName,
+    name,
     version: String(result.version || "—"),
     icon: String(result.artworkUrl512 || result.artworkUrl100 || ""),
     url: String(result.trackViewUrl || ""),

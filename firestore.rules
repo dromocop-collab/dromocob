@@ -1578,6 +1578,7 @@ service cloud.firestore {
           "businessName",
           "headline",
           "subdomain",
+          "brief",
           "pages",
           "siteSettings",
           "status",
@@ -1589,6 +1590,7 @@ service cloud.firestore {
         && isNonEmptyString(request.resource.data.headline, 300)
         && isNonEmptyString(request.resource.data.subdomain, 80)
         && isNonEmptyString(request.resource.data.accent, 20)
+        && isOptionalMap(request.resource.data, "brief")
         && isOptionalList(request.resource.data, "pages")
         && isOptionalMap(request.resource.data, "siteSettings")
         && (
@@ -1616,6 +1618,7 @@ service cloud.firestore {
           "businessName",
           "headline",
           "subdomain",
+          "brief",
           "pages",
           "siteSettings",
           "status",
@@ -1626,6 +1629,7 @@ service cloud.firestore {
         && isNonEmptyString(request.resource.data.headline, 300)
         && isNonEmptyString(request.resource.data.subdomain, 80)
         && isNonEmptyString(request.resource.data.accent, 20)
+        && isOptionalMap(request.resource.data, "brief")
         && isOptionalList(request.resource.data, "pages")
         && isOptionalMap(request.resource.data, "siteSettings")
         && (

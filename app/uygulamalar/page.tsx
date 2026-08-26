@@ -7,7 +7,7 @@ import AppStoreLive from "@/components/app-store-live";
 
 export const metadata: Metadata = {
   title: "Dromocob Apps — Premium Uygulama Ekosistemi",
-  description: "PhotoResize, Kalori Merkezi, Altıncı Kuyumculuk, Jacks Coffee ve Dromocob uygulamalarını keşfedin. Tek hesap, ortak lisans, sade çalışma akışı.",
+  description: "PhotoResize, Kalori Merkezi, Altıncı Kuyumculuk, Jacks Coffee, Dromocob ve SeninRandevun ürünlerini keşfedin. Tek hesap, ortak lisans, sade çalışma akışı.",
   alternates: { canonical: "/uygulamalar" },
 };
 
@@ -33,8 +33,9 @@ const apps = [
     icon: "/kalori.jpeg",
     platforms: ["iOS", "App Store", "Dromocob Account"],
     color: "orange" as const,
-    stat: "Onay Bekliyor",
-    statLabel: "Apple Review",
+    stat: "1.0",
+    statLabel: "App Store sürümü",
+    appStoreUrl: "https://apps.apple.com/tr/app/kalori-merkezi/id6799123172",
   },
   {
     num: "03",
@@ -69,8 +70,21 @@ const apps = [
     tagline: "DIGITAL AGENCY HUB",
     desc: "Proje takibi, lisans yönetimi, destek kanalları ve hizmet portföyü — tüm Dromocob ekosistemi tek uygulamada.",
     icon: "/dromocob-app.png",
-    platforms: ["iOS", "Android"],
+    platforms: ["iOS", "App Store", "Web"],
     color: "cyan" as const,
+    stat: "1.0",
+    statLabel: "App Store sürümü",
+    appStoreUrl: "https://apps.apple.com/tr/app/dromocob/id6795915775",
+  },
+  {
+    num: "06",
+    slug: "/projeler/senin-randevun",
+    name: "SeninRandevun",
+    tagline: "APPOINTMENT SAAS PLATFORM",
+    desc: "İşletme keşfi, online randevu, ekip, hizmet ve müşteri yönetimini web ve iOS deneyiminde birleştiren SaaS platformu.",
+    icon: "/images/projects/senin-randevun.svg",
+    platforms: ["Web", "iOS", "Apple Review"],
+    color: "blue" as const,
     stat: "Onay Bekliyor",
     statLabel: "Apple Review",
   },
@@ -80,7 +94,7 @@ const stats = [
   { icon: Users, value: "12,400+", label: "Aktif Kullanıcı" },
   { icon: Download, value: "38,000+", label: "Toplam İndirme" },
   { icon: Star, value: "4.8", label: "Ortalama Puan" },
-  { icon: TrendingUp, value: "5", label: "Uygulama" },
+  { icon: TrendingUp, value: "6", label: "Dijital ürün" },
 ];
 
 export default function AppsPage() {
@@ -129,7 +143,7 @@ export default function AppsPage() {
     <section className="apps-featured section">
       <header>
         <div>
-          <p className="eyebrow">5 UYGULAMA / TEK EKOSİSTEM</p>
+          <p className="eyebrow">6 ÜRÜN / TEK EKOSİSTEM</p>
           <h2>Tüm<br />uygulamalar.<br /><em>Bir arada.</em></h2>
         </div>
         <p>Profesyonel üretim araçlarından mobil marka deneyimlerine, beslenme takibinden proje yönetimine — Dromocob ekosistemindeki tüm uygulamalar burada.</p>

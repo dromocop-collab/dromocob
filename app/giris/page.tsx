@@ -93,7 +93,7 @@ export default function LoginPage() {
         String(formData.get("password"))
       );
 
-      await importPendingSite(credential.user.uid);
+      await importPendingSite(credential.user.uid).catch(() => null);
 
       router.push(
         credential.user.emailVerified

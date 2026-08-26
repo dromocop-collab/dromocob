@@ -1,6 +1,6 @@
 import { collection, doc, serverTimestamp, setDoc } from "firebase/firestore";
 
-import { db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 
 export type CustomerSiteTemplate = "studio" | "restaurant" | "portfolio";
 
@@ -184,8 +184,18 @@ export type CustomerSiteRecord = CustomerSiteDraft & {
 };
 
 const PENDING_SITE_KEY = "dromocob.pending-customer-site.v1";
+const PENDING_SITE_TRANSFER_KEY = "dromocob.pending-customer-site.transfer.v1";
+
+function pendingTransferId(): string {
+  const current = window.localStorage.getItem(PENDING_SITE_TRANSFER_KEY);
+  if (current) return current;
+  const next = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  window.localStorage.setItem(PENDING_SITE_TRANSFER_KEY, next);
+  return next;
+}
 
 export function storePendingSite(draft: CustomerSiteDraft): void {
+  pendingTransferId();
   window.localStorage.setItem(PENDING_SITE_KEY, JSON.stringify(draft));
 }
 
@@ -200,6 +210,7 @@ export function readPendingSite(): CustomerSiteDraft | null {
 
 export function clearPendingSite(): void {
   window.localStorage.removeItem(PENDING_SITE_KEY);
+  window.localStorage.removeItem(PENDING_SITE_TRANSFER_KEY);
 }
 
 export async function saveCustomerSite(ownerId: string, draft: CustomerSiteDraft, existingId?: string | null): Promise<string> {
@@ -217,7 +228,16 @@ export async function saveCustomerSite(ownerId: string, draft: CustomerSiteDraft
 export async function importPendingSite(ownerId: string): Promise<string | null> {
   const draft = readPendingSite();
   if (!draft) return null;
-  const id = await saveCustomerSite(ownerId, draft);
+  const user = auth.currentUser;
+  if (!user || user.uid !== ownerId) throw new Error("Oturum doğrulanamadı. Lütfen yeniden giriş yapıp tekrar dene.");
+  const token = await user.getIdToken();
+  const response = await fetch("/api/customer-sites/import", {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+    body: JSON.stringify({ draft, transferId: pendingTransferId() }),
+  });
+  const payload = await response.json().catch(() => null) as { id?: string; message?: string } | null;
+  if (!response.ok || !payload?.id) throw new Error(payload?.message || "Taslak sunucuya aktarılamadı. Taslağın cihazında güvende; tekrar deneyebilirsin.");
   clearPendingSite();
-  return id;
+  return payload.id;
 }

@@ -49,7 +49,7 @@ export default function RegisterPage() {
         updatedAt: serverTimestamp(),
       });
 
-      await importPendingSite(credential.user.uid);
+      await importPendingSite(credential.user.uid).catch(() => null);
       const token = await credential.user.getIdToken();
       await fetch("/api/auth/email-verification/send", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
       router.push("/hesap-dogrulama");

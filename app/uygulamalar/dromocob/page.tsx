@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, BadgeCheck, BarChart3, Boxes, Check, Cloud, Code2, FolderKanban, Globe2, Headphones, KeyRound, Layers3, LockKeyhole, MessageSquare, Monitor, Rocket, Settings2, ShieldCheck, Smartphone, Sparkles, Users, Zap } from "lucide-react";
+import { ArrowLeft, BarChart3, Check, Cloud, Code2, FolderKanban, Headphones, KeyRound, Monitor, Rocket, Smartphone, Sparkles } from "lucide-react";
 import SiteNav from "@/components/site-nav";
 import SiteFooter from "@/components/site-footer";
 
@@ -36,13 +36,13 @@ export default function DromocobAppPage() {
           <h2>Tüm ekosistem<br/><em>avucunuzda.</em></h2>
           <p>Proje takibi, lisans yönetimi, destek kanalları ve hizmet portföyü — tüm Dromocob operasyonu tek uygulamada birleşiyor.</p>
           <div className="app-download-row">
-            <a className="app-primary-download app-download-cyan" href="#">
-              <span><Smartphone/><b>Apple Onay Bekliyor</b><small>iOS &amp; Android</small></span>
+            <a className="app-primary-download app-download-cyan" href="https://apps.apple.com/tr/app/dromocob/id6795915775" target="_blank" rel="noreferrer">
+              <span><Smartphone/><b>App Store&apos;dan indir</b><small>iOS · Sürüm 1.0</small></span>
             </a>
             <Link href="/giris">Hesabına giriş <KeyRound/></Link>
           </div>
           <div className="app-version">
-            <i className="version-cyan"/><span>Apple onay aşamasında</span><strong>Review</strong><small>Gönderildi</small>
+            <i className="version-cyan"/><span>App Store&apos;da yayında</span><strong>1.0</strong><small>26 Ağustos 2026</small>
           </div>
         </div>
 
@@ -105,11 +105,11 @@ export default function DromocobAppPage() {
     {/* ── CTA ── */}
     <section className="app-final-download app-final-cyan section">
       <div>
-        <p className="eyebrow">APPLE REVIEW</p>
-        <h2>Dromocob App<br/>onay bekliyor.</h2>
+        <p className="eyebrow">NOW ON APP STORE</p>
+        <h2>Dromocob App<br/>şimdi yayında.</h2>
       </div>
-      <a href="/giris">
-        <Rocket/> Hesabına giriş yap <span>Yakında</span>
+      <a href="https://apps.apple.com/tr/app/dromocob/id6795915775" target="_blank" rel="noreferrer">
+        <Rocket/> App Store&apos;dan indir <span>1.0</span>
       </a>
     </section>
 

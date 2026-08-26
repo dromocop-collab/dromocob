@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { collection, deleteDoc, doc, onSnapshot, query, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ExternalLink, Globe2, LayoutDashboard, Loader2, Plus, Settings2, Sparkles, Trash2, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, ExternalLink, Globe2, LayoutDashboard, Loader2, Plus, RefreshCw, Settings2, Sparkles, Trash2, X } from "lucide-react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { db } from "@/lib/firebase";
@@ -21,6 +21,27 @@ export default function MySitesPage() {
   const [error, setError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<CustomerSiteRecord | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [transferStatus, setTransferStatus] = useState<"idle" | "transferring" | "success" | "error">("idle");
+  const [transferMessage, setTransferMessage] = useState("");
+
+  const transferPendingSite = useCallback(async () => {
+    if (!user) return;
+    setTransferStatus("transferring");
+    setTransferMessage("Taslağın güvenli biçimde hesabına bağlanıyor.");
+    try {
+      const importedId = await importPendingSite(user.uid);
+      if (importedId) {
+        setTransferStatus("success");
+        setTransferMessage("Bekleyen site taslağın hesabına başarıyla eklendi.");
+      } else {
+        setTransferStatus("idle");
+        setTransferMessage("");
+      }
+    } catch (transferError) {
+      setTransferStatus("error");
+      setTransferMessage(transferError instanceof Error ? transferError.message : "Taslak aktarılamadı; cihazındaki kopya korunuyor.");
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!authLoading && !user) router.replace("/giris");
@@ -28,9 +49,12 @@ export default function MySitesPage() {
 
   useEffect(() => {
     if (!user) return;
-    void importPendingSite(user.uid).catch(() => {
-      setError("Bekleyen site taslağın hesaba aktarılamadı.");
-    });
+    const frame = window.requestAnimationFrame(() => void transferPendingSite());
+    return () => window.cancelAnimationFrame(frame);
+  }, [transferPendingSite, user]);
+
+  useEffect(() => {
+    if (!user) return;
     const sitesQuery = query(collection(db, "customer_sites"), where("ownerId", "==", user.uid));
     return onSnapshot(sitesQuery, (snapshot) => {
       const records = snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as CustomerSiteRecord));
@@ -66,6 +90,11 @@ export default function MySitesPage() {
     </header>
 
     {error && <div className="auth-error">{error}</div>}
+    {transferStatus !== "idle" && <div className={`site-transfer-banner ${transferStatus}`}>
+      {transferStatus === "transferring" ? <Loader2 className="spin"/> : transferStatus === "success" ? <CheckCircle2/> : <AlertTriangle/>}
+      <div><strong>{transferStatus === "transferring" ? "Taslak aktarılıyor" : transferStatus === "success" ? "Aktarım tamamlandı" : "Aktarım beklemede"}</strong><span>{transferMessage}</span></div>
+      {transferStatus === "error" && <button type="button" onClick={() => void transferPendingSite()}><RefreshCw/> Tekrar dene</button>}
+    </div>}
 
     {sites.length === 0 ? <section className="my-sites-empty">
       <div><Sparkles size={27} /></div><p>İLK SİTENİ OLUŞTUR</p><h2>Markanın yeni adresi<br/>birkaç adım uzağında.</h2><span>Şablonunu seç, içeriğini düzenle ve Dromocob alan adınla yayınla.</span><Link href="/site-olustur" className="button">Site oluşturmaya başla <ArrowRight size={17} /></Link>
