@@ -5,6 +5,7 @@ import { absoluteUrl } from "@/lib/seo";
 import { adminDb } from "@/lib/firebase-admin";
 import { getPublicSeoSettings } from "@/lib/runtime-tracking";
 import { equipmentCatalog } from "@/lib/equipment-catalog";
+import { fethiyeDestinations } from "@/lib/fethiye-destinations";
 
 /**
  * Search engines use the sitemap as a discovery map, not a ranking mechanism.
@@ -335,6 +336,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
+  const fethiyeEntries: MetadataRoute.Sitemap = fethiyeDestinations.map(destination => {
+    const path = `/fethiye/gezilecek-yerler/${destination.slug}`;
+    return {
+      url: absoluteUrl(path),
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+      alternates: localizedAlternates(path),
+      images: uniqueAbsoluteImages([destination.image, openGraphImage]),
+    };
+  });
+
   const firestoreProjectEntries: MetadataRoute.Sitemap = published.projects.map(project => {
     const path = `/projeler/${project.slug}`;
     return {
@@ -352,7 +365,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Guard against accidental duplicate canonical URLs as content grows.
   const seen = new Set<string>();
-  return [...staticEntries, ...equipmentEntries, ...packageEntries, ...firestoreProjectEntries, ...projectEntries].filter(item => {
+  return [...staticEntries, ...fethiyeEntries, ...equipmentEntries, ...packageEntries, ...firestoreProjectEntries, ...projectEntries].filter(item => {
     if (seen.has(item.url)) return false;
     seen.add(item.url);
     return true;
