@@ -26,7 +26,8 @@ export async function GET(request: Request) {
     };
     const configuredDays = Number(settings.data()?.trialDays);
     const trialDays = Number.isFinite(configuredDays) ? Math.max(1, Math.min(30, Math.round(configuredDays))) : 7;
-    return Response.json({ ok: true, licenses: licenses.docs.map(serialize), activations: activations.docs.map(serialize), events: events.docs.map(serialize), settings: { trialDays } });
+    const ultraTrialDays = Number(settings.data()?.trialDaysByProduct?.["dromocob-ultra-ae"] ?? trialDays);
+    return Response.json({ ok: true, licenses: licenses.docs.map(serialize), activations: activations.docs.map(serialize), events: events.docs.map(serialize), settings: { trialDays, ultraTrialDays } });
   } catch (error) { return fail(error); }
 }
 
@@ -39,13 +40,15 @@ export async function PATCH(request: Request) {
       return Response.json({ ok: false, error: "INVALID_TRIAL_DAYS" }, { status: 400 });
     }
     const trialDays = Math.round(requestedDays);
+    const productId = String(body.productId || "");
+    const update = productId === "dromocob-ultra-ae" ? { trialDaysByProduct: { "dromocob-ultra-ae": trialDays } } : { trialDays };
     await adminDb.collection("app_settings").doc("licensing").set({
-      trialDays,
+      ...update,
       updatedBy: admin.uid,
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     await adminDb.collection("license_events").add({ type: "trial_settings_updated", trialDays, userId: admin.uid, createdAt: FieldValue.serverTimestamp() });
-    return Response.json({ ok: true, settings: { trialDays } });
+    return Response.json({ ok: true, settings: productId === "dromocob-ultra-ae" ? { ultraTrialDays: trialDays } : { trialDays } });
   } catch (error) { return fail(error); }
 }
 

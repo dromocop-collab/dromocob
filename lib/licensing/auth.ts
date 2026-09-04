@@ -35,6 +35,9 @@ const CLIENT_ERROR_CODES = new Set([
   "DEVICE_LIMIT_REACHED",
   "LICENSE_INACTIVE",
   "LICENSE_EXPIRED",
+  "TRIAL_DISABLED",
+  "TRIAL_EXPIRED",
+  "RATE_LIMITED",
 ]);
 
 export function licensingError(

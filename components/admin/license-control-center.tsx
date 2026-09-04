@@ -119,6 +119,7 @@ type LicenseListResponse = {
 
   settings?: {
     trialDays?: number;
+    ultraTrialDays?: number;
   };
 
   error?: string;
@@ -136,6 +137,7 @@ type UpdateTrialResponse = {
 
   settings?: {
     trialDays?: number;
+    ultraTrialDays?: number;
   };
 
   error?: string;
@@ -410,6 +412,9 @@ export default function LicenseControlCenter() {
   ] =
     useState(false);
 
+  const [ultraTrialDays, setUltraTrialDays] = useState("7");
+  const [savingUltraTrial, setSavingUltraTrial] = useState(false);
+
   const [
     form,
     setForm,
@@ -512,6 +517,7 @@ export default function LicenseControlCenter() {
                 : 7
             )
           );
+          setUltraTrialDays(String(Math.max(0, Math.min(30, Math.round(Number(data.settings?.ultraTrialDays ?? serverTrialDays))))));
         } catch (reason) {
           setError(
             reason instanceof
@@ -999,6 +1005,19 @@ export default function LicenseControlCenter() {
     }
   }
 
+  async function saveUltraTrialDays() {
+    const value = Number(ultraTrialDays);
+    if (savingUltraTrial || !Number.isInteger(value) || value < 1 || value > 30) { setError("Dromocob Ultra deneme süresi 1 ile 30 gün arasında olmalı."); return; }
+    try {
+      setSavingUltraTrial(true); setError("");
+      const response = await fetch("/api/admin/licenses", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await getAdminToken()}` }, body: JSON.stringify({ trialDays: value, productId: "dromocob-ultra-ae" }) });
+      const data = await parseJSON<UpdateTrialResponse>(response);
+      if (!response.ok || !data.ok) throw new Error(data.error || "Ultra deneme süresi güncellenemedi.");
+      setUltraTrialDays(String(data.settings?.ultraTrialDays ?? value));
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Ultra deneme süresi güncellenemedi."); }
+    finally { setSavingUltraTrial(false); }
+  }
+
   // MARK: - Clipboard
 
   async function copyLicenseKey() {
@@ -1178,6 +1197,12 @@ export default function LicenseControlCenter() {
               ? "Kaydediliyor…"
               : "Süreyi kaydet"}
           </button>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 18, paddingLeft: 18, borderLeft: "1px solid rgba(255,255,255,.12)" }}>
+          <strong style={{ fontSize: 11 }}>Dromocob Ultra</strong>
+          <input aria-label="Dromocob Ultra deneme süresi" type="number" min={1} max={30} step={1} value={ultraTrialDays} onChange={event => setUltraTrialDays(event.target.value)} style={{ width: 76 }} />
+          <span>gün</span>
+          <button type="button" className="admin-action" onClick={() => void saveUltraTrialDays()} disabled={savingUltraTrial}>{savingUltraTrial ? "Kaydediliyor…" : "Ultra süresini kaydet"}</button>
         </div>
       </section>
 
