@@ -42,6 +42,7 @@ const SUPPORTED_PRODUCTS = new Set([
   "watermark-studio",
   "image-compressor",
   "video-converter",
+  "dromocob-ultra-ae",
 ]);
 
 const FAR_FUTURE_DATE =

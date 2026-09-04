@@ -13,8 +13,9 @@ export async function GET() {
       ok: true,
       apps: DROMOCOB_APPS,
       receiptPublicKey: publicKeyPEM(),
-      minimumVersions: { "pixel-resizer-pro": "1.0.1" },
-      latestVersions: { "pixel-resizer-pro": "1.0.1" },
+      firebaseApiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+      minimumVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.2.0" },
+      latestVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.2.0" },
       trialDays,
     }, { headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" } });
   } catch {

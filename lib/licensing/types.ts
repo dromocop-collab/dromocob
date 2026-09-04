@@ -5,6 +5,7 @@ export const DROMOCOB_APPS = [
   { id: "watermark-studio", name: "Watermark Studio" },
   { id: "image-compressor", name: "Image Compressor" },
   { id: "video-converter", name: "Video Converter" },
+  { id: "dromocob-ultra-ae", name: "Dromocob Ultra for After Effects", bundleId: "com.dromocob.ultra.panel" },
 ] as const;
 
 export type LicenseStatus = "active" | "suspended" | "revoked" | "expired";
