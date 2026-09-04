@@ -16,11 +16,11 @@ export async function GET() {
       apps: DROMOCOB_APPS,
       receiptPublicKey: publicKeyPEM(),
       firebaseApiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
-      minimumVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.3.0" },
-      latestVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.3.0" },
+      minimumVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.4.1" },
+      latestVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.4.1" },
       trialDays,
       ultraTrialDays,
-      ultraUpdate: settings.data()?.ultraUpdate || { version: "2.3.0", url: "", changelog: "" },
+      ultraUpdate: settings.data()?.ultraUpdate || { version: "2.4.1", url: "", changelog: "" },
       ultraPacks: Array.isArray(settings.data()?.ultraPacks) ? settings.data()?.ultraPacks : [],
     }, { headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" } });
   } catch {
