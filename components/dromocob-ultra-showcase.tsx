@@ -17,7 +17,7 @@ export default function DromocobUltraShowcase() {
         </div>
         <div className="du-showcase-actions">
           <Link href="/uygulamalar/dromocob-ultra">Ürünü keşfet <ArrowRight /></Link>
-          <a href="/downloads/Dromocob-Ultra-2.5.0.zxp" download>ZXP indir <Download /></a>
+          <a href="/downloads/Dromocob-Ultra-2.5.1.zxp" download>ZXP indir <Download /></a>
         </div>
         <div className="du-showcase-proof">
           <span><KeyRound /> License Cloud</span>
@@ -30,7 +30,7 @@ export default function DromocobUltraShowcase() {
         <div className="du-panel-glow" />
         <header>
           <span className="du-panel-brand"><Image src="/DromocobLogo.png" alt="" width={48} height={48} /><b>Dromocob Ultra</b></span>
-          <span className="du-panel-version">v2.5.0 <i /></span>
+          <span className="du-panel-version">v2.5.1 <i /></span>
         </header>
         <div className="du-panel-body">
           <aside aria-hidden="true">
