@@ -93,7 +93,7 @@ const softwareJsonLd = {
   applicationCategory: "MultimediaApplication",
   applicationSubCategory: "Adobe After Effects Extension",
   operatingSystem: "macOS",
-  softwareVersion: "2.6.1",
+  softwareVersion: "2.7.0",
   inLanguage: "tr-TR",
   description: "After Effects için carousel, geçiş, efekt, LUT, 3D metin ve ses araçlarını birleştiren yaratıcı üretim paneli.",
   featureList: modules.map(([, title]) => title),
@@ -114,7 +114,7 @@ export default function DromocobUltraPage() {
           <h1>Motion üretiminin<br /><em>komuta merkezi.</em></h1>
           <p>Carousel, geçiş, efekt, LUT, 3D metin ve ses araçlarını After Effects’ten çıkmadan yönetin. Parametrik, güncellenebilir ve üretim hızına göre tasarlanmış tek bir premium panel.</p>
           <div className="ultra-hero-actions">
-            <a href="/downloads/Dromocob-Ultra-2.6.1.zxp" download><Download /> ZXP’yi indir <span>v2.6.1</span></a>
+            <a href="/downloads/Dromocob-Ultra-2.7.0.zxp" download><Download /> ZXP’yi indir <span>v2.7.0</span></a>
             <Link href="/lisans"><KeyRound /> Lisansı etkinleştir</Link>
           </div>
           <div className="ultra-hero-meta"><span><BadgeCheck /> İmzalı ZXP</span><span><Monitor /> After Effects 2026</span><span><RefreshCw /> Panel içi güncelleme</span></div>
@@ -134,7 +134,7 @@ export default function DromocobUltraPage() {
           <footer><span><i /> COMPOSITION CONNECTED</span><b>8 LAYER · 30 FPS</b></footer>
         </div>
       </div>
-      <div className="ultra-stats"><article><strong>64</strong><span>Geçiş preseti</span></article><article><strong>10</strong><span>Carousel sistemi</span></article><article><strong>2.6.1</strong><span>Güncel sürüm</span></article><article><strong>TR/EN</strong><span>Çift dil arayüz</span></article></div>
+      <div className="ultra-stats"><article><strong>64</strong><span>Geçiş preseti</span></article><article><strong>10</strong><span>Carousel sistemi</span></article><article><strong>2.7.0</strong><span>Güncel sürüm</span></article><article><strong>TR/EN</strong><span>Çift dil arayüz</span></article></div>
     </section>
 
     <section className="ultra-modules section"><header><div><p className="eyebrow">ONE PANEL / FULL WORKFLOW</p><h2>Kurgu ritminden<br /><em>final görünüme.</em></h2></div><p>Tekrarlanan teknik adımları kısaltan, yaratıcı kontrolü kullanıcıda tutan modüler araçlar.</p></header><div className="ultra-module-grid">{modules.map(([Icon,title,detail],index)=><article key={title}><span><Icon /></span><small>0{index+1} / ULTRA MODULE</small><h3>{title}</h3><p>{detail}</p><i><ArrowRight /></i></article>)}</div></section>
@@ -162,6 +162,6 @@ export default function DromocobUltraPage() {
 
     <section className="ultra-requirements section"><div><Monitor /><span><small>SİSTEM</small><strong>After Effects 2026</strong></span></div><div><Layers3 /><span><small>FORMAT</small><strong>CEP / ZXP Extension</strong></span></div><div><WandSparkles /><span><small>PLATFORM</small><strong>macOS</strong></span></div><div><KeyRound /><span><small>BAĞLANTI</small><strong>İlk aktivasyonda internet</strong></span></div></section>
 
-    <section className="ultra-final section"><div><p className="eyebrow">DROMOCOB ULTRA 2.6.1</p><h2>After Effects’i<br /><em>üretim merkezine çevir.</em></h2></div><div><a href="/downloads/Dromocob-Ultra-2.6.1.zxp" download><Download /> İmzalı ZXP’yi indir</a><Link href="/lisans">Lisans Cloud <ArrowRight /></Link></div></section>
+    <section className="ultra-final section"><div><p className="eyebrow">DROMOCOB ULTRA 2.7.0</p><h2>After Effects’i<br /><em>üretim merkezine çevir.</em></h2></div><div><a href="/downloads/Dromocob-Ultra-2.7.0.zxp" download><Download /> İmzalı ZXP’yi indir</a><Link href="/lisans">Lisans Cloud <ArrowRight /></Link></div></section>
   </main>;
 }
