@@ -18,7 +18,7 @@ type UltraUpdate = {
 function normalizeUltraUpdate(value: unknown): UltraUpdate {
   const data = value && typeof value === "object" ? value as Record<string, unknown> : {};
   return {
-    version: String(data.version || "2.6.0"),
+    version: String(data.version || "2.6.1"),
     url: String(data.url || ""),
     sha256: String(data.sha256 || ""),
     changelog: String(data.changelog || ""),

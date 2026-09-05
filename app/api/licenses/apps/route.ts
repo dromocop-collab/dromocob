@@ -5,12 +5,12 @@ import { adminDb } from "@/lib/firebase-admin";
 export const runtime = "nodejs";
 
 const bundledUltraUpdate = {
-  version: "2.6.0",
-  url: "https://dromocob.tr/downloads/Dromocob-Ultra-2.6.0-update.zip",
-  sha256: "e11cd9a59f57b843446e570f9762c617cf4182779e436a0717093647e07d5a4d",
-  changelog: "8 kategoride 64 profesyonel geçiş; gelişmiş animasyonlu preset tarayıcı; otomatik panel yeniden başlatma; ses ritim ve bass marker araçları.",
-  zxpUrl: "https://dromocob.tr/downloads/Dromocob-Ultra-2.6.0.zxp",
-  zxpSha256: "a82557fec98e008837d54fcee91e766a26997f3a0fb9b3962b3d3b9da5d8b6e1",
+  version: "2.6.1",
+  url: "https://dromocob.tr/downloads/Dromocob-Ultra-2.6.1-update.zip",
+  sha256: "4b651b88f192d9756c5104e8b6d7e4200b01f4fc3fcf9bd83cfed8b60bb748c7",
+  changelog: "Temaya uyumlu scrollbar; Türkçe/English dil seçimi; arayüz ölçeği ve gelişmiş tercihler; kurumsal WhatsApp ve web destek merkezi.",
+  zxpUrl: "https://dromocob.tr/downloads/Dromocob-Ultra-2.6.1.zxp",
+  zxpSha256: "b191c61d40f7f912d3b329b674ee5c814fe2bc6e9f2f7a336eb8366f798b40cc",
 };
 
 function versionParts(value: unknown) { return String(value || "0").split(".").slice(0, 3).map(part => Number(part.replace(/\D.*$/, "")) || 0); }
@@ -33,7 +33,7 @@ export async function GET() {
       receiptPublicKey: publicKeyPEM(),
       firebaseApiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
       minimumVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.4.1" },
-      latestVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.6.0" },
+      latestVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.6.1" },
       trialDays,
       ultraTrialDays,
       ultraUpdate: isAtLeast(settings.data()?.ultraUpdate?.version, bundledUltraUpdate.version) ? settings.data()?.ultraUpdate : bundledUltraUpdate,
