@@ -32,27 +32,50 @@ const carouselTypes = ["Yörünge", "Yay", "Sarmal", "Tünel", "Kapak Akışı",
 
 const productViews = [
   {
-    src: "/images/dromocob-ultra/carousel-lab.png",
+    kind: "carousel",
     eyebrow: "01 / CAROUSEL LAB",
     title: "3D sahneyi tek merkezden yönet.",
     detail: "10 farklı düzen, aktif kart odağı, kamera, derinlik ve sonsuz döngü kontrolleri aynı canlı sistemde.",
-    alt: "Dromocob Ultra Carousel Lab paneli",
   },
   {
-    src: "/images/dromocob-ultra/transition-lab.png",
+    kind: "transitions",
     eyebrow: "02 / GEÇİŞ LABORATUVARI",
     title: "64 geçiş. Hızlı seçim, temiz kurgu.",
     detail: "Kamera, spin, glitch, ışık, şekil ve blur kategorilerindeki geçişleri ritmine göre uygula.",
-    alt: "Dromocob Ultra Geçiş Laboratuvarı paneli",
   },
   {
-    src: "/images/dromocob-ultra/audio-vfx.png",
+    kind: "audio",
     eyebrow: "03 / SES VE VFX",
     title: "Kesimi duy, vuruşu görünür yap.",
     detail: "SFX paketlerini yönet, sesleri zaman çizelgesine taşı ve müzik vuruşlarına otomatik marker yerleştir.",
-    alt: "Dromocob Ultra Ses ve VFX Stüdyosu paneli",
   },
 ] as const;
+
+function UltraFeatureVisual({ kind }: { kind: (typeof productViews)[number]["kind"] }) {
+  return <div className={`ultra-clean-panel is-${kind}`} role="img" aria-label={kind === "carousel" ? "Dromocob Ultra Carousel Lab arayüzü" : kind === "transitions" ? "Dromocob Ultra Geçiş Laboratuvarı arayüzü" : "Dromocob Ultra Ses ve VFX arayüzü"}>
+    <header><span><Image src="/DromocobLogo.png" alt="" width={44} height={44} /><b>DROMOCOB ULTRA</b></span><small>{kind === "carousel" ? "CAROUSEL LAB" : kind === "transitions" ? "TRANSITION LAB" : "AUDIO + VFX"}<i /></small></header>
+    <div className="ultra-clean-body">
+      <aside><Image src="/DromocobLogo.png" alt="" width={40} height={40} /><i>⌂</i><i>↯</i><i>✦</i><i>◉</i><i>♫</i></aside>
+      <div className="ultra-clean-main">
+        <div className="ultra-clean-title"><span><small>DROMOCOB CREATIVE SYSTEM</small><strong>{kind === "carousel" ? "Yörünge Carousel" : kind === "transitions" ? "Geçiş Laboratuvarı" : "Ses ve VFX Stüdyosu"}</strong></span><b>CANLI</b></div>
+        {kind === "carousel" && <>
+          <div className="ultra-clean-orbit"><span />{[1,2,3,4,5,6].map(n=><i key={n} className={`clean-orbit-card card-${n}`}>{String(n).padStart(2,"0")}</i>)}<b><Image src="/DromocobLogo.png" alt="" width={78} height={78} /></b></div>
+          <div className="ultra-clean-metrics"><span><small>AKTİF KART</small><b>04</b></span><span><small>YARIÇAP</small><b>860</b></span><span><small>ODAK</small><b>118%</b></span></div>
+        </>}
+        {kind === "transitions" && <>
+          <div className="ultra-clean-tabs"><b>KAMERA</b><span>SPIN</span><span>GLITCH</span><span>IŞIK</span></div>
+          <div className="ultra-clean-transition-grid">{["Zoom In","Whip Right","Orbit Spin","Lens Push","RGB Split","Prism","Light Sweep","Flash Cut","Tunnel","Wave","Pixel Shift","Smooth Blur"].map((item,n)=><i key={item}><span className={`tile-${n + 1}`} /><b>{item}</b></i>)}</div>
+        </>}
+        {kind === "audio" && <>
+          <div className="ultra-clean-wave">{[26,52,78,44,92,60,34,84,66,42,96,56,30,72,48,88,40,64,34,76,52,90,46,68].map((height,n)=><i key={n} style={{height:`${height}%`}} />)}</div>
+          <div className="ultra-clean-audio-actions"><span><b>BASS MARKER</b><small>Otomatik vuruş algılama</small></span><button type="button" tabIndex={-1}>MARKER OLUŞTUR</button></div>
+          <div className="ultra-clean-audio-tags"><span>WHOOSH</span><span>IMPACT</span><span>RISER</span><span>AMBIENCE</span></div>
+        </>}
+      </div>
+    </div>
+    <footer><span><i /> DROMOCOB ENGINE CONNECTED</span><b>AE 2026 · 30 FPS</b></footer>
+  </div>;
+}
 
 const workflow = [
   ["01", "Layer’ları seç", "Carousel’e girecek medya layer’larını kompozisyon içinde seç."],
@@ -123,7 +146,7 @@ export default function DromocobUltraPage() {
       </header>
       <div className="ultra-view-stack">
         {productViews.map((view, index) => <figure key={view.title} className={`ultra-view-card ultra-view-card-${index + 1}`}>
-          <div className="ultra-view-image"><Image src={view.src} alt={view.alt} width={1278} height={1518} sizes="(max-width: 700px) 92vw, (max-width: 1100px) 78vw, 52vw" /></div>
+          <div className="ultra-view-image"><UltraFeatureVisual kind={view.kind} /></div>
           <figcaption><small>{view.eyebrow}</small><h3>{view.title}</h3><p>{view.detail}</p><span>AFTER EFFECTS İÇİN TASARLANDI <ArrowRight /></span></figcaption>
         </figure>)}
       </div>
