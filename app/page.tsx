@@ -14,6 +14,7 @@ import HomeMotionController from "@/components/motion/home-motion-controller";
 import PinnedServices from "@/components/motion/pinned-services";
 import SeninRandevunShowcase from "@/components/senin-randevun-showcase";
 import KaloriMerkeziShowcase from "@/components/kalori-merkezi-showcase";
+import DromocobUltraShowcase from "@/components/dromocob-ultra-showcase";
 import "@/components/kalori-merkezi-showcase.css";
 import ScrollProgress from "@/components/motion/scroll-progress";
 import CodeMission from "@/components/code-mission";
@@ -207,6 +208,7 @@ export default function Home() {
           <div className="cihat-ownership"><CheckCheck/><span><small>CREATED &amp; OWNED BY</small><b>CIHAT ERDEM / DROMOCOB</b></span></div>
         </div>
       </section>
+      <DromocobUltraShowcase />
       <KaloriMerkeziShowcase />
       <SeninRandevunShowcase />
       <section className="section growth-glossary" data-cinematic data-scroll-scene="glossary" aria-labelledby="growth-glossary-title">

@@ -20,7 +20,14 @@ export async function GET() {
       latestVersions: { "pixel-resizer-pro": "1.0.1", "dromocob-ultra-ae": "2.5.0" },
       trialDays,
       ultraTrialDays,
-      ultraUpdate: settings.data()?.ultraUpdate || { version: "2.5.0", url: "", changelog: "" },
+      ultraUpdate: settings.data()?.ultraUpdate || {
+        version: "2.5.0",
+        url: "https://dromocob.tr/downloads/Dromocob-Ultra-2.5.0-update.zip",
+        sha256: "bd7e69db37b50ae02a8a90b2f8dff2f427266072b463333d8622b889050f53da",
+        changelog: "Türkçe arayüz, sadeleştirilmiş 3D Döngü Laboratuvarı ve yayın altyapısı.",
+        zxpUrl: "https://dromocob.tr/downloads/Dromocob-Ultra-2.5.0.zxp",
+        zxpSha256: "c28853b5049436d5ac2116da4bebf9033b1691bf5c77ecdc0279b9f1ebb82562",
+      },
       ultraPacks: Array.isArray(settings.data()?.ultraPacks) ? settings.data()?.ultraPacks : [],
     }, { headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=300" } });
   } catch {

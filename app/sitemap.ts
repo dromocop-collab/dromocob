@@ -48,6 +48,9 @@ const productionServiceImages = [
   "/images/services/dji-avata-2-fpv-drone.webp",
 ];
 const productImages = {
+  dromocobUltra: [
+    "/DromocobLogo.png",
+  ],
   kaloriMerkezi: [
     "/images/apps/kalori-merkezi-icon.jpg",
   ],
@@ -107,6 +110,16 @@ const publicRoutes: PublicRoute[] = [
     ...productImages.pixelResizer,
   ],
 }, 
+{
+  path: "/uygulamalar/dromocob-ultra",
+  priority: 0.96,
+  changeFrequency: "weekly",
+  lastModified: updated.products,
+  images: [
+    openGraphImage,
+    ...productImages.dromocobUltra,
+  ],
+},
 {
   path: "/kalori-merkezi",
   priority: 0.92,

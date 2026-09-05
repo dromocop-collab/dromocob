@@ -6,6 +6,27 @@ import { generateLicenseKey, licenseKeyHash } from "@/lib/licensing/crypto";
 
 export const runtime = "nodejs";
 
+type UltraUpdate = {
+  version: string;
+  url: string;
+  sha256: string;
+  changelog: string;
+  zxpUrl: string;
+  zxpSha256: string;
+};
+
+function normalizeUltraUpdate(value: unknown): UltraUpdate {
+  const data = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  return {
+    version: String(data.version || "2.5.0"),
+    url: String(data.url || ""),
+    sha256: String(data.sha256 || ""),
+    changelog: String(data.changelog || ""),
+    zxpUrl: String(data.zxpUrl || ""),
+    zxpSha256: String(data.zxpSha256 || ""),
+  };
+}
+
 function fail(error: unknown) {
   const message = error instanceof Error ? error.message : "UNKNOWN";
   return Response.json({ ok: false, error: message === "UNAUTHORIZED" || message === "FORBIDDEN" ? message : "LICENSE_ADMIN_FAILED" }, { status: message === "UNAUTHORIZED" ? 401 : message === "FORBIDDEN" ? 403 : 500 });
@@ -27,7 +48,7 @@ export async function GET(request: Request) {
     const configuredDays = Number(settings.data()?.trialDays);
     const trialDays = Number.isFinite(configuredDays) ? Math.max(1, Math.min(30, Math.round(configuredDays))) : 7;
     const ultraTrialDays = Number(settings.data()?.trialDaysByProduct?.["dromocob-ultra-ae"] ?? trialDays);
-    return Response.json({ ok: true, licenses: licenses.docs.map(serialize), activations: activations.docs.map(serialize), events: events.docs.map(serialize), settings: { trialDays, ultraTrialDays } });
+    return Response.json({ ok: true, licenses: licenses.docs.map(serialize), activations: activations.docs.map(serialize), events: events.docs.map(serialize), settings: { trialDays, ultraTrialDays, ultraUpdate: normalizeUltraUpdate(settings.data()?.ultraUpdate) } });
   } catch (error) { return fail(error); }
 }
 
@@ -35,6 +56,21 @@ export async function PATCH(request: Request) {
   try {
     const admin = await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "license_manager"]);
     const body = await request.json();
+    if (body.action === "ultra-update") {
+      const ultraUpdate = normalizeUltraUpdate(body.ultraUpdate);
+      const validVersion = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(ultraUpdate.version);
+      const validUpdateUrl = /^https:\/\//i.test(ultraUpdate.url);
+      const validZxpUrl = /^https:\/\//i.test(ultraUpdate.zxpUrl);
+      const validUpdateHash = /^[a-f0-9]{64}$/i.test(ultraUpdate.sha256);
+      const validZxpHash = /^[a-f0-9]{64}$/i.test(ultraUpdate.zxpSha256);
+      if (!validVersion || !validUpdateUrl || !validZxpUrl || !validUpdateHash || !validZxpHash) {
+        return Response.json({ ok: false, error: "INVALID_ULTRA_UPDATE" }, { status: 400 });
+      }
+      ultraUpdate.changelog = ultraUpdate.changelog.slice(0, 2000);
+      await adminDb.collection("app_settings").doc("licensing").set({ ultraUpdate, updatedBy: admin.uid, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
+      await adminDb.collection("license_events").add({ type: "ultra_update_published", version: ultraUpdate.version, userId: admin.uid, createdAt: FieldValue.serverTimestamp() });
+      return Response.json({ ok: true, settings: { ultraUpdate } });
+    }
     const requestedDays = Number(body.trialDays);
     if (!Number.isFinite(requestedDays) || requestedDays < 1 || requestedDays > 30) {
       return Response.json({ ok: false, error: "INVALID_TRIAL_DAYS" }, { status: 400 });

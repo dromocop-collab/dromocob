@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Boxes, Cpu, Download, Globe2, LockKeyhole, MonitorUp, Sparkles, Star, TrendingUp, Users, Zap } from "lucide-react";
-import SiteNav from "@/components/site-nav";
 import AppStoreLive from "@/components/app-store-live";
 
 export const metadata: Metadata = {
   title: "Dromocob Apps — Premium Uygulama Ekosistemi",
-  description: "PhotoResize, Kalori Merkezi, Altıncı Kuyumculuk, Jacks Coffee, Dromocob ve SeninRandevun ürünlerini keşfedin. Tek hesap, ortak lisans, sade çalışma akışı.",
+  description: "Dromocob Ultra, PhotoResize, Kalori Merkezi, Altıncı Kuyumculuk, Jacks Coffee, Dromocob ve SeninRandevun ürünlerini keşfedin. Tek hesap, ortak lisans, sade çalışma akışı.",
   alternates: { canonical: "/uygulamalar" },
 };
 
@@ -26,6 +25,18 @@ const apps = [
   },
   {
     num: "02",
+    slug: "/uygulamalar/dromocob-ultra",
+    name: "Dromocob Ultra",
+    tagline: "AFTER EFFECTS CREATIVE SYSTEM",
+    desc: "Carousel, geçiş, efekt, LUT, 3D metin ve SFX araçlarını tek premium After Effects panelinde birleştiren yaratıcı komuta merkezi.",
+    icon: "/DromocobLogo.png",
+    platforms: ["After Effects 2026", "macOS", "ZXP"],
+    color: "ultra" as const,
+    stat: "2.5.0",
+    statLabel: "Güncel sürüm",
+  },
+  {
+    num: "03",
     slug: "/kalori-merkezi",
     name: "Kalori Merkezi",
     tagline: "NUTRITION TRACKER APP",
@@ -38,7 +49,7 @@ const apps = [
     appStoreUrl: "https://apps.apple.com/tr/app/kalori-merkezi/id6799123172",
   },
   {
-    num: "03",
+    num: "04",
     slug: "/uygulamalar/altinci-kuyumculuk",
     name: "Altıncı Kuyumculuk",
     tagline: "LUXURY JEWELRY BRAND APP",
@@ -51,7 +62,7 @@ const apps = [
     appStoreUrl: "https://apps.apple.com/tr/app/bizim-6nc%C4%B1-kuyumculuk/id6760553574?l=tr",
   },
   {
-    num: "04",
+    num: "05",
     slug: "/uygulamalar/jacks-coffee",
     name: "Jacks Coffee",
     tagline: "ARTISAN COFFEE EXPERIENCE",
@@ -64,7 +75,7 @@ const apps = [
     appStoreUrl: "https://apps.apple.com/tr/app/the-jacks-coffee/id6757435094?l=tr",
   },
   {
-    num: "05",
+    num: "06",
     slug: "/uygulamalar/dromocob",
     name: "Dromocob",
     tagline: "DIGITAL AGENCY HUB",
@@ -77,7 +88,7 @@ const apps = [
     appStoreUrl: "https://apps.apple.com/tr/app/dromocob/id6795915775",
   },
   {
-    num: "06",
+    num: "07",
     slug: "/projeler/senin-randevun",
     name: "SeninRandevun",
     tagline: "APPOINTMENT SAAS PLATFORM",
@@ -94,11 +105,11 @@ const stats = [
   { icon: Users, value: "12,400+", label: "Aktif Kullanıcı" },
   { icon: Download, value: "38,000+", label: "Toplam İndirme" },
   { icon: Star, value: "4.8", label: "Ortalama Puan" },
-  { icon: TrendingUp, value: "6", label: "Dijital ürün" },
+  { icon: TrendingUp, value: "7", label: "Dijital ürün" },
 ];
 
 export default function AppsPage() {
-  return <><SiteNav /><main className="apps-page">
+  return <main className="apps-page">
 
     {/* ── HERO ── */}
     <section className="apps-hero section">
@@ -107,9 +118,10 @@ export default function AppsPage() {
         <h1>Uygulama<br />ekosistemi.<br /><em>Tek merkezde.</em></h1>
         <p>Mac masaüstü araçlarından mobil marka deneyimlerine, beslenme takibinden proje yönetimine — tüm Dromocob uygulamaları tek hesap ve ortak lisans mimarisinde.</p>
         <div className="apps-actions">
+          <Link href="/uygulamalar/dromocob-ultra">Dromocob Ultra <ArrowRight /></Link>
           <Link href="/uygulamalar/photoresize">PhotoResize <ArrowRight /></Link>
           <Link href="/kalori-merkezi">Kalori Merkezi <ArrowRight /></Link>
-          <a href="/downloads/PhotoResize-1.0.1.dmg" download>Mac için indir <Download /></a>
+          <a href="/downloads/Dromocob-Ultra-2.5.0.zxp" download>Dromocob Ultra ZXP <Download /></a>
         </div>
         <div className="apps-trust">
           <span><LockKeyhole /> İmzalı lisans</span>
@@ -121,7 +133,7 @@ export default function AppsPage() {
         <div className="apps-orbit-glow" />
         <div className="apps-orbit-ring" />
         <div className="apps-orbit-ring apps-orbit-ring-2" />
-        <div className="apps-app-icon apps-app-icon-center"><Image src="/resize.png" alt="PhotoResize" width={512} height={512} /></div>
+        <div className="apps-app-icon apps-app-icon-center"><Image src="/DromocobLogo.png" alt="Dromocob Ultra" width={512} height={512} /></div>
         <div className="apps-app-icon apps-app-icon-tl"><Image src="/kalori.jpeg" alt="Kalori Merkezi" width={512} height={512} /></div>
         <div className="apps-app-icon apps-app-icon-tr"><Image src="/bizim.png" alt="Altıncı Kuyumculuk" width={512} height={512} /></div>
         <div className="apps-app-icon apps-app-icon-bl"><Image src="/jacks.png" alt="Jacks Coffee" width={512} height={512} /></div>
@@ -143,7 +155,7 @@ export default function AppsPage() {
     <section className="apps-featured section">
       <header>
         <div>
-          <p className="eyebrow">6 ÜRÜN / TEK EKOSİSTEM</p>
+          <p className="eyebrow">7 ÜRÜN / TEK EKOSİSTEM</p>
           <h2>Tüm<br />uygulamalar.<br /><em>Bir arada.</em></h2>
         </div>
         <p>Profesyonel üretim araçlarından mobil marka deneyimlerine, beslenme takibinden proje yönetimine — Dromocob ekosistemindeki tüm uygulamalar burada.</p>
@@ -210,5 +222,5 @@ export default function AppsPage() {
       <Link href="/giris">Hesabına giriş yap <ArrowRight /></Link>
     </section>
 
-  </main></>;
+  </main>;
 }

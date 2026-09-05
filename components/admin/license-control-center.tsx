@@ -41,6 +41,7 @@ type LicensePlan =
 
 type ProductID =
   | "dromocob-all-apps"
+  | "dromocob-ultra-ae"
   | "pixel-resizer-pro"
   | "ai-upscaler"
   | "background-remover"
@@ -120,6 +121,7 @@ type LicenseListResponse = {
   settings?: {
     trialDays?: number;
     ultraTrialDays?: number;
+    ultraUpdate?: UltraUpdateSettings;
   };
 
   error?: string;
@@ -138,9 +140,19 @@ type UpdateTrialResponse = {
   settings?: {
     trialDays?: number;
     ultraTrialDays?: number;
+    ultraUpdate?: UltraUpdateSettings;
   };
 
   error?: string;
+};
+
+type UltraUpdateSettings = {
+  version: string;
+  url: string;
+  sha256: string;
+  changelog: string;
+  zxpUrl: string;
+  zxpSha256: string;
 };
 
 type LicenseForm = {
@@ -170,6 +182,10 @@ const PRODUCTS: ReadonlyArray<{
   {
     id: "pixel-resizer-pro",
     name: "Pixel Resizer PRO",
+  },
+  {
+    id: "dromocob-ultra-ae",
+    name: "Dromocob Ultra — After Effects",
   },
   {
     id: "ai-upscaler",
@@ -414,6 +430,9 @@ export default function LicenseControlCenter() {
 
   const [ultraTrialDays, setUltraTrialDays] = useState("7");
   const [savingUltraTrial, setSavingUltraTrial] = useState(false);
+  const [ultraUpdate, setUltraUpdate] = useState<UltraUpdateSettings>({ version: "2.5.0", url: "", sha256: "", changelog: "", zxpUrl: "", zxpSha256: "" });
+  const [savingUltraUpdate, setSavingUltraUpdate] = useState(false);
+  const [ultraUpdateSaved, setUltraUpdateSaved] = useState(false);
 
   const [
     form,
@@ -518,6 +537,7 @@ export default function LicenseControlCenter() {
             )
           );
           setUltraTrialDays(String(Math.max(0, Math.min(30, Math.round(Number(data.settings?.ultraTrialDays ?? serverTrialDays))))));
+          if (data.settings?.ultraUpdate) setUltraUpdate(data.settings.ultraUpdate);
         } catch (reason) {
           setError(
             reason instanceof
@@ -1018,6 +1038,26 @@ export default function LicenseControlCenter() {
     finally { setSavingUltraTrial(false); }
   }
 
+  async function saveUltraUpdate() {
+    const version = ultraUpdate.version.trim();
+    const url = ultraUpdate.url.trim();
+    const sha256 = ultraUpdate.sha256.trim().toLowerCase();
+    const zxpUrl = ultraUpdate.zxpUrl.trim();
+    const zxpSha256 = ultraUpdate.zxpSha256.trim().toLowerCase();
+    if (savingUltraUpdate || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) { setError("Sürümü 2.5.0 biçiminde gir."); return; }
+    if (!url.startsWith("https://") || !zxpUrl.startsWith("https://")) { setError("ZXP ve güncelleme ZIP bağlantıları HTTPS olmalı."); return; }
+    if (!/^[a-f0-9]{64}$/i.test(sha256) || !/^[a-f0-9]{64}$/i.test(zxpSha256)) { setError("Her iki SHA-256 değeri de 64 karakter olmalı."); return; }
+    try {
+      setSavingUltraUpdate(true); setUltraUpdateSaved(false); setError("");
+      const response = await fetch("/api/admin/licenses", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await getAdminToken()}` }, body: JSON.stringify({ action: "ultra-update", ultraUpdate: { ...ultraUpdate, version, url, sha256, zxpUrl, zxpSha256 } }) });
+      const data = await parseJSON<UpdateTrialResponse>(response);
+      if (!response.ok || !data.ok) throw new Error(data.error || "Ultra güncellemesi yayınlanamadı.");
+      if (data.settings?.ultraUpdate) setUltraUpdate(data.settings.ultraUpdate);
+      setUltraUpdateSaved(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Ultra güncellemesi yayınlanamadı."); }
+    finally { setSavingUltraUpdate(false); }
+  }
+
   // MARK: - Clipboard
 
   async function copyLicenseKey() {
@@ -1204,6 +1244,22 @@ export default function LicenseControlCenter() {
           <span>gün</span>
           <button type="button" className="admin-action" onClick={() => void saveUltraTrialDays()} disabled={savingUltraTrial}>{savingUltraTrial ? "Kaydediliyor…" : "Ultra süresini kaydet"}</button>
         </div>
+      </section>
+
+      <section className="admin-panel" style={{ display: "grid", gap: 14, padding: 20, marginBottom: 18 }}>
+        <div>
+          <strong>Dromocob Ultra yayın merkezi</strong>
+          <p style={{ margin: "5px 0 0", opacity: 0.68 }}>ZXP ilk kurulum içindir. Güncelleme ZIP&apos;i paneldeki Güncelle düğmesine gönderilir ve SHA-256 ile doğrulanır.</p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "140px minmax(0,1fr)", gap: 10 }}>
+          <label style={{ display: "grid", gap: 6 }}><span>Sürüm</span><input aria-label="Ultra sürümü" value={ultraUpdate.version} onChange={event => setUltraUpdate(current => ({ ...current, version: event.target.value }))} placeholder="2.5.0" /></label>
+          <label style={{ display: "grid", gap: 6 }}><span>İlk kurulum ZXP linki</span><input aria-label="Ultra ZXP linki" value={ultraUpdate.zxpUrl} onChange={event => setUltraUpdate(current => ({ ...current, zxpUrl: event.target.value }))} placeholder="https://dromocob.tr/downloads/Dromocob-Ultra-2.5.0.zxp" /></label>
+        </div>
+        <label style={{ display: "grid", gap: 6 }}><span>ZXP SHA-256</span><input aria-label="Ultra ZXP SHA-256" value={ultraUpdate.zxpSha256} onChange={event => setUltraUpdate(current => ({ ...current, zxpSha256: event.target.value }))} placeholder="64 karakter SHA-256" /></label>
+        <label style={{ display: "grid", gap: 6 }}><span>Panel güncelleme ZIP linki</span><input aria-label="Ultra güncelleme ZIP linki" value={ultraUpdate.url} onChange={event => setUltraUpdate(current => ({ ...current, url: event.target.value }))} placeholder="https://dromocob.tr/downloads/Dromocob-Ultra-2.5.0-update.zip" /></label>
+        <label style={{ display: "grid", gap: 6 }}><span>Güncelleme ZIP SHA-256</span><input aria-label="Ultra güncelleme SHA-256" value={ultraUpdate.sha256} onChange={event => setUltraUpdate(current => ({ ...current, sha256: event.target.value }))} placeholder="64 karakter SHA-256" /></label>
+        <label style={{ display: "grid", gap: 6 }}><span>Yenilik notu</span><textarea aria-label="Ultra yenilik notu" rows={3} value={ultraUpdate.changelog} onChange={event => setUltraUpdate(current => ({ ...current, changelog: event.target.value }))} placeholder="Yeni Carousel akışı, Türkçe arayüz ve performans iyileştirmeleri." /></label>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}><button type="button" className="admin-action" onClick={() => void saveUltraUpdate()} disabled={savingUltraUpdate}>{savingUltraUpdate ? "Yayınlanıyor…" : "Ultra güncellemesini yayınla"}</button>{ultraUpdateSaved && <span style={{ color: "#77d348", fontWeight: 800 }}>✓ API kaydı güncellendi</span>}</div>
       </section>
 
       {error && (
