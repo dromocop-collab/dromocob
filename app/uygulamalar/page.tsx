@@ -32,7 +32,7 @@ const apps = [
     icon: "/DromocobLogo.png",
     platforms: ["After Effects 2026", "macOS", "ZXP"],
     color: "ultra" as const,
-    stat: "2.5.1",
+    stat: "2.6.0",
     statLabel: "Güncel sürüm",
   },
   {
@@ -121,7 +121,7 @@ export default function AppsPage() {
           <Link href="/uygulamalar/dromocob-ultra">Dromocob Ultra <ArrowRight /></Link>
           <Link href="/uygulamalar/photoresize">PhotoResize <ArrowRight /></Link>
           <Link href="/kalori-merkezi">Kalori Merkezi <ArrowRight /></Link>
-          <a href="/downloads/Dromocob-Ultra-2.5.1.zxp" download>Dromocob Ultra ZXP <Download /></a>
+          <a href="/downloads/Dromocob-Ultra-2.6.0.zxp" download>Dromocob Ultra ZXP <Download /></a>
         </div>
         <div className="apps-trust">
           <span><LockKeyhole /> İmzalı lisans</span>
