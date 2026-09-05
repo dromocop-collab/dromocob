@@ -1,0 +1,77 @@
+/* Dromocob Ultra product showcase + mobile contrast repair */
+.ultra-product-page{isolation:isolate;color-scheme:dark;background-color:#05080c!important}
+.ultra-product-hero{isolation:isolate;color:#edf4fb!important;background-color:#05080c!important}
+.ultra-product-hero::after{content:"";position:absolute;z-index:0;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(5,8,12,0) 72%,#05080c)}
+.ultra-product-hero>.ultra-back,.ultra-product-hero>.ultra-hero-grid,.ultra-product-hero>.ultra-stats{position:relative;z-index:2}
+.ultra-hero-copy h1,.ultra-title strong{color:#f4f8fc!important;-webkit-text-fill-color:#f4f8fc!important}
+.ultra-hero-copy h1 em{color:#8b9bab!important;-webkit-text-fill-color:#8b9bab!important}
+.ultra-hero-copy>p:not(.eyebrow){color:#9aa8b5!important;-webkit-text-fill-color:#9aa8b5!important}
+.ultra-hero-aurora{position:absolute;z-index:1;inset:0;overflow:hidden;pointer-events:none}
+.ultra-hero-aurora i{position:absolute;width:28vw;aspect-ratio:1;border-radius:50%;opacity:.24;filter:blur(70px);animation:ultraAurora 12s ease-in-out infinite alternate}
+.ultra-hero-aurora i:nth-child(1){right:4%;top:15%;background:#009cff}
+.ultra-hero-aurora i:nth-child(2){left:-9%;top:34%;background:#ff5c1f;animation-delay:-4s}
+.ultra-hero-aurora i:nth-child(3){right:30%;bottom:4%;width:19vw;background:#6c4cff;animation-delay:-7s}
+
+.ultra-product-views{padding-block:clamp(100px,11vw,165px);color:#eef6fc;background:radial-gradient(circle at 12% 22%,rgba(31,174,255,.15),transparent 26%),radial-gradient(circle at 90% 72%,rgba(105,73,255,.12),transparent 28%),#05090e}
+.ultra-product-views>header{margin-bottom:70px;display:grid;grid-template-columns:1fr .52fr;gap:7vw;align-items:end}
+.ultra-product-views h2{margin:16px 0 0;font-size:clamp(58px,7vw,108px);line-height:.86;letter-spacing:-.07em}
+.ultra-product-views h2 em{color:#81909f;font-family:Georgia,serif;font-weight:400}
+.ultra-product-views>header>p{color:#83919e;font-size:16px;line-height:1.75}
+.ultra-view-stack{display:grid;gap:80px}
+.ultra-view-card{margin:0;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.65fr);gap:clamp(30px,6vw,95px);align-items:center}
+.ultra-view-card:nth-child(even){grid-template-columns:minmax(280px,.65fr) minmax(0,1.15fr)}
+.ultra-view-card:nth-child(even) .ultra-view-image{order:2}
+.ultra-view-card:nth-child(even) figcaption{order:1}
+.ultra-view-image{position:relative;overflow:hidden;border:1px solid rgba(76,190,255,.29);border-radius:30px;background:#05080c;box-shadow:0 50px 120px rgba(0,0,0,.55),0 0 80px rgba(0,145,255,.1);transform:perspective(1400px) rotateY(3deg);transition:transform .7s cubic-bezier(.2,.8,.2,1),border-color .5s,box-shadow .5s}
+.ultra-view-card:nth-child(even) .ultra-view-image{transform:perspective(1400px) rotateY(-3deg)}
+.ultra-view-image::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 28%,rgba(255,255,255,.09) 46%,transparent 64%);transform:translateX(-130%);animation:ultraScreenScan 7s ease-in-out infinite}
+.ultra-view-image img{width:100%;height:auto;display:block;transition:transform .9s cubic-bezier(.2,.8,.2,1),filter .5s}
+.ultra-view-card:hover .ultra-view-image{border-color:rgba(82,200,255,.62);box-shadow:0 60px 140px rgba(0,0,0,.65),0 0 110px rgba(0,145,255,.19);transform:perspective(1400px) rotateY(0) translateY(-8px)}
+.ultra-view-card:hover .ultra-view-image img{transform:scale(1.018);filter:saturate(1.08) brightness(1.04)}
+.ultra-view-card figcaption small{color:#25baff;font-size:12px;font-weight:950;letter-spacing:.17em}
+.ultra-view-card h3{max-width:520px;margin:18px 0;font-size:clamp(34px,4vw,62px);line-height:.94;letter-spacing:-.055em}
+.ultra-view-card figcaption p{max-width:500px;margin:0;color:#8997a4;font-size:16px;line-height:1.75}
+.ultra-view-card figcaption>span{margin-top:30px;display:flex;align-items:center;gap:10px;color:#d9e8f2;font-size:12px;font-weight:900;letter-spacing:.1em}
+.ultra-view-card figcaption>span svg{width:17px;color:#ff6c31}
+
+@keyframes ultraAurora{to{translate:5% -7%;scale:1.18;opacity:.35}}
+@keyframes ultraScreenScan{0%,62%{transform:translateX(-130%)}85%,100%{transform:translateX(130%)}}
+
+@media(max-width:1050px){
+  .ultra-product-views>header{grid-template-columns:1fr;gap:28px}
+  .ultra-view-card,.ultra-view-card:nth-child(even){grid-template-columns:1fr;gap:34px}
+  .ultra-view-card:nth-child(even) .ultra-view-image,.ultra-view-card:nth-child(even) figcaption{order:initial}
+  .ultra-view-image,.ultra-view-card:nth-child(even) .ultra-view-image{width:min(780px,100%);transform:none}
+}
+
+@media(max-width:700px){
+  .ultra-product-page{background:#05080c!important}
+  .ultra-product-hero{min-height:auto;padding-top:120px;padding-bottom:70px;color:#edf4fb!important;background:radial-gradient(circle at 92% 12%,rgba(0,145,255,.22),transparent 31%),radial-gradient(circle at 0 52%,rgba(255,91,31,.12),transparent 25%),linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),#05080c!important;background-size:auto,auto,38px 38px,38px 38px!important}
+  .ultra-hero-aurora i{width:70vw;filter:blur(55px)}
+  .ultra-hero-aurora i:nth-child(3){width:46vw}
+  .ultra-back{color:#91a1af!important;font-size:13px}
+  .ultra-title small,.ultra-product-page .eyebrow{font-size:12px}
+  .ultra-title strong{font-size:27px}
+  .ultra-hero-copy h1{margin-block:28px 22px;font-size:clamp(52px,15vw,69px);line-height:.87}
+  .ultra-hero-copy>p:not(.eyebrow){font-size:16px!important;line-height:1.7}
+  .ultra-hero-actions{display:grid;grid-template-columns:1fr}
+  .ultra-hero-actions a{min-height:62px;justify-content:center;font-size:15px}
+  .ultra-hero-actions a span{font-size:11px}
+  .ultra-hero-meta{display:grid;grid-template-columns:1fr;font-size:13px;gap:12px}
+  .ultra-hero-meta svg{width:16px}
+  .ultra-product-ui{margin-top:10px;border-radius:22px}
+  .ultra-stats article{padding-left:14px}
+  .ultra-stats span{font-size:12px;line-height:1.4}
+  .ultra-product-views{padding-block:90px}
+  .ultra-product-views h2{font-size:clamp(48px,15vw,68px)}
+  .ultra-product-views>header>p,.ultra-view-card figcaption p{font-size:16px}
+  .ultra-view-stack{gap:75px}
+  .ultra-view-image{border-radius:20px}
+  .ultra-view-card h3{font-size:38px}
+  .ultra-view-card figcaption small,.ultra-view-card figcaption>span{font-size:12px;line-height:1.5}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .ultra-hero-aurora i,.ultra-view-image::after{animation:none}
+  .ultra-view-image,.ultra-view-image img{transition:none}
+}

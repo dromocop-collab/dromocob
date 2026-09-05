@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, BadgeCheck, Box, Check, Clapperboard, Download, Gauge, Headphones, KeyRound, Layers3, Monitor, Palette, RefreshCw, ShieldCheck, Sparkles, Type, WandSparkles } from "lucide-react";
 import { absoluteUrl } from "@/lib/seo";
+import "./dromocob-ultra.css";
 
 export const metadata: Metadata = {
   title: "Dromocob Ultra — After Effects Yaratıcı Araç Seti",
@@ -28,6 +29,30 @@ const modules = [
 ] as const;
 
 const carouselTypes = ["Yörünge", "Yay", "Sarmal", "Tünel", "Kapak Akışı", "Kart Destesi", "Dalga", "Silindir", "Odak Rayı", "Sonsuz Bant"];
+
+const productViews = [
+  {
+    src: "/images/dromocob-ultra/carousel-lab.png",
+    eyebrow: "01 / CAROUSEL LAB",
+    title: "3D sahneyi tek merkezden yönet.",
+    detail: "10 farklı düzen, aktif kart odağı, kamera, derinlik ve sonsuz döngü kontrolleri aynı canlı sistemde.",
+    alt: "Dromocob Ultra Carousel Lab paneli",
+  },
+  {
+    src: "/images/dromocob-ultra/transition-lab.png",
+    eyebrow: "02 / GEÇİŞ LABORATUVARI",
+    title: "64 geçiş. Hızlı seçim, temiz kurgu.",
+    detail: "Kamera, spin, glitch, ışık, şekil ve blur kategorilerindeki geçişleri ritmine göre uygula.",
+    alt: "Dromocob Ultra Geçiş Laboratuvarı paneli",
+  },
+  {
+    src: "/images/dromocob-ultra/audio-vfx.png",
+    eyebrow: "03 / SES VE VFX",
+    title: "Kesimi duy, vuruşu görünür yap.",
+    detail: "SFX paketlerini yönet, sesleri zaman çizelgesine taşı ve müzik vuruşlarına otomatik marker yerleştir.",
+    alt: "Dromocob Ultra Ses ve VFX Stüdyosu paneli",
+  },
+] as const;
 
 const workflow = [
   ["01", "Layer’ları seç", "Carousel’e girecek medya layer’larını kompozisyon içinde seç."],
@@ -57,6 +82,7 @@ export default function DromocobUltraPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareJsonLd).replace(/</g, "\\u003c") }} />
 
     <section className="ultra-product-hero section">
+      <div className="ultra-hero-aurora" aria-hidden="true"><i /><i /><i /></div>
       <Link className="ultra-back" href="/uygulamalar"><ArrowLeft /> Tüm uygulamalar</Link>
       <div className="ultra-hero-grid">
         <div className="ultra-hero-copy">
@@ -89,6 +115,19 @@ export default function DromocobUltraPage() {
     </section>
 
     <section className="ultra-modules section"><header><div><p className="eyebrow">ONE PANEL / FULL WORKFLOW</p><h2>Kurgu ritminden<br /><em>final görünüme.</em></h2></div><p>Tekrarlanan teknik adımları kısaltan, yaratıcı kontrolü kullanıcıda tutan modüler araçlar.</p></header><div className="ultra-module-grid">{modules.map(([Icon,title,detail],index)=><article key={title}><span><Icon /></span><small>0{index+1} / ULTRA MODULE</small><h3>{title}</h3><p>{detail}</p><i><ArrowRight /></i></article>)}</div></section>
+
+    <section className="ultra-product-views section">
+      <header>
+        <div><p className="eyebrow">GERÇEK PANEL / GERÇEK AKIŞ</p><h2>Ne yaptığını<br /><em>ilk bakışta gör.</em></h2></div>
+        <p>Dromocob Ultra’nın temel modülleri After Effects içinde aynı tasarım diliyle, aynı kompozisyon verisiyle birlikte çalışır.</p>
+      </header>
+      <div className="ultra-view-stack">
+        {productViews.map((view, index) => <figure key={view.title} className={`ultra-view-card ultra-view-card-${index + 1}`}>
+          <div className="ultra-view-image"><Image src={view.src} alt={view.alt} width={1278} height={1518} sizes="(max-width: 700px) 92vw, (max-width: 1100px) 78vw, 52vw" /></div>
+          <figcaption><small>{view.eyebrow}</small><h3>{view.title}</h3><p>{view.detail}</p><span>AFTER EFFECTS İÇİN TASARLANDI <ArrowRight /></span></figcaption>
+        </figure>)}
+      </div>
+    </section>
 
     <section className="ultra-carousel-section section"><div className="ultra-carousel-copy"><p className="eyebrow">CAROUSEL LAB</p><h2>Layer’ları seç.<br /><em>Sistemi kur.</em></h2><p>Seçili medyaları güvenle çoğaltan, 3D layer’lara dönüştüren ve tüm hareketi <strong>DROMOCOB_CAROUSEL_CTRL</strong> üzerinden yöneten non-destructive yapı.</p><div className="ultra-carousel-tags">{carouselTypes.map((type,index)=><span key={type}><b>{String(index+1).padStart(2,"0")}</b>{type}</span>)}</div></div><div className="ultra-carousel-console"><header><span>ACTIVE CONTROLLER</span><b><i /> CONNECTED</b></header><div className="ultra-console-orbit"><span />{[1,2,3,4,5,6].map(n=><i key={n} className={`u-console-card u-console-card-${n}`}>{n}</i>)}</div><dl><div><dt>Active Card</dt><dd>04</dd></div><div><dt>Camera Distance</dt><dd>1850</dd></div><div><dt>Focus Scale</dt><dd>118%</dd></div><div><dt>Infinite Loop</dt><dd>ON</dd></div></dl></div></section>
 
