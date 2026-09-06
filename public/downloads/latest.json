@@ -1,0 +1,26 @@
+{
+  "deletedFiles" : [
+
+  ],
+  "fullPackageSHA256" : "12935ab35a373765e40dda89e61eb46f45cffc29c8536cccd33457d52816ba5e",
+  "fullPackageURL" : "https://github.com/dromocop-collab/dromocob/releases/download/v2.7.4/Dromocob-Ultra-2.7.4.zip",
+  "githubTag" : "v2.7.4",
+  "minimumVersion" : {
+    "major" : 2,
+    "minor" : 7,
+    "patch" : 3
+  },
+  "product" : "Dromocob Ultra",
+  "publishedAt" : "2026-09-06T23:04:46Z",
+  "releaseNotes" : "deneme sürümü",
+  "releasePageURL" : "https://github.com/dromocop-collab/dromocob/releases/tag/v2.7.4",
+  "updatePackageSHA256" : "12935ab35a373765e40dda89e61eb46f45cffc29c8536cccd33457d52816ba5e",
+  "updatePackageURL" : "https://github.com/dromocop-collab/dromocob/releases/download/v2.7.4/Dromocob-Ultra-2.7.4-update.zip",
+  "version" : {
+    "major" : 2,
+    "minor" : 7,
+    "patch" : 4
+  },
+  "zxpSHA256" : "f3505ec416c75a71978fa64bf6e52d6ba19c71cd09f6750b6dbd6979a76be5a6",
+  "zxpURL" : "https://github.com/dromocop-collab/dromocob/releases/download/v2.7.4/Dromocob-Ultra-2.7.4.zxp"
+}
