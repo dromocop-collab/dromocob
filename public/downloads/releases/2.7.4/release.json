@@ -1,0 +1,169 @@
+{
+  "artifacts" : [
+    {
+      "createdAt" : "2026-09-06T23:04:46Z",
+      "fileName" : "Dromocob-Ultra-2.7.4.zip",
+      "kind" : "fullZip",
+      "sha256" : "12935ab35a373765e40dda89e61eb46f45cffc29c8536cccd33457d52816ba5e",
+      "size" : 1349029
+    },
+    {
+      "createdAt" : "2026-09-06T23:04:46Z",
+      "fileName" : "Dromocob-Ultra-2.7.4-update.zip",
+      "kind" : "updateZip",
+      "sha256" : "12935ab35a373765e40dda89e61eb46f45cffc29c8536cccd33457d52816ba5e",
+      "size" : 1349029
+    },
+    {
+      "createdAt" : "2026-09-06T23:04:46Z",
+      "fileName" : "Dromocob-Ultra-2.7.4.zxp",
+      "kind" : "zxp",
+      "sha256" : "f3505ec416c75a71978fa64bf6e52d6ba19c71cd09f6750b6dbd6979a76be5a6",
+      "size" : 1352000
+    }
+  ],
+  "changedFiles" : [
+    "js/packs.js"
+  ],
+  "createdAt" : "2026-09-06T23:04:46Z",
+  "deletedFiles" : [
+
+  ],
+  "dryRun" : false,
+  "files" : [
+    {
+      "path" : "assets/dromocob-logo.png",
+      "sha256" : "6f95ddb96c8a0a7b1088c912c062abc5604df581d7870842e5bba6a6cc3b7808",
+      "size" : 1223968
+    },
+    {
+      "path" : "assets/luts/Dromocob_Clean.cube",
+      "sha256" : "8c1a0e1ee344c7e11c42f2b6700b106e383ad0adf06d70c4bed8ffd6227b5a93",
+      "size" : 227
+    },
+    {
+      "path" : "assets/luts/Dromocob_Cool_Fade.cube",
+      "sha256" : "fb1258c8aeebf873b889359d4f27796707b7acc74af36cef6ee399e38e443638",
+      "size" : 231
+    },
+    {
+      "path" : "assets/luts/Dromocob_Mono_Punch.cube",
+      "sha256" : "9d72127852edbb25343db97e98af0bfbdbc6ac24cee6d4be2771bc6075987be7",
+      "size" : 232
+    },
+    {
+      "path" : "assets/luts/Dromocob_Night_Blue.cube",
+      "sha256" : "d3d46fde9ccbd8a6188224a7a50946eda6a5800fdf9a011f5f4b913bd2862e21",
+      "size" : 232
+    },
+    {
+      "path" : "assets/luts/Dromocob_Teal_Orange.cube",
+      "sha256" : "491c3c4c09417bcd9339b21f7760cc51088c943489bcea5e81edfc81c9aacd3b",
+      "size" : 233
+    },
+    {
+      "path" : "assets/luts/Dromocob_Warm_Film.cube",
+      "sha256" : "867b544d1c09de7e6b43b0258b677d2cb7e44642e9096acc96dfeed84df63145",
+      "size" : 231
+    },
+    {
+      "path" : "css/library.css",
+      "sha256" : "08e514dc7a242e84322686473a86b15e26550c5e3cc23aec981cfd5ae2a7e70f",
+      "size" : 5278
+    },
+    {
+      "path" : "css/theme.css",
+      "sha256" : "c1a65d405185edfacd351b09947af0e47fd6a57245b5b8d930eef9f3f6a95507",
+      "size" : 109301
+    },
+    {
+      "path" : "CSXS/manifest.xml",
+      "sha256" : "22d37a0438d0f9ce5cc7414df72254c1990d26bcc42ce0d72e49762052e1f3b7",
+      "size" : 1468
+    },
+    {
+      "path" : "docs/YAYIN_VE_GUNCELLEME.md",
+      "sha256" : "ac97617e5812da76c51b040a483fde139df4d35f9903ef7aa79ce16c9df7903c",
+      "size" : 2666
+    },
+    {
+      "path" : "index.html",
+      "sha256" : "6d660eb8bc6dd3ee6bb4783b030dae05b4cc3c8a63339dd4d6c946158335a935",
+      "size" : 97920
+    },
+    {
+      "path" : "js/app.js",
+      "sha256" : "e743ad8e13bd137c1f4ff390d61cfc5bb82d6cf3aeb026c6f229faad14a48913",
+      "size" : 46616
+    },
+    {
+      "path" : "js/bridge.js",
+      "sha256" : "7aed88c840c7e53cd8207e583a7f5417199b1ae6c1ade32a10312c864737db53",
+      "size" : 5800
+    },
+    {
+      "path" : "js/carousel.js",
+      "sha256" : "dce5636d8194eb69eb428d3bb2d8357a83e233f2d1a5ef105c007d4e8337516f",
+      "size" : 19423
+    },
+    {
+      "path" : "js/curves.js",
+      "sha256" : "183f06246ca0e96a6a5107e12f9c26f2945f622c0b8953ece5cb073931652d63",
+      "size" : 15447
+    },
+    {
+      "path" : "js/i18n.js",
+      "sha256" : "e85bc8a8b7b71c2338a0caf6b40d8f1522657a5e1984a4fff21d8a062507a171",
+      "size" : 12919
+    },
+    {
+      "path" : "js/library.js",
+      "sha256" : "53bf8e9519ece48d779f14f04fba23d5b17a6bc9ed72a7f4acdf33125abce728",
+      "size" : 5878
+    },
+    {
+      "path" : "js/license.js",
+      "sha256" : "f45aa06ce1ed6e04fa0627ebc786137261123ee3d01b1251556a8889cc7d9a9a",
+      "size" : 10483
+    },
+    {
+      "path" : "js/luts.js",
+      "sha256" : "f8be1052a8548ff32d34df945b418e42a420926a299e5551d5712bf5387af0eb",
+      "size" : 52652
+    },
+    {
+      "path" : "js/packs.js",
+      "sha256" : "ec0926907ae51dc3be7a611055a8057085cb306f4ea3718a538febfdae7e4e47",
+      "size" : 75780
+    },
+    {
+      "path" : "jsx/carousel.jsx",
+      "sha256" : "dbfb70ed3a8e168615f33e04cc78b3b4780edbdbc0eb2baaba39d39319a83278",
+      "size" : 17893
+    },
+    {
+      "path" : "jsx/host.jsx",
+      "sha256" : "d5dd99ae668cb7fbc843a6158df310829aae09cae1736fa5449298cf1cb5c257",
+      "size" : 71022
+    },
+    {
+      "path" : "README.md",
+      "sha256" : "83ed180227ce1baba968072cee687d5950ee306b06790e85dd2bf779791b0272",
+      "size" : 1496
+    }
+  ],
+  "id" : "6D66A9F0-3676-4393-A230-86FD60C91503",
+  "previousVersion" : {
+    "major" : 2,
+    "minor" : 7,
+    "patch" : 3
+  },
+  "releaseNotes" : "deneme sürümü",
+  "signedZXP" : true,
+  "sourceFolder" : "/Users/cihaterdem/.codex/visualizations/2026/09/04/01a06b60-b9e7-7063-bc77-2720ebcef8cf/DromocobUltraExtension",
+  "version" : {
+    "major" : 2,
+    "minor" : 7,
+    "patch" : 4
+  }
+}
