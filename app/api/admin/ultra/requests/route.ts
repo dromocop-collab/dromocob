@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+
 import {
   FieldValue,
   Timestamp,
@@ -84,9 +86,184 @@ function serialize(
 }
 
 
+const RELEASE_CENTER_TOKEN_HEADER =
+  "x-dromocob-ultra-token";
+
+const RELEASE_CENTER_TOKEN_ENV =
+  "DROMOCOB_ULTRA_REQUEST_ADMIN_TOKEN";
+
+
+function secureTokenEqual(
+  supplied: string,
+  expected: string,
+) {
+
+  const suppliedBuffer =
+    Buffer.from(
+      supplied,
+      "utf8",
+    );
+
+  const expectedBuffer =
+    Buffer.from(
+      expected,
+      "utf8",
+    );
+
+
+  if (
+    suppliedBuffer.length !==
+    expectedBuffer.length
+  ) {
+    return false;
+  }
+
+
+  return timingSafeEqual(
+    suppliedBuffer,
+    expectedBuffer,
+  );
+}
+
+
+function authorizeReleaseCenter(
+  request: Request,
+) {
+
+  const expected =
+    (
+      process.env[
+        RELEASE_CENTER_TOKEN_ENV
+      ] ||
+      ""
+    ).trim();
+
+  const supplied =
+    (
+      request.headers.get(
+        RELEASE_CENTER_TOKEN_HEADER,
+      ) ||
+      ""
+    ).trim();
+
+
+  if (
+    !expected ||
+    !supplied
+  ) {
+    return false;
+  }
+
+
+  return secureTokenEqual(
+    supplied,
+    expected,
+  );
+}
+
+
+const RELEASE_CENTER_TOKEN_HEADER =
+  "x-dromocob-ultra-token";
+
+const RELEASE_CENTER_TOKEN_ENV =
+  "DROMOCOB_ULTRA_REQUEST_ADMIN_TOKEN";
+
+
+function secureTokenEqual(
+  supplied: string,
+  expected: string,
+) {
+
+  const suppliedBuffer =
+    Buffer.from(
+      supplied,
+      "utf8",
+    );
+
+  const expectedBuffer =
+    Buffer.from(
+      expected,
+      "utf8",
+    );
+
+
+  if (
+    suppliedBuffer.length !==
+    expectedBuffer.length
+  ) {
+    return false;
+  }
+
+
+  return timingSafeEqual(
+    suppliedBuffer,
+    expectedBuffer,
+  );
+}
+
+
+function authorizeReleaseCenter(
+  request: Request,
+) {
+
+  const expected =
+    (
+      process.env[
+        RELEASE_CENTER_TOKEN_ENV
+      ] ||
+      ""
+    ).trim();
+
+  const supplied =
+    (
+      request.headers.get(
+        RELEASE_CENTER_TOKEN_HEADER,
+      ) ||
+      ""
+    ).trim();
+
+
+  if (
+    !expected ||
+    !supplied
+  ) {
+    return false;
+  }
+
+
+  return secureTokenEqual(
+    supplied,
+    expected,
+  );
+}
+
+
 async function authorize(
   request: Request,
 ) {
+
+  /*
+   * Native macOS Release Center.
+   *
+   * Secret yalnızca:
+   * - Firebase Secret Manager
+   * - macOS Keychain
+   *
+   * içinde tutulur.
+   */
+  if (
+    authorizeReleaseCenter(
+      request,
+    )
+  ) {
+    return;
+  }
+
+
+  /*
+   * Mevcut web admin Firebase Auth
+   * davranışı aynen korunuyor.
+   */
   await requireAdminRole(
     request.headers.get(
       "authorization",

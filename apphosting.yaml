@@ -1,0 +1,5 @@
+env:
+  - variable: DROMOCOB_ULTRA_REQUEST_ADMIN_TOKEN
+    secret: DROMOCOB_ULTRA_REQUEST_ADMIN_TOKEN
+    availability:
+      - RUNTIME
