@@ -1,6 +1,87 @@
 {
-  "schemaVersion": 1,
-  "revision": "initial",
-  "previousRevisionSHA256": null,
-  "packs": []
+  "packs": [
+    {
+      "id": "dromocob-cinematic-luts",
+      "manifestSHA256": "b27482ecd180481c382dde038f43bd601b3a8a888e0198acd0b5d1792d0a0f74",
+      "name": "Dromocob Cinematic LUT Pack",
+      "rollback": {
+        "previousManifestSHA256": null,
+        "previousVersion": null
+      },
+      "schemaVersion": 1,
+      "sharedAssets": [
+        {
+          "bytes": 114704,
+          "file": "shared-1.cube",
+          "sha256": "3c42b896102f9be29b79ebadc8ad88b45bdff51d8492592660a986bdbd6605ea",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-1.cube"
+        },
+        {
+          "bytes": 114704,
+          "file": "shared-2.cube",
+          "sha256": "2c911bf23936345cc481681544d7963940ddbed7dc02fd190009b52a892ba5ef",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-2.cube"
+        },
+        {
+          "bytes": 114704,
+          "file": "shared-3.cube",
+          "sha256": "a62c41530e716151f38ea2ff956b8c378f04d69cec09139a38ac2dd461ce643d",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-3.cube"
+        },
+        {
+          "bytes": 114704,
+          "file": "shared-4.cube",
+          "sha256": "0d767b71038b47f93cdec0c0f6d817e1944ee4576f6f37e025d4010b027a0711",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-4.cube"
+        },
+        {
+          "bytes": 114704,
+          "file": "shared-5.cube",
+          "sha256": "e823901879981f9a99be9148c2686f022531b5beeeb761cb608323431e7b6388",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-5.cube"
+        },
+        {
+          "bytes": 114838,
+          "file": "shared-6.cube",
+          "sha256": "4aef6f8b0329f8fc955f2837b6bfd36253474420fc81165b0de94814149face6",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-6.cube"
+        },
+        {
+          "bytes": 114704,
+          "file": "shared-7.cube",
+          "sha256": "932e09e953bd21c5213fd1a5cb12689cd730b7af220bc63bd97455271f6da16b",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-7.cube"
+        },
+        {
+          "bytes": 114898,
+          "file": "shared-8.cube",
+          "sha256": "b8de435e1659fbdbf309ec75668769840cf0b71a35c6b65f4d0ca14beeb21065",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-8.cube"
+        },
+        {
+          "bytes": 114917,
+          "file": "shared-9.cube",
+          "sha256": "d2c9776e4294725e05f7c25060c98dc0f6773407ed0ba80b0fd5baf5f79a8865",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-9.cube"
+        },
+        {
+          "bytes": 115001,
+          "file": "shared-10.cube",
+          "sha256": "1dc29256affda0b3f64c9b78709919ee43ca00eb4184556a29b09bad6672c503",
+          "url": "https://github.com/dromocop-collab/dromocob/releases/download/untagged-e258c57a3a1c6f53c77b/shared-10.cube"
+        }
+      ],
+      "targets": [
+        "after-effects",
+        "final-cut",
+        "premiere",
+        "resolve"
+      ],
+      "variants": {},
+      "version": "1.0.0"
+    }
+  ],
+  "previousRevisionSHA256": "650d48ab6225b522d6016e3188c6d004f25184ec1ee91d525fb593ace31be124",
+  "revision": "3a866bb2-4ddc-455b-89f2-b71b12526bee",
+  "schemaVersion": 1
 }
