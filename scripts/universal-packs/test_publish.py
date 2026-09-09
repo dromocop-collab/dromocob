@@ -71,7 +71,10 @@ class PackTests(unittest.TestCase):
         self.assertEqual(calls[-1], ('releases/7', 'PATCH', {'draft': False, 'make_latest': 'false'}))
         self.assertTrue(all(path.startswith(m.PREFIX) for path in commits[0]))
         result = json.loads(commits[0][m.PREFIX + 'manifest.json'])
-        self.assertEqual(result['packs'][0]['sharedAssets'][0]['url'], 'https://github.com/fixture/shared.wav')
+        self.assertEqual(
+            result['packs'][0]['sharedAssets'][0]['url'],
+            'https://github.com/dromocop-collab/dromocob/releases/download/ultra-pack-test-v1.0.0/shared.wav'
+        )
         self.assertEqual(result['packs'][0]['manifestSHA256'], m.digest(commits[0][m.PREFIX + 'releases/test/1.0.0/pack.json']))
         commits.clear()
         payload = b'corrupt download'

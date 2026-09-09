@@ -130,7 +130,11 @@ def publish(folder, dry_run=True, rollback=None):
         for asset in assets:
             uploaded = api.call(release['upload_url'].split('{')[0] + '?name=' + asset['file'], 'POST', raw=(folder / asset['file']).read_bytes())
             require(uploaded['size'] == asset['bytes'], 'Uploaded size mismatch')
-            asset['url'] = uploaded['browser_download_url']
+            asset['url'] = (
+                'https://github.com/' + REPO +
+                '/releases/download/' + tag + '/' +
+                asset['file']
+            )
         manifest = encoded(pack)
         api.call(release['upload_url'].split('{')[0] + '?name=pack.json', 'POST', raw=manifest)
         api.call('releases/' + str(release['id']), 'PATCH', {'draft': False, 'make_latest': 'false'})

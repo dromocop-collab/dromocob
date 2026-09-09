@@ -47,6 +47,18 @@ function load(file) {
   assert.match(finalcut.version, /^\d+\.\d+\.\d+$/); assert.match(finalcut.sha256, /^[a-f0-9]{64}$/);
   assert.match(finalcut.downloadURL, /^https:\/\/dromocob\.tr\/downloads\/finalcut\//);
   const packs = JSON.parse(fs.readFileSync(path.join(root, 'public/downloads/ultra/packs/manifest.json')));
-  assert.equal(packs.schemaVersion, 1); assert.deepEqual(packs.packs, []);
-  console.log('PASS: Request Center auth/list/create/validation/rate limit (mock DB); Final Cut manifest; new empty pack manifest');
+  assert.equal(packs.schemaVersion, 1);
+  assert.ok(Array.isArray(packs.packs));
+  for (const pack of packs.packs) {
+    assert.match(pack.id, /^[a-z0-9][a-z0-9-]{0,79}$/);
+    assert.match(pack.version, /^\d+\.\d+\.\d+$/);
+    assert.ok(Array.isArray(pack.targets) && pack.targets.length > 0);
+    assert.ok(
+      pack.targets.every(host =>
+        ['after-effects', 'premiere', 'final-cut', 'resolve'].includes(host)
+      )
+    );
+    assert.match(pack.manifestSHA256, /^[a-f0-9]{64}$/);
+  }
+  console.log('PASS: Request Center auth/list/create/validation/rate limit (mock DB); Final Cut manifest; Universal Pack catalog schema');
 })().catch(error => { console.error(error.message); process.exitCode = 1; });
