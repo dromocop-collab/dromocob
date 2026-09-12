@@ -243,7 +243,7 @@ export async function GET() {
           "pixel-resizer-pro": "1.0.1",
           "dromocob-ultra-ae": "2.4.1",
           "dromocob-ultra-premiere": "0.7.0",
-          "dromocob-ultra-finalcut": "0.3.16"
+          "dromocob-ultra-finalcut": "0.3.17"
         },
 
         latestVersions: {
@@ -251,7 +251,7 @@ export async function GET() {
           "dromocob-ultra-ae":
             ultraUpdate.version,
           "dromocob-ultra-premiere": "0.7.0",
-          "dromocob-ultra-finalcut": "0.3.16"
+          "dromocob-ultra-finalcut": "0.3.17"
         },
 
         trialDays,

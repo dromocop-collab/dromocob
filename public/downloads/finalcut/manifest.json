@@ -1,15 +1,19 @@
 {
   "schemaVersion": 1,
   "productId": "dromocob-ultra-finalcut",
-  "platform": "finalcut",
+  "platform": "final-cut",
   "channel": "stable",
-  "version": "0.2.0",
-  "build": 2,
+  "version": "0.3.17",
+  "build": 33,
   "minimumFinalCutVersion": "11.0",
   "minimumMacOSVersion": "14.0",
-  "downloadURL": "https://dromocob.tr/downloads/finalcut/DromocobUltraFinalCut-0.2.0.zip",
-  "notesURL": null,
-  "sha256": "35ac1e5c13856ce0bb1cb4761a830de544fdff4b27c402c79a41b20eea9fe7f1",
+  "downloadURL": "https://github.com/dromocop-collab/dromocob/releases/download/finalcut-v0.3.17-b33/DromocobUltraFinalCut-0.3.17-b33.zip",
+  "installerURL": "https://github.com/dromocop-collab/dromocob/releases/download/finalcut-v0.3.17-b33/DromocobUltraFinalCut-0.3.17.dmg",
+  "notesURL": "https://github.com/dromocop-collab/dromocob/releases/tag/finalcut-v0.3.17-b33",
+  "sha256": "51c8bb33972fa6ca0d4cbe9ad1ed45620ec937dfe837469ef1cbc2a553ec1b13",
+  "installerSha256": "3968d06d8115941f940122e40887293e83f920f5c464d97934626f275e9b196b",
+  "bytes": 2489647,
+  "installerBytes": 2847834,
   "mandatory": false,
-  "publishedAt": "2026-09-08T20:45:00+03:00"
+  "publishedAt": "2026-09-12T19:29:45Z"
 }

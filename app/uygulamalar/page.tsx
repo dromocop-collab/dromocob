@@ -27,10 +27,10 @@ const apps = [
     num: "02",
     slug: "/uygulamalar/dromocob-ultra",
     name: "Dromocob Ultra",
-    tagline: "AFTER EFFECTS CREATIVE SYSTEM",
-    desc: "Carousel, geçiş, efekt, LUT, 3D metin ve SFX araçlarını tek premium After Effects panelinde birleştiren yaratıcı komuta merkezi.",
+    tagline: "VIDEO CREATIVE SYSTEM",
+    desc: "After Effects, Premiere Pro ve Final Cut Pro için üretim araçlarını tek lisans ve ortak güncelleme altyapısında birleştiren yaratıcı komuta merkezi.",
     icon: "/DromocobLogo.png",
-    platforms: ["After Effects 2026", "macOS", "ZXP"],
+    platforms: ["After Effects", "Premiere Pro", "Final Cut Pro"],
     color: "ultra" as const,
     stat: "2.7.1",
     statLabel: "Güncel sürüm",
@@ -121,7 +121,7 @@ export default function AppsPage() {
           <Link href="/uygulamalar/dromocob-ultra">Dromocob Ultra <ArrowRight /></Link>
           <Link href="/uygulamalar/photoresize">PhotoResize <ArrowRight /></Link>
           <Link href="/kalori-merkezi">Kalori Merkezi <ArrowRight /></Link>
-          <a href="/downloads/Dromocob-Ultra-2.7.1.zxp" download>Dromocob Ultra ZXP <Download /></a>
+          <a href="/downloads/finalcut/latest">Dromocob Ultra Final Cut <Download /></a>
         </div>
         <div className="apps-trust">
           <span><LockKeyhole /> İmzalı lisans</span>

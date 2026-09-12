@@ -6,9 +6,9 @@ import { absoluteUrl } from "@/lib/seo";
 import "./dromocob-ultra.css";
 
 export const metadata: Metadata = {
-  title: "Dromocob Ultra — After Effects Yaratıcı Araç Seti",
-  description: "Carousel Lab, profesyonel geçişler, LUT, glow, 3D metin ve SFX araçlarını tek premium After Effects panelinde birleştiren Dromocob Ultra’yı keşfedin.",
-  keywords: ["After Effects extension", "After Effects eklentisi", "3D carousel", "motion graphics", "LUT", "video geçişleri", "Dromocob Ultra"],
+  title: "Dromocob Ultra — After Effects, Premiere Pro ve Final Cut Pro",
+  description: "After Effects, Premiere Pro ve Final Cut Pro için lisans ve güncelleme altyapısı ortak Dromocob Ultra yaratıcı araçlarını indirin.",
+  keywords: ["After Effects extension", "Premiere Pro extension", "Final Cut Pro extension", "motion graphics", "LUT", "video geçişleri", "Dromocob Ultra"],
   alternates: { canonical: "/uygulamalar/dromocob-ultra" },
   openGraph: {
     title: "Dromocob Ultra — After Effects Yaratıcı Komuta Merkezi",
@@ -84,6 +84,33 @@ const workflow = [
   ["04", "Üretime devam et", "Carousel’i yeniden oluşturmadan UPDATE ile mevcut sistemi güncelle."],
 ] as const;
 
+const hostDownloads = [
+  {
+    host: "After Effects",
+    format: "İmzalı ZXP",
+    version: "2.7.1",
+    detail: "Carousel, geçiş, LUT, 3D metin ve SFX üretim paneli.",
+    href: "/downloads/Dromocob-Ultra-2.7.1.zxp",
+    available: true,
+  },
+  {
+    host: "Final Cut Pro",
+    format: "İmzalı macOS DMG",
+    version: "0.3.17",
+    detail: "Timeline, Speed Lab, Motion, Audio, LUT ve FxPlug yönetim paneli.",
+    href: "/downloads/finalcut/latest",
+    available: true,
+  },
+  {
+    host: "Premiere Pro",
+    format: "Creative Cloud eklentisi",
+    version: "0.7.0",
+    detail: "Ortak lisans ve Universal Pack altyapısına bağlı Premiere sürümü.",
+    href: "/lisans",
+    available: false,
+  },
+] as const;
+
 const softwareJsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -109,15 +136,16 @@ export default function DromocobUltraPage() {
       <Link className="ultra-back" href="/uygulamalar"><ArrowLeft /> Tüm uygulamalar</Link>
       <div className="ultra-hero-grid">
         <div className="ultra-hero-copy">
-          <p className="eyebrow"><span /> DROMOCOB APPS / AFTER EFFECTS</p>
+          <p className="eyebrow"><span /> DROMOCOB APPS / VIDEO HOSTS</p>
           <div className="ultra-title"><Image src="/DromocobLogo.png" alt="Dromocob Ultra ikonu" width={112} height={112} /><span><small>CREATIVE SYSTEM</small><strong>Dromocob Ultra</strong></span></div>
           <h1>Motion üretiminin<br /><em>komuta merkezi.</em></h1>
-          <p>Carousel, geçiş, efekt, LUT, 3D metin ve ses araçlarını After Effects’ten çıkmadan yönetin. Parametrik, güncellenebilir ve üretim hızına göre tasarlanmış tek bir premium panel.</p>
+          <p>After Effects, Premiere Pro ve Final Cut Pro için geliştirilen üretim araçlarını ortak lisans ve Release Center altyapısıyla yönetin.</p>
           <div className="ultra-hero-actions">
             <a href="/downloads/Dromocob-Ultra-2.7.1.zxp" download><Download /> ZXP’yi indir <span>v2.7.1</span></a>
+            <a href="/downloads/finalcut/latest"><Clapperboard /> Final Cut’ı indir <span>v0.3.17</span></a>
             <Link href="/lisans"><KeyRound /> Lisansı etkinleştir</Link>
           </div>
-          <div className="ultra-hero-meta"><span><BadgeCheck /> İmzalı ZXP</span><span><Monitor /> After Effects 2026</span><span><RefreshCw /> Panel içi güncelleme</span></div>
+          <div className="ultra-hero-meta"><span><BadgeCheck /> İmzalı paketler</span><span><Monitor /> Adobe + Final Cut Pro</span><span><RefreshCw /> Panel içi güncelleme</span></div>
         </div>
 
         <div className="ultra-product-ui" aria-label="Dromocob Ultra Carousel Lab ürün önizlemesi">
@@ -158,10 +186,15 @@ export default function DromocobUltraPage() {
 
     <section className="ultra-security section"><div><p className="eyebrow">LICENSE CLOUD / UPDATE HUB</p><h2>Güvenli çalışır.<br /><em>Yeni kalır.</em></h2><p>Yalnızca lisans koduyla etkinleşir. Cihaza bağlı ES256 imzalı makbuz, çevrimdışı kullanım süresi ve SHA-256 doğrulamalı güncelleme akışıyla korunur.</p></div><div className="ultra-security-console"><article><ShieldCheck /><span><small>LİSANS MAKBUZU</small><strong>ES256 imzalı</strong></span><Check /></article><article><KeyRound /><span><small>AKTİVASYON</small><strong>Cihaza bağlı</strong></span><Check /></article><article><RefreshCw /><span><small>GÜNCELLEME</small><strong>Panel içinden</strong></span><Check /></article><article><Gauge /><span><small>OFFLINE GRACE</small><strong>Sunucudan yönetilir</strong></span><Check /></article></div></section>
 
-    <section className="ultra-install section"><header><p className="eyebrow">KURULUM</p><h2>ZXP’den panele.<br /><em>Dört kısa adım.</em></h2></header><ol><li><b>01</b><span><strong>ZXP’yi indir</strong><small>Güncel, imzalı paketi cihazına kaydet.</small></span></li><li><b>02</b><span><strong>Extension’ı kur</strong><small>Güvenilir bir ZXP Installer veya Adobe UPIA kullan.</small></span></li><li><b>03</b><span><strong>After Effects’i aç</strong><small>Window › Extensions (Legacy) › Dromocob Ultra yolunu izle.</small></span></li><li><b>04</b><span><strong>Lisansı gir</strong><small>Lisans kodunu doğrula veya web’den tanımlanan denemeyi başlat.</small></span></li></ol></section>
+    <section className="ultra-host-downloads section">
+      <header><p className="eyebrow">TEK LİSANS / ÜÇ HOST</p><h2>Kurgu uygulamanı seç.<br /><em>Ultra’yı indir.</em></h2><p>Satın aldığın kapsama göre aynı lisans kodunu desteklenen Dromocob Ultra uygulamalarında kullanabilirsin.</p></header>
+      <div className="ultra-host-grid">{hostDownloads.map((item) => <article key={item.host} className={item.available ? "is-ready" : "is-planned"}><div><Clapperboard /><span><small>{item.format}</small><h3>{item.host}</h3></span></div><p>{item.detail}</p><footer><b>v{item.version}</b><a href={item.href}>{item.available ? <><Download /> İndir</> : <>Lisans kapsamı <ArrowRight /></>}</a></footer></article>)}</div>
+    </section>
+
+    <section className="ultra-install section"><header><p className="eyebrow">KURULUM</p><h2>Paketten panele.<br /><em>Dört kısa adım.</em></h2></header><ol><li><b>01</b><span><strong>Host paketini indir</strong><small>After Effects için ZXP’yi veya Final Cut Pro için DMG’yi seç.</small></span></li><li><b>02</b><span><strong>Ultra’yı kur</strong><small>ZXP’yi installer ile yükle; Final Cut uygulamasını Applications klasörüne sürükle.</small></span></li><li><b>03</b><span><strong>Paneli aç</strong><small>Host uygulamandaki Window veya Extensions menüsünden Dromocob Ultra’yı seç.</small></span></li><li><b>04</b><span><strong>Lisansı etkinleştir</strong><small>Satın aldığın uygulama kapsamlarında aynı lisans kodunu kullan.</small></span></li></ol></section>
 
     <section className="ultra-requirements section"><div><Monitor /><span><small>SİSTEM</small><strong>After Effects 2026</strong></span></div><div><Layers3 /><span><small>FORMAT</small><strong>CEP / ZXP Extension</strong></span></div><div><WandSparkles /><span><small>PLATFORM</small><strong>macOS</strong></span></div><div><KeyRound /><span><small>BAĞLANTI</small><strong>İlk aktivasyonda internet</strong></span></div></section>
 
-    <section className="ultra-final section"><div><p className="eyebrow">DROMOCOB ULTRA 2.7.1</p><h2>After Effects’i<br /><em>üretim merkezine çevir.</em></h2></div><div><a href="/downloads/Dromocob-Ultra-2.7.1.zxp" download><Download /> İmzalı ZXP’yi indir</a><Link href="/lisans">Lisans Cloud <ArrowRight /></Link></div></section>
+    <section className="ultra-final section"><div><p className="eyebrow">DROMOCOB ULTRA ECOSYSTEM</p><h2>Kurgu uygulamanı<br /><em>üretim merkezine çevir.</em></h2></div><div><a href="/downloads/finalcut/latest"><Download /> Final Cut DMG’yi indir</a><Link href="/lisans">Lisans Cloud <ArrowRight /></Link></div></section>
   </main>;
 }
