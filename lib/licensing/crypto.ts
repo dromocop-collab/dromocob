@@ -1,4 +1,6 @@
 import {
+  createCipheriv,
+  createDecipheriv,
   createHash,
   createPrivateKey,
   createPublicKey,
@@ -95,6 +97,74 @@ export function licenseKeyHash(
   return sha256(
     normalizeLicenseKey(value),
   );
+}
+
+// ======================================================
+// ADMIN LICENSE VAULT
+// ======================================================
+
+const LICENSE_VAULT_ENV = "DROMOCOB_LICENSE_VAULT_KEY";
+const LICENSE_VAULT_CONTEXT = "dromocob-license-admin-vault-v1";
+
+function licenseVaultKey(): Buffer {
+  // A dedicated vault secret can be introduced without changing the API.
+  // Existing deployments already have the signing private key, so use it as
+  // the stable fallback and keep generated licenses recoverable after deploys.
+  const secret = (
+    process.env[LICENSE_VAULT_ENV] ||
+    process.env[PRIVATE_KEY_ENV] ||
+    ""
+  ).trim();
+
+  if (!secret) {
+    throw new Error("LICENSE_VAULT_KEY_NOT_CONFIGURED");
+  }
+
+  return createHash("sha256")
+    .update(LICENSE_VAULT_CONTEXT, "utf8")
+    .update("\0", "utf8")
+    .update(secret, "utf8")
+    .digest();
+}
+
+export function encryptLicenseKeyForAdmin(value: string): string {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv("aes-256-gcm", licenseVaultKey(), iv);
+  cipher.setAAD(Buffer.from(LICENSE_VAULT_CONTEXT, "utf8"));
+  const encrypted = Buffer.concat([
+    cipher.update(value, "utf8"),
+    cipher.final(),
+  ]);
+  const tag = cipher.getAuthTag();
+
+  return [
+    "v1",
+    iv.toString("base64url"),
+    tag.toString("base64url"),
+    encrypted.toString("base64url"),
+  ].join(".");
+}
+
+export function decryptLicenseKeyForAdmin(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const [version, ivValue, tagValue, encryptedValue] = value.split(".");
+  if (version !== "v1" || !ivValue || !tagValue || !encryptedValue) return null;
+
+  try {
+    const decipher = createDecipheriv(
+      "aes-256-gcm",
+      licenseVaultKey(),
+      Buffer.from(ivValue, "base64url"),
+    );
+    decipher.setAAD(Buffer.from(LICENSE_VAULT_CONTEXT, "utf8"));
+    decipher.setAuthTag(Buffer.from(tagValue, "base64url"));
+    return Buffer.concat([
+      decipher.update(Buffer.from(encryptedValue, "base64url")),
+      decipher.final(),
+    ]).toString("utf8");
+  } catch {
+    return null;
+  }
 }
 
 // ======================================================

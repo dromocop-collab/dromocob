@@ -2,7 +2,12 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase-admin";
 import { requireAdminRole } from "@/lib/admin-guard";
 import { dateToTimestamp } from "@/lib/licensing/service";
-import { generateLicenseKey, licenseKeyHash } from "@/lib/licensing/crypto";
+import {
+  decryptLicenseKeyForAdmin,
+  encryptLicenseKeyForAdmin,
+  generateLicenseKey,
+  licenseKeyHash,
+} from "@/lib/licensing/crypto";
 import { DROMOCOB_APPS } from "@/lib/licensing/types";
 
 export const runtime = "nodejs";
@@ -47,7 +52,7 @@ function fail(error: unknown) {
 
 export async function GET(request: Request) {
   try {
-    await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "license_manager", "support"]);
+    const admin = await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "license_manager", "support"]);
     const [licenses, activations, events, settings] = await Promise.all([
       adminDb.collection("licenses").orderBy("createdAt", "desc").limit(250).get(),
       adminDb.collection("license_activations").orderBy("updatedAt", "desc").limit(500).get(),
@@ -58,10 +63,21 @@ export async function GET(request: Request) {
       const data = doc.data();
       return { id: doc.id, ...Object.fromEntries(Object.entries(data).map(([key, value]) => [key, value instanceof Timestamp ? value.toDate().toISOString() : value])) };
     };
+    const canRevealKeys = admin.role !== "support";
+    const serializedLicenses = licenses.docs.map(doc => {
+      const data = serialize(doc) as Record<string, unknown>;
+      const keyVault = data.keyVault;
+      delete data.keyVault;
+      delete data.keyHash;
+      return {
+        ...data,
+        licenseKey: canRevealKeys ? decryptLicenseKeyForAdmin(keyVault) : null,
+      };
+    });
     const configuredDays = Number(settings.data()?.trialDays);
     const trialDays = Number.isFinite(configuredDays) ? Math.max(1, Math.min(30, Math.round(configuredDays))) : 7;
     const ultraTrialDays = Number(settings.data()?.trialDaysByProduct?.["dromocob-ultra"] ?? settings.data()?.trialDaysByProduct?.["dromocob-ultra-ae"] ?? trialDays);
-    return Response.json({ ok: true, licenses: licenses.docs.map(serialize), activations: activations.docs.map(serialize), events: events.docs.map(serialize), settings: { trialDays, ultraTrialDays, ultraUpdate: normalizeUltraUpdate(settings.data()?.ultraUpdate) } });
+    return Response.json({ ok: true, licenses: serializedLicenses, activations: activations.docs.map(serialize), events: events.docs.map(serialize), settings: { trialDays, ultraTrialDays, ultraUpdate: normalizeUltraUpdate(settings.data()?.ultraUpdate) } });
   } catch (error) { return fail(error); }
 }
 
@@ -111,7 +127,7 @@ export async function POST(request: Request) {
     const key = generateLicenseKey();
     const ref = adminDb.collection("licenses").doc();
     await ref.set({
-      keyHash: licenseKeyHash(key), keySuffix: key.slice(-5), ownerEmail: email,
+      keyHash: licenseKeyHash(key), keyVault: encryptLicenseKeyForAdmin(key), keySuffix: key.slice(-5), ownerEmail: email,
       ownerUid: body.ownerUid ? String(body.ownerUid) : null,
       customerName: String(body.customerName || "").slice(0, 180),
       plan: ["trial", "pro", "business", "lifetime"].includes(body.plan) ? body.plan : "pro",

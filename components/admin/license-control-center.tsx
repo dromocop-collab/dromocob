@@ -15,6 +15,8 @@ import {
   Ban,
   CheckCircle2,
   Copy,
+  Eye,
+  EyeOff,
   KeyRound,
   Laptop,
   Plus,
@@ -60,6 +62,7 @@ type LicenseRow = {
   customerName?: string;
 
   keySuffix?: string;
+  licenseKey?: string | null;
 
   status: LicenseStatus;
   plan: LicensePlan;
@@ -463,6 +466,7 @@ export default function LicenseControlCenter() {
   const [editingLicense, setEditingLicense] = useState<LicenseRow | null>(null);
   const [editingProducts, setEditingProducts] = useState<ProductID[]>([]);
   const [savingProducts, setSavingProducts] = useState(false);
+  const [revealedLicenseIDs, setRevealedLicenseIDs] = useState<Set<string>>(() => new Set());
 
   const [
     trialDays,
@@ -1143,14 +1147,14 @@ export default function LicenseControlCenter() {
 
   // MARK: - Clipboard
 
-  async function copyLicenseKey() {
-    if (!createdKey) {
+  async function copyLicenseKey(value = createdKey) {
+    if (!value) {
       return;
     }
 
     try {
       await navigator.clipboard.writeText(
-        createdKey
+        value
       );
     } catch {
       setError(
@@ -1360,7 +1364,7 @@ export default function LicenseControlCenter() {
 
           <div>
             <small>
-              YALNIZCA ŞİMDİ GÖSTERİLİR
+              ŞİFRELİ KASAYA KAYDEDİLDİ
             </small>
 
             <strong>
@@ -1511,6 +1515,40 @@ export default function LicenseControlCenter() {
                         }{" "}
                         cihaz
                       </span>
+                    </div>
+
+                    <div className="license-saved-key">
+                      <code>
+                        {license.licenseKey
+                          ? revealedLicenseIDs.has(license.id)
+                            ? license.licenseKey
+                            : `DROM-•••••-•••••-•••••-${license.keySuffix || "•••••"}`
+                          : `Eski kayıt · yalnızca •••••${license.keySuffix || "-----"}`}
+                      </code>
+
+                      {license.licenseKey && (
+                        <>
+                          <button
+                            type="button"
+                            aria-label={revealedLicenseIDs.has(license.id) ? "Lisansı gizle" : "Lisansı göster"}
+                            onClick={() => setRevealedLicenseIDs(current => {
+                              const next = new Set(current);
+                              if (next.has(license.id)) next.delete(license.id);
+                              else next.add(license.id);
+                              return next;
+                            })}
+                          >
+                            {revealedLicenseIDs.has(license.id) ? <EyeOff size={13} /> : <Eye size={13} />}
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Lisans anahtarını kopyala"
+                            onClick={() => void copyLicenseKey(license.licenseKey || "")}
+                          >
+                            <Copy size={13} />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
 
