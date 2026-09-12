@@ -3,10 +3,11 @@ import { randomUUID } from "node:crypto";
 import { adminDb } from "@/lib/firebase-admin";
 import { licenseKeyHash, sha256, signReceipt } from "./crypto";
 import { activateLicense, deactivateActivation, validateActivation } from "./service";
+import { ULTRA_FAMILY_PRODUCT_ID, isUltraProduct } from "./types";
 import type { LicenseRecord, SignedReceiptPayload } from "./types";
 
-const PRODUCT = "dromocob-ultra-ae";
-type DesktopInput = { licenseKey: string; productId: string; deviceHash: string; deviceName: string; platform: string; appVersion: string; osVersion: string };
+const LEGACY_PRODUCT = "dromocob-ultra-ae";
+type DesktopInput = { licenseKey: string; productId: string; deviceHash: string; deviceSeat?: string; deviceName: string; platform: string; appVersion: string; osVersion: string };
 
 function validDevice(value: unknown) { return /^[a-f0-9]{64}$/i.test(String(value || "")); }
 function receipt(payload: SignedReceiptPayload) { return signReceipt(payload); }
@@ -24,7 +25,7 @@ export async function enforceDesktopRateLimit(request: Request, deviceHash: stri
 }
 
 export async function activateDesktop(input: DesktopInput) {
-  if (input.productId !== PRODUCT || !validDevice(input.deviceHash) || !String(input.licenseKey || "").trim()) throw new Error("INVALID_REQUEST");
+  if (!isUltraProduct(input.productId) || !validDevice(input.deviceHash) || !String(input.licenseKey || "").trim()) throw new Error("INVALID_REQUEST");
   const found = await adminDb.collection("licenses").where("keyHash", "==", licenseKeyHash(input.licenseKey)).limit(1).get();
   const doc = found.docs[0];
   const data = doc?.data() as LicenseRecord | undefined;
@@ -33,28 +34,29 @@ export async function activateDesktop(input: DesktopInput) {
 }
 
 export async function validateDesktop(activationId: string, productId: string, deviceHash: string) {
-  if (productId !== PRODUCT || !validDevice(deviceHash)) throw new Error("INVALID_REQUEST");
+  if (!isUltraProduct(productId) || !validDevice(deviceHash)) throw new Error("INVALID_REQUEST");
   const snap = await adminDb.collection("license_activations").doc(activationId).get();
   const data = snap.data();
-  if (!snap.exists || !data || data.deviceHash !== deviceHash || data.productId !== PRODUCT) throw new Error("INVALID_LICENSE");
+  if (!snap.exists || !data || data.deviceHash !== deviceHash || data.productId !== productId) throw new Error("INVALID_LICENSE");
   return validateActivation(activationId, productId, deviceHash, { uid: String(data.userId || ""), email: String(data.userEmail || "") });
 }
 
 export async function deactivateDesktop(activationId: string, deviceHash: string, key: string) {
   const activation = await adminDb.collection("license_activations").doc(activationId).get();
   const data = activation.data();
-  if (!activation.exists || !data || data.deviceHash !== deviceHash || data.productId !== PRODUCT) throw new Error("INVALID_LICENSE");
+  if (!activation.exists || !data || data.deviceHash !== deviceHash || !isUltraProduct(data.productId)) throw new Error("INVALID_LICENSE");
   const license = await adminDb.collection("licenses").doc(String(data.licenseId || "")).get();
   if (!license.exists || license.data()?.keyHash !== licenseKeyHash(key)) throw new Error("INVALID_LICENSE");
   await deactivateActivation(activationId, deviceHash, String(data.userId || ""));
 }
 
-export async function startOrValidateTrial(deviceHash: string) {
-  if (!validDevice(deviceHash)) throw new Error("INVALID_REQUEST");
-  const id = sha256(`${PRODUCT}:${deviceHash}`);
+export async function startOrValidateTrial(deviceHash: string, requestedProduct: string = LEGACY_PRODUCT) {
+  if (!validDevice(deviceHash) || !isUltraProduct(requestedProduct)) throw new Error("INVALID_REQUEST");
+  const productId = String(requestedProduct).trim().toLowerCase();
+  const id = sha256(`${ULTRA_FAMILY_PRODUCT_ID}:${deviceHash}`);
   const ref = adminDb.collection("license_trials").doc(id);
   const settings = await adminDb.collection("app_settings").doc("licensing").get();
-  const configured = Number(settings.data()?.trialDaysByProduct?.[PRODUCT] ?? settings.data()?.trialDays ?? 7);
+  const configured = Number(settings.data()?.trialDaysByProduct?.[ULTRA_FAMILY_PRODUCT_ID] ?? settings.data()?.trialDaysByProduct?.[LEGACY_PRODUCT] ?? settings.data()?.trialDays ?? 7);
   const days = Math.max(0, Math.min(30, Math.round(configured)));
   if (!days) throw new Error("TRIAL_DISABLED");
   const now = new Date();
@@ -62,8 +64,8 @@ export async function startOrValidateTrial(deviceHash: string) {
   const startedAt = existing.exists && existing.data()?.startedAt instanceof Timestamp ? existing.data()!.startedAt.toDate() : now;
   const validUntil = new Date(startedAt.getTime() + days * 86_400_000);
   if (existing.data()?.status === "revoked" || validUntil.getTime() <= now.getTime()) throw new Error("TRIAL_EXPIRED");
-  if (!existing.exists) await ref.set({ productId: PRODUCT, deviceHash, status: "active", startedAt: Timestamp.fromDate(startedAt), expiresAt: Timestamp.fromDate(validUntil), createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
+  if (!existing.exists) await ref.set({ productId: ULTRA_FAMILY_PRODUCT_ID, deviceHash, status: "active", startedAt: Timestamp.fromDate(startedAt), expiresAt: Timestamp.fromDate(validUntil), createdAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
   else await ref.update({ lastValidatedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
-  const payload: SignedReceiptPayload = { version: 1, receiptId: randomUUID(), licenseId: `trial:${id}`, activationId: `trial:${id}`, userId: "desktop-trial", productId: PRODUCT, deviceHash, plan: "trial", issuedAt: now.toISOString(), validUntil: validUntil.toISOString(), offlineUntil: validUntil.toISOString() };
+  const payload: SignedReceiptPayload = { version: 1, receiptId: randomUUID(), licenseId: `trial:${id}`, activationId: `trial:${id}`, userId: "desktop-trial", productId, deviceHash, plan: "trial", issuedAt: now.toISOString(), validUntil: validUntil.toISOString(), offlineUntil: validUntil.toISOString() };
   return { receipt: receipt(payload), trialDays: days };
 }

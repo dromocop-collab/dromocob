@@ -34870,6 +34870,57 @@ body:has(.cookie-consent) .contact-dock {
   padding: 0 12px
 }
 
+.license-product-picker {
+  grid-column: 1 / -1;
+  border: 1px solid var(--admin-line);
+  border-radius: 11px;
+  padding: 14px;
+  margin: 0;
+}
+
+.license-product-picker legend {
+  padding: 0 7px;
+  color: #aeb6ad;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.license-product-picker>small,
+.license-scope-copy {
+  display: block;
+  color: #727a72;
+  font-size: 9px;
+  line-height: 1.5;
+  margin-top: 10px;
+}
+
+.license-product-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.license-product-options button {
+  min-height: 42px;
+  border: 1px solid #283029;
+  border-radius: 9px;
+  background: #0b0e0c;
+  color: #879087;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.license-product-options button.selected {
+  border-color: #92b726;
+  background: #d9ff4312;
+  color: var(--acid);
+  box-shadow: inset 0 0 0 1px #d9ff4322;
+}
+
 .license-modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -34933,6 +34984,10 @@ body:has(.cookie-consent) .contact-dock {
 
   .license-products {
     display: none
+  }
+
+  .license-product-options {
+    grid-template-columns: 1fr
   }
 }
 

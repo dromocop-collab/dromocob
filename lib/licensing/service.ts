@@ -15,11 +15,13 @@ import type {
   LicenseRecord,
   SignedReceiptPayload,
 } from "./types";
+import { ULTRA_FAMILY_PRODUCT_ID, hasProductEntitlement } from "./types";
 
 type ActivationInput = {
   licenseKey: string;
   productId: string;
   deviceHash: string;
+  deviceSeat?: string;
   deviceName: string;
   platform: string;
   appVersion: string;
@@ -42,7 +44,10 @@ const SUPPORTED_PRODUCTS = new Set([
   "watermark-studio",
   "image-compressor",
   "video-converter",
+  ULTRA_FAMILY_PRODUCT_ID,
   "dromocob-ultra-ae",
+  "dromocob-ultra-premiere",
+  "dromocob-ultra-finalcut",
 ]);
 
 const FAR_FUTURE_DATE =
@@ -105,6 +110,10 @@ function validateActivationInput(
     throw new Error(
       "INVALID_REQUEST"
     );
+  }
+
+  if (input.deviceSeat && !/^[a-f0-9]{64}$/i.test(String(input.deviceSeat))) {
+    throw new Error("INVALID_REQUEST");
   }
 
   if (
@@ -175,12 +184,7 @@ function hasProductAccess(
         )
       : [];
 
-  return (
-    products.includes(
-      ALL_APPS_PRODUCT_ID
-    ) ||
-    products.includes(requested)
-  );
+  return hasProductEntitlement(products, requested);
 }
 
 // MARK: - License validation
@@ -329,9 +333,12 @@ export async function activateLicense(
     );
 
   const deviceHash =
-    String(
-      input.deviceHash
-    ).trim();
+    String(input.deviceHash).trim();
+
+  const deviceSeat =
+    String(input.deviceSeat || deviceHash)
+      .trim()
+      .toLowerCase();
 
   const keyHash =
     licenseKeyHash(
@@ -430,17 +437,21 @@ export async function activateLicense(
             activeQuery
           );
 
-        /*
-         Aynı fiziksel cihazdaki farklı
-         Dromocob uygulamalarını ayrı cihaz
-         olarak sayma.
-        */
+        /* Her uygulama kendi cihaz kotasını kullanır. Böylece aynı
+           anahtarın AE, Premiere ve Final Cut aktivasyonları birbirinin
+           cihaz hakkını tüketmez. */
         const activeDevices =
           new Set(
-            activeSnapshot.docs.map(
+            activeSnapshot.docs
+              .filter(document =>
+                normalizeProductId(document.data().productId) === productId
+              )
+              .map(
               document =>
                 String(
                   document.data()
+                    .deviceSeat ??
+                    document.data()
                     .deviceHash ??
                     ""
                 )
@@ -457,7 +468,7 @@ export async function activateLicense(
 
         if (
           !activeDevices.has(
-            deviceHash
+            deviceSeat
           ) &&
           activeDevices.size >=
             maxDevices
@@ -510,6 +521,8 @@ export async function activateLicense(
           productId,
 
           deviceHash,
+
+          deviceSeat,
 
           deviceName:
             String(

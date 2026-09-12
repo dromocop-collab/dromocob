@@ -3,8 +3,21 @@ import { adminDb } from "@/lib/firebase-admin";
 import { requireAdminRole } from "@/lib/admin-guard";
 import { dateToTimestamp } from "@/lib/licensing/service";
 import { generateLicenseKey, licenseKeyHash } from "@/lib/licensing/crypto";
+import { DROMOCOB_APPS } from "@/lib/licensing/types";
 
 export const runtime = "nodejs";
+
+const VALID_PRODUCTS = new Set<string>([
+  "dromocob-all-apps",
+  ...DROMOCOB_APPS.map(app => app.id),
+]);
+
+function normalizedProducts(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return [...new Set(value.map(item => String(item).trim().toLowerCase()))]
+    .filter(product => VALID_PRODUCTS.has(product))
+    .slice(0, 20);
+}
 
 type UltraUpdate = {
   version: string;
@@ -47,7 +60,7 @@ export async function GET(request: Request) {
     };
     const configuredDays = Number(settings.data()?.trialDays);
     const trialDays = Number.isFinite(configuredDays) ? Math.max(1, Math.min(30, Math.round(configuredDays))) : 7;
-    const ultraTrialDays = Number(settings.data()?.trialDaysByProduct?.["dromocob-ultra-ae"] ?? trialDays);
+    const ultraTrialDays = Number(settings.data()?.trialDaysByProduct?.["dromocob-ultra"] ?? settings.data()?.trialDaysByProduct?.["dromocob-ultra-ae"] ?? trialDays);
     return Response.json({ ok: true, licenses: licenses.docs.map(serialize), activations: activations.docs.map(serialize), events: events.docs.map(serialize), settings: { trialDays, ultraTrialDays, ultraUpdate: normalizeUltraUpdate(settings.data()?.ultraUpdate) } });
   } catch (error) { return fail(error); }
 }
@@ -77,14 +90,14 @@ export async function PATCH(request: Request) {
     }
     const trialDays = Math.round(requestedDays);
     const productId = String(body.productId || "");
-    const update = productId === "dromocob-ultra-ae" ? { trialDaysByProduct: { "dromocob-ultra-ae": trialDays } } : { trialDays };
+    const update = productId === "dromocob-ultra" ? { trialDaysByProduct: { "dromocob-ultra": trialDays } } : { trialDays };
     await adminDb.collection("app_settings").doc("licensing").set({
       ...update,
       updatedBy: admin.uid,
       updatedAt: FieldValue.serverTimestamp(),
     }, { merge: true });
     await adminDb.collection("license_events").add({ type: "trial_settings_updated", trialDays, userId: admin.uid, createdAt: FieldValue.serverTimestamp() });
-    return Response.json({ ok: true, settings: productId === "dromocob-ultra-ae" ? { ultraTrialDays: trialDays } : { trialDays } });
+    return Response.json({ ok: true, settings: productId === "dromocob-ultra" ? { ultraTrialDays: trialDays } : { trialDays } });
   } catch (error) { return fail(error); }
 }
 
@@ -93,8 +106,8 @@ export async function POST(request: Request) {
     const admin = await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin", "license_manager"]);
     const body = await request.json();
     const email = String(body.ownerEmail || "").trim().toLowerCase();
-    const products = Array.isArray(body.products) ? body.products.map(String).slice(0, 20) : [];
-    if (!email.includes("@") || products.length === 0) return Response.json({ ok: false, error: "INVALID_REQUEST" }, { status: 400 });
+    const products = normalizedProducts(body.products);
+    if (!email.includes("@") || products.length === 0 || products.length !== new Set(Array.isArray(body.products) ? body.products.map((item: unknown) => String(item).trim().toLowerCase()) : []).size) return Response.json({ ok: false, error: "INVALID_REQUEST" }, { status: 400 });
     const key = generateLicenseKey();
     const ref = adminDb.collection("licenses").doc();
     await ref.set({

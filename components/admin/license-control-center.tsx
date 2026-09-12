@@ -41,7 +41,10 @@ type LicensePlan =
 
 type ProductID =
   | "dromocob-all-apps"
+  | "dromocob-ultra"
   | "dromocob-ultra-ae"
+  | "dromocob-ultra-premiere"
+  | "dromocob-ultra-finalcut"
   | "pixel-resizer-pro"
   | "ai-upscaler"
   | "background-remover"
@@ -160,7 +163,7 @@ type LicenseForm = {
   customerName: string;
 
   plan: LicensePlan;
-  product: ProductID;
+  products: ProductID[];
 
   maxDevices: string;
   expiresAt: string;
@@ -184,8 +187,20 @@ const PRODUCTS: ReadonlyArray<{
     name: "Pixel Resizer PRO",
   },
   {
+    id: "dromocob-ultra",
+    name: "Dromocob Ultra — Suite (AE + Premiere + Final Cut)",
+  },
+  {
     id: "dromocob-ultra-ae",
     name: "Dromocob Ultra — After Effects",
+  },
+  {
+    id: "dromocob-ultra-premiere",
+    name: "Dromocob Ultra — Premiere Pro",
+  },
+  {
+    id: "dromocob-ultra-finalcut",
+    name: "Dromocob Ultra — Final Cut Pro",
   },
   {
     id: "ai-upscaler",
@@ -214,7 +229,7 @@ const DEFAULT_FORM: LicenseForm = {
   customerName: "",
 
   plan: "pro",
-  product: "dromocob-all-apps",
+  products: ["dromocob-ultra"],
 
   maxDevices: "2",
   expiresAt: "",
@@ -275,6 +290,35 @@ function productName(
     )?.name ??
     productID
   );
+}
+
+const ULTRA_HOST_PRODUCTS: ProductID[] = [
+  "dromocob-ultra-ae",
+  "dromocob-ultra-premiere",
+  "dromocob-ultra-finalcut",
+];
+
+function toggledProducts(
+  current: ProductID[],
+  product: ProductID
+): ProductID[] {
+  if (current.includes(product)) {
+    return current.filter(item => item !== product);
+  }
+
+  if (product === "dromocob-all-apps") {
+    return [product];
+  }
+
+  let next = current.filter(item => item !== "dromocob-all-apps");
+
+  if (product === "dromocob-ultra") {
+    next = next.filter(item => !ULTRA_HOST_PRODUCTS.includes(item));
+  } else if (ULTRA_HOST_PRODUCTS.includes(product)) {
+    next = next.filter(item => item !== "dromocob-ultra");
+  }
+
+  return [...next, product];
 }
 
 function formatDate(
@@ -415,6 +459,10 @@ export default function LicenseControlCenter() {
     useState<string | null>(
       null
     );
+
+  const [editingLicense, setEditingLicense] = useState<LicenseRow | null>(null);
+  const [editingProducts, setEditingProducts] = useState<ProductID[]>([]);
+  const [savingProducts, setSavingProducts] = useState(false);
 
   const [
     trialDays,
@@ -692,6 +740,11 @@ export default function LicenseControlCenter() {
       return;
     }
 
+    if (form.products.length === 0) {
+      setError("En az bir uygulama veya paket seç.");
+      return;
+    }
+
     if (
       !Number.isInteger(
         maxDevices
@@ -754,9 +807,7 @@ export default function LicenseControlCenter() {
                   plan:
                     form.plan,
 
-                  products: [
-                    form.product,
-                  ],
+                  products: form.products,
 
                   maxDevices,
 
@@ -929,6 +980,38 @@ export default function LicenseControlCenter() {
     }
   }
 
+  async function saveProductScope() {
+    if (!editingLicense || savingProducts) return;
+    if (editingProducts.length === 0) {
+      setError("En az bir uygulama veya paket seç.");
+      return;
+    }
+
+    try {
+      setSavingProducts(true);
+      setError("");
+      const response = await fetch(`/api/admin/licenses/${editingLicense.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${await getAdminToken()}`,
+        },
+        body: JSON.stringify({ products: editingProducts }),
+      });
+      const data = await parseJSON<{ ok?: boolean; error?: string }>(response);
+      if (!response.ok || data.ok === false) {
+        throw new Error(data.error || "Lisans kapsamı güncellenemedi.");
+      }
+      setEditingLicense(null);
+      setEditingProducts([]);
+      await load({ silent: true });
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Lisans kapsamı güncellenemedi.");
+    } finally {
+      setSavingProducts(false);
+    }
+  }
+
   // MARK: - Trial
 
   async function saveTrialDays() {
@@ -1030,7 +1113,7 @@ export default function LicenseControlCenter() {
     if (savingUltraTrial || !Number.isInteger(value) || value < 1 || value > 30) { setError("Dromocob Ultra deneme süresi 1 ile 30 gün arasında olmalı."); return; }
     try {
       setSavingUltraTrial(true); setError("");
-      const response = await fetch("/api/admin/licenses", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await getAdminToken()}` }, body: JSON.stringify({ trialDays: value, productId: "dromocob-ultra-ae" }) });
+      const response = await fetch("/api/admin/licenses", { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${await getAdminToken()}` }, body: JSON.stringify({ trialDays: value, productId: "dromocob-ultra" }) });
       const data = await parseJSON<UpdateTrialResponse>(response);
       if (!response.ok || !data.ok) throw new Error(data.error || "Ultra deneme süresi güncellenemedi.");
       setUltraTrialDays(String(data.settings?.ultraTrialDays ?? value));
@@ -1449,6 +1532,18 @@ export default function LicenseControlCenter() {
 
                   <div className="license-actions">
 
+                    <button
+                      type="button"
+                      disabled={actionLicenseID === license.id}
+                      onClick={() => {
+                        setEditingLicense(license);
+                        setEditingProducts([...license.products]);
+                      }}
+                    >
+                      <KeyRound size={15} />
+                      Kapsam
+                    </button>
+
                     {license.status ===
                     "active" ? (
                       <button
@@ -1590,6 +1685,40 @@ export default function LicenseControlCenter() {
         </aside>
       </div>
 
+      {editingLicense && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={() => !savingProducts && setEditingLicense(null)}
+        >
+          <section
+            className="admin-modal license-create"
+            onMouseDown={event => event.stopPropagation()}
+          >
+            <p className="eyebrow">LICENSE ENTITLEMENTS</p>
+            <h2>{editingLicense.customerName || editingLicense.ownerEmail}</h2>
+            <p className="license-scope-copy">
+              Aynı lisans kodunda çalışacak uygulamaları seç. Kaldırılan uygulamaların mevcut aktivasyonları kapatılır.
+            </p>
+            <fieldset className="license-product-picker">
+              <legend>Uygulama kapsamı</legend>
+              <ProductSelector
+                value={editingProducts}
+                onToggle={product => setEditingProducts(current => toggledProducts(current, product))}
+              />
+            </fieldset>
+            <div className="license-modal-actions">
+              <button type="button" disabled={savingProducts} onClick={() => setEditingLicense(null)}>
+                Vazgeç
+              </button>
+              <button className="admin-action" type="button" disabled={savingProducts || editingProducts.length === 0} onClick={() => void saveProductScope()}>
+                {savingProducts ? <RefreshCw size={15} className="spin" /> : <ShieldCheck size={15} />}
+                {savingProducts ? "Kaydediliyor…" : "Kapsamı kaydet"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
       {showCreate && (
         <div
           className="modal-backdrop"
@@ -1710,45 +1839,19 @@ export default function LicenseControlCenter() {
                 </select>
               </label>
 
-              <label>
-                Uygulama
-
-                <select
-                  value={
-                    form.product
+              <fieldset className="license-product-picker">
+                <legend>Uygulama kapsamı</legend>
+                <ProductSelector
+                  value={form.products}
+                  onToggle={product =>
+                    setForm(current => ({
+                      ...current,
+                      products: toggledProducts(current.products, product),
+                    }))
                   }
-                  onChange={
-                    event =>
-                      setForm(
-                        current => ({
-                          ...current,
-
-                          product:
-                            event
-                              .target
-                              .value as ProductID,
-                        })
-                      )
-                  }
-                >
-                  {PRODUCTS.map(
-                    product => (
-                      <option
-                        key={
-                          product.id
-                        }
-                        value={
-                          product.id
-                        }
-                      >
-                        {
-                          product.name
-                        }
-                      </option>
-                    )
-                  )}
-                </select>
-              </label>
+                />
+                <small>Tek lisans koduna bir veya daha fazla uygulama bağlanır.</small>
+              </fieldset>
 
               <label>
                 Cihaz limiti
@@ -1903,6 +2006,34 @@ export default function LicenseControlCenter() {
           </form>
         </div>
       )}
+    </div>
+  );
+}
+
+function ProductSelector({
+  value,
+  onToggle,
+}: {
+  value: ProductID[];
+  onToggle: (product: ProductID) => void;
+}) {
+  return (
+    <div className="license-product-options">
+      {PRODUCTS.map(product => {
+        const selected = value.includes(product.id);
+        return (
+          <button
+            key={product.id}
+            type="button"
+            className={selected ? "selected" : ""}
+            aria-pressed={selected}
+            onClick={() => onToggle(product.id)}
+          >
+            <span>{selected ? <CheckCircle2 size={15} /> : <AppWindow size={15} />}</span>
+            {product.name}
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -192,6 +192,9 @@ export async function GET() {
       Number(
         settings.data()
           ?.trialDaysByProduct
+          ?.["dromocob-ultra"]
+        ?? settings.data()
+          ?.trialDaysByProduct
           ?.["dromocob-ultra-ae"]
         ?? trialDays
       );
@@ -238,13 +241,17 @@ export async function GET() {
 
         minimumVersions: {
           "pixel-resizer-pro": "1.0.1",
-          "dromocob-ultra-ae": "2.4.1"
+          "dromocob-ultra-ae": "2.4.1",
+          "dromocob-ultra-premiere": "0.7.0",
+          "dromocob-ultra-finalcut": "0.3.16"
         },
 
         latestVersions: {
           "pixel-resizer-pro": "1.0.1",
           "dromocob-ultra-ae":
-            ultraUpdate.version
+            ultraUpdate.version,
+          "dromocob-ultra-premiere": "0.7.0",
+          "dromocob-ultra-finalcut": "0.3.16"
         },
 
         trialDays,
