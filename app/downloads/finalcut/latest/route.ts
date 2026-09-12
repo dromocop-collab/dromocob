@@ -10,10 +10,9 @@ type FinalCutManifest = {
 
 const ALLOWED_HOSTS = new Set(["github.com", "objects.githubusercontent.com", "dromocob.tr"]);
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const origin = new URL(request.url).origin;
-    const response = await fetch(`${origin}/downloads/finalcut/manifest.json`, {
+    const response = await fetch("https://dromocob.tr/downloads/finalcut/manifest.json", {
       cache: "no-store",
       headers: { Accept: "application/json" },
     });
@@ -28,6 +27,6 @@ export async function GET(request: Request) {
 
     return NextResponse.redirect(target, 307);
   } catch {
-    return NextResponse.redirect(new URL("/uygulamalar/dromocob-ultra?download=unavailable", request.url), 307);
+    return NextResponse.redirect(new URL("/uygulamalar/dromocob-ultra?download=unavailable", "https://dromocob.tr"), 307);
   }
 }
