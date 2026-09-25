@@ -12,9 +12,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const user = await adminAuth.verifyIdToken(token);
-    const snapshot = await adminDb.collection("mobile_premium_entitlements").doc(user.uid).get();
+    const [snapshot, account] = await Promise.all([
+      adminDb.collection("mobile_premium_entitlements").doc(user.uid).get(),
+      adminDb.collection("mobile_app_users").doc(user.uid).get(),
+    ]);
+    const professionalRole = account.data()?.professionalRole || "customer";
     if (!snapshot.exists) {
-      return NextResponse.json({ ok: true, entitlement: { active: false, status: "inactive", plan: "free", source: null, startsAt: null, expiresAt: null, features: [] } }, { headers: { "cache-control": "private, no-store" } });
+      return NextResponse.json({ ok: true, professionalRole, entitlement: { active: false, status: "inactive", plan: "free", source: null, startsAt: null, expiresAt: null, features: [] } }, { headers: { "cache-control": "private, no-store" } });
     }
 
     const data = serializeAdminValue(snapshot.data()) as Record<string, unknown>;
@@ -23,7 +27,7 @@ export async function GET(request: NextRequest) {
       startsAt: typeof data.startsAt === "string" ? data.startsAt : null,
       expiresAt: typeof data.expiresAt === "string" ? data.expiresAt : null,
     });
-    return NextResponse.json({ ok: true, entitlement: { ...data, active: status === "active", status } }, { headers: { "cache-control": "private, no-store" } });
+    return NextResponse.json({ ok: true, professionalRole, entitlement: { ...data, active: status === "active", status } }, { headers: { "cache-control": "private, no-store" } });
   } catch (error) {
     console.error("[MOBILE ENTITLEMENT]", error);
     return new NextResponse("Unauthorized", { status: 401 });

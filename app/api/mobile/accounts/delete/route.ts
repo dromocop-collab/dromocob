@@ -17,14 +17,24 @@ export async function DELETE(request: NextRequest) {
     await Promise.all([
       adminDb.recursiveDelete(adminDb.collection("mobile_app_users").doc(uid)),
       adminDb.recursiveDelete(adminDb.collection("mobile_premium_entitlements").doc(uid)),
+      adminDb.recursiveDelete(adminDb.collection("coaching_customers").doc(uid)),
     ]);
 
     // Bildirim token'larının belge kimliği cihaz token'ından üretildiği için UID ile sorgulanır.
-    const [pushTokens, premiumAuditLogs] = await Promise.all([
+    const [pushTokens, premiumAuditLogs, customerRelationships, professionalRelationships, coachingInvites] = await Promise.all([
       adminDb.collection("mobile_push_tokens").where("uid", "==", uid).get(),
       adminDb.collection("mobile_premium_audit_logs").where("targetUid", "==", uid).get(),
+      adminDb.collection("coaching_relationships").where("customerUid", "==", uid).get(),
+      adminDb.collection("coaching_relationships").where("professionalUid", "==", uid).get(),
+      adminDb.collection("coaching_invites").where("customerUid", "==", uid).get(),
     ]);
-    const relatedDocuments = [...pushTokens.docs, ...premiumAuditLogs.docs];
+    const relatedDocuments = [
+      ...pushTokens.docs,
+      ...premiumAuditLogs.docs,
+      ...customerRelationships.docs,
+      ...professionalRelationships.docs,
+      ...coachingInvites.docs,
+    ];
     for (let index = 0; index < relatedDocuments.length; index += 400) {
       const batch = adminDb.batch();
       relatedDocuments.slice(index, index + 400).forEach(document => batch.delete(document.ref));

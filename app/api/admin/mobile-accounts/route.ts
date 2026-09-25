@@ -51,6 +51,7 @@ export async function GET(request: NextRequest) {
         lastSignInAt: user.metadata.lastSignInTime || null,
         app: markerByUID.get(user.uid)?.app || "calorievision",
         apps: markerByUID.get(user.uid)?.apps || [markerByUID.get(user.uid)?.app || "calorievision"],
+        professionalRole: markerByUID.get(user.uid)?.professionalRole || "customer",
         entitlement: entitlementByUid.get(user.uid) || null,
       })),
       total: markerSnapshot.size,
@@ -64,10 +65,12 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const admin = await requireAdminRole(request.headers.get("authorization"), ["super_admin", "admin"]);
-    const body = await request.json() as { uid?: unknown; entitlement?: unknown };
+    const body = await request.json() as { uid?: unknown; entitlement?: unknown; professionalRole?: unknown };
     if (typeof body.uid !== "string" || !body.uid.trim()) throw new Error("INVALID_UID");
     const uid = body.uid.trim();
     const input = parsePremiumInput(body.entitlement);
+    const professionalRole = ["customer", "dietitian", "trainer"].includes(String(body.professionalRole))
+      ? String(body.professionalRole) : "customer";
     await adminAuth.getUser(uid);
 
     const status = effectivePremiumStatus(input);
@@ -94,6 +97,11 @@ export async function PATCH(request: NextRequest) {
 
     const batch = adminDb.batch();
     batch.set(entitlementRef, entitlement, { merge: true });
+    batch.set(adminDb.collection("mobile_app_users").doc(uid), {
+      professionalRole,
+      roleUpdatedAt: FieldValue.serverTimestamp(),
+      roleUpdatedBy: admin.uid,
+    }, { merge: true });
     batch.create(auditRef, {
       action: "mobile_premium_updated",
       targetUid: uid,
@@ -114,8 +122,9 @@ export async function PATCH(request: NextRequest) {
       premium: premiumActive,
       premiumPlan: input.plan,
       premiumExpiresAt: input.expiresAt ? Math.floor(Date.parse(input.expiresAt) / 1000) : null,
+      professionalRole,
     });
-    return NextResponse.json({ ok: true, entitlement: serializeAdminValue({ ...entitlement, updatedAt: new Date().toISOString() }) });
+    return NextResponse.json({ ok: true, professionalRole, entitlement: serializeAdminValue({ ...entitlement, updatedAt: new Date().toISOString() }) });
   } catch (error) {
     return responseError(error);
   }

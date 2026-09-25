@@ -28,6 +28,7 @@ type Account = {
   app: "calorievision" | "dromocob";
   apps: Array<"calorievision" | "dromocob">;
   entitlement: Entitlement | null;
+  professionalRole: "customer" | "dietitian" | "trainer";
 };
 
 type AppFilter = "all" | "calorievision" | "dromocob";
@@ -70,7 +71,7 @@ export default function MobileAccountControlCenter() {
   const [search, setSearch] = useState("");
   const [appFilter, setAppFilter] = useState<AppFilter>("all");
   const [selected, setSelected] = useState<Account | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState({ ...emptyForm, professionalRole: "customer" as Account["professionalRole"] });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -116,6 +117,7 @@ export default function MobileAccountControlCenter() {
       startsAt: entitlement?.startsAt || null,
       expiresAt: entitlement?.expiresAt || null,
       reason: "",
+      professionalRole: account.professionalRole || "customer",
     });
     setError("");
     setNotice("");
@@ -135,12 +137,13 @@ export default function MobileAccountControlCenter() {
       const response = await fetch("/api/admin/mobile-accounts", {
         method: "PATCH",
         headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-        body: JSON.stringify({ uid: selected.uid, entitlement: form }),
+        body: JSON.stringify({ uid: selected.uid, entitlement: form, professionalRole: form.professionalRole }),
       });
-      const data = await response.json() as { ok: boolean; entitlement?: Entitlement; error?: string };
+      const data = await response.json() as { ok: boolean; entitlement?: Entitlement; professionalRole?: Account["professionalRole"]; error?: string };
       if (!response.ok || !data.entitlement) throw new Error(data.error || "Premium durumu kaydedilemedi.");
-      setAccounts(items => items.map(item => item.uid === selected.uid ? { ...item, entitlement: data.entitlement! } : item));
-      setSelected(account => account ? { ...account, entitlement: data.entitlement! } : null);
+      const savedRole = data.professionalRole || form.professionalRole;
+      setAccounts(items => items.map(item => item.uid === selected.uid ? { ...item, entitlement: data.entitlement!, professionalRole: savedRole } : item));
+      setSelected(account => account ? { ...account, entitlement: data.entitlement!, professionalRole: savedRole } : null);
       setForm(current => ({ ...current, ...data.entitlement!, reason: "" }));
       setNotice("Premium yetkisi güncellendi. Uygulama bir sonraki oturum yenilemesinde yeni erişimi alacak.");
     } catch (saveError) {
@@ -169,6 +172,7 @@ export default function MobileAccountControlCenter() {
     {selected && <div className="mobile-account-drawer-backdrop" onClick={() => setSelected(null)}><aside className="mobile-account-drawer" onClick={event => event.stopPropagation()}><header><div><p className="admin-kicker">ENTITLEMENT CONTROL</p><h2>{selected.displayName || selected.email || "Mobil hesap"}</h2><small>{selected.uid}</small></div><button onClick={() => setSelected(null)} aria-label="Kapat"><X/></button></header>
       <div className="mobile-account-identity"><ShieldCheck/><div><strong>{selected.email || "E-posta yok"}</strong><small>{selected.emailVerified ? "E-posta doğrulandı" : "E-posta doğrulanmadı"} · Kayıt: {labelDate(selected.createdAt)}</small></div></div>
       <label className="premium-switch"><input type="checkbox" checked={form.active} onChange={event => setForm(current => ({ ...current, active: event.target.checked }))}/><span/><div><strong>Premium erişim</strong><small>Hesabın premium yetkisini aç veya kapat</small></div></label>
+      <div className="mobile-account-form-grid"><label>Hesap rolü<select value={form.professionalRole} onChange={event => setForm(current => ({ ...current, professionalRole: event.target.value as Account["professionalRole"] }))}><option value="customer">Kullanıcı</option><option value="dietitian">Diyetisyen</option><option value="trainer">Antrenör</option></select></label><label>Koçluk erişimi<input value={form.professionalRole === "customer" ? "Gizli" : "Aktif"} disabled/></label></div>
       <div className="mobile-account-form-grid"><label>Plan<select value={form.plan} onChange={event => setForm(current => ({ ...current, plan: event.target.value as Entitlement["plan"] }))}><option value="free">Free</option><option value="premium">Premium</option><option value="premium_plus">Premium Plus</option><option value="lifetime">Lifetime</option></select></label><label>Kaynak<select value={form.source} onChange={event => setForm(current => ({ ...current, source: event.target.value as Entitlement["source"] }))}><option value="admin">Admin</option><option value="app_store">App Store</option><option value="promotion">Kampanya</option><option value="support">Destek</option><option value="migration">Taşıma</option></select></label><label>Başlangıç<input type="datetime-local" value={dateInput(form.startsAt)} onChange={event => setForm(current => ({ ...current, startsAt: event.target.value ? new Date(event.target.value).toISOString() : null }))}/></label><label>Bitiş<input type="datetime-local" value={dateInput(form.expiresAt)} onChange={event => setForm(current => ({ ...current, expiresAt: event.target.value ? new Date(event.target.value).toISOString() : null }))}/></label></div>
       <section className="premium-feature-grid"><h3>Özellik erişimleri</h3>{featureOptions.map(([key, label]) => <label key={key}><input type="checkbox" checked={form.features.includes(key)} onChange={event => setForm(current => ({ ...current, features: event.target.checked ? [...current.features, key] : current.features.filter(item => item !== key) }))}/><span>{label}</span></label>)}</section>
       <label className="mobile-account-textarea">İç not<textarea value={form.note} maxLength={1000} onChange={event => setForm(current => ({ ...current, note: event.target.value }))} placeholder="Destek ekibinin göreceği not"/></label>
