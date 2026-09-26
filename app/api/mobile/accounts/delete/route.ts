@@ -9,8 +9,15 @@ export async function DELETE(request: NextRequest) {
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   if (!token) return new NextResponse("Unauthorized", { status: 401 });
 
+  let decoded;
   try {
-    const decoded = await adminAuth.verifyIdToken(token);
+    decoded = await adminAuth.verifyIdToken(token);
+  } catch (error) {
+    console.warn("[MOBILE ACCOUNT DELETE] Invalid identity token", error);
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  try {
     const uid = decoded.uid;
 
     // Hesaba bağlı doğrudan belgeleri, olası alt koleksiyonlarıyla beraber sil.

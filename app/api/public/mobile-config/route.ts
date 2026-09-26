@@ -16,7 +16,8 @@ export async function GET(request: Request) {
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "";
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "";
   const authDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "";
-  const googleIOSClientId = process.env.CALORIEVISION_GOOGLE_IOS_CLIENT_ID || "";
+  const googleIOSClientId = process.env.CALORIEVISION_GOOGLE_IOS_CLIENT_ID
+    || "231085658930-201q4glgjd8tm38ar5norujuq08388b0.apps.googleusercontent.com";
 
   if (!apiKey || !projectId) {
     return NextResponse.json(

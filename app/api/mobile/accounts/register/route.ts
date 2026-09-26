@@ -10,11 +10,19 @@ export async function POST(request: NextRequest) {
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   if (!token) return new NextResponse("Unauthorized", { status: 401 });
 
+  const payload = await request.json().catch(() => ({})) as { app?: unknown; platform?: unknown };
+  const app = payload.app === "dromocob" ? "dromocob" : "calorievision";
+  const platform = payload.platform === "macos" ? "macos" : "ios";
+
+  let decoded;
   try {
-    const payload = await request.json().catch(() => ({})) as { app?: unknown; platform?: unknown };
-    const app = payload.app === "dromocob" ? "dromocob" : "calorievision";
-    const platform = payload.platform === "macos" ? "macos" : "ios";
-    const decoded = await adminAuth.verifyIdToken(token);
+    decoded = await adminAuth.verifyIdToken(token);
+  } catch (error) {
+    console.warn("[MOBILE ACCOUNT REGISTER] Invalid identity token", error);
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  try {
     const user = await adminAuth.getUser(decoded.uid);
     const ref = adminDb.collection("mobile_app_users").doc(user.uid);
     const existing = await ref.get();
@@ -31,6 +39,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true }, { headers: { "cache-control": "no-store" } });
   } catch (error) {
     console.error("[MOBILE ACCOUNT REGISTER]", error);
-    return new NextResponse("Unauthorized", { status: 401 });
+    return NextResponse.json(
+      { ok: false, error: "ACCOUNT_REGISTRATION_FAILED", message: "Mobil hesap kaydı tamamlanamadı." },
+      { status: 500, headers: { "cache-control": "no-store" } },
+    );
   }
 }

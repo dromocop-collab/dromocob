@@ -10,8 +10,15 @@ export async function GET(request: NextRequest) {
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   if (!token) return new NextResponse("Unauthorized", { status: 401 });
 
+  let user;
   try {
-    const user = await adminAuth.verifyIdToken(token);
+    user = await adminAuth.verifyIdToken(token);
+  } catch (error) {
+    console.warn("[MOBILE ENTITLEMENT] Invalid identity token", error);
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
+
+  try {
     const [snapshot, account] = await Promise.all([
       adminDb.collection("mobile_premium_entitlements").doc(user.uid).get(),
       adminDb.collection("mobile_app_users").doc(user.uid).get(),
@@ -30,6 +37,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ ok: true, professionalRole, entitlement: { ...data, active: status === "active", status } }, { headers: { "cache-control": "private, no-store" } });
   } catch (error) {
     console.error("[MOBILE ENTITLEMENT]", error);
-    return new NextResponse("Unauthorized", { status: 401 });
+    return NextResponse.json(
+      { ok: false, error: "ENTITLEMENT_LOOKUP_FAILED", message: "Üyelik bilgisi şu anda alınamıyor." },
+      { status: 500, headers: { "cache-control": "no-store" } },
+    );
   }
 }
