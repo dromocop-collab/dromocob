@@ -56,9 +56,12 @@ function responseError(error: unknown) {
 
 async function notifyCustomerFeedback(uid: string, professionalName: string, mealTitle: string) {
   if (!apnsConfigurationStatus().ready) return;
-  const snapshot = await adminDb.collection("mobile_push_tokens")
-    .where("uid", "==", uid).where("appId", "==", "calorievision").where("active", "==", true).limit(20).get();
-  await Promise.allSettled(snapshot.docs.map(async document => {
+  const snapshot = await adminDb.collection("mobile_push_tokens").where("uid", "==", uid).limit(40).get();
+  const documents = snapshot.docs.filter(document => {
+    const value = document.data();
+    return value.appId === "calorievision" && value.active === true;
+  }).slice(0, 20);
+  await Promise.allSettled(documents.map(async document => {
     const data = document.data();
     const result = await sendAPNS({
       token: String(data.token || ""), topic: "com.cihat.Kalori-Merkezi",
