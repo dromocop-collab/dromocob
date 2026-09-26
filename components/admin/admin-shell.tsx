@@ -15,6 +15,7 @@ const nav = [
   { icon: Smartphone, label: "Uygulamalar", href: "/admin/uygulamalar", group: "Ürünler" },
   { icon: KeyRound, label: "Lisans Cloud", href: "/admin/lisanslar", group: "Ürünler" },
   { icon: Crown, label: "Mobil Hesaplar", href: "/admin/mobil-hesaplar", group: "Ürünler" },
+  { icon: RadioTower, label: "Uygulama Kontrolü", href: "/admin/uygulama-kontrol", group: "Ürünler" },
   { icon: FolderKanban, label: "Projeler", href: "/admin/projeler", group: "İçerik" },
   { icon: Package, label: "Paketler", href: "/admin/paketler", group: "İçerik" },
   { icon: Sparkles, label: "Teklif Motoru", href: "/admin/teklif", group: "İçerik" },
