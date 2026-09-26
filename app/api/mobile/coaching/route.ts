@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
 import { effectivePremiumStatus } from "@/lib/mobile-premium";
+import { apnsConfigurationStatus, sendAPNS } from "@/lib/apns";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,24 @@ function responseError(error: unknown) {
   if (code === "SELF_LINK") return NextResponse.json({ message: "Kendi müşteri kodunu kullanamazsın." }, { status: 400 });
   console.error("[MOBILE COACHING]", error);
   return NextResponse.json({ message: "Koçluk işlemi şu anda tamamlanamadı." }, { status: 500 });
+}
+
+async function notifyCustomerFeedback(uid: string, professionalName: string, mealTitle: string) {
+  if (!apnsConfigurationStatus().ready) return;
+  const snapshot = await adminDb.collection("mobile_push_tokens")
+    .where("uid", "==", uid).where("appId", "==", "calorievision").where("active", "==", true).limit(20).get();
+  await Promise.allSettled(snapshot.docs.map(async document => {
+    const data = document.data();
+    const result = await sendAPNS({
+      token: String(data.token || ""), topic: "com.cihat.Kalori-Merkezi",
+      environment: data.environment === "sandbox" ? "sandbox" : "production",
+      title: "Yeni uzman görüşü", body: `${professionalName}, ${mealTitle} öğününü değerlendirdi.`,
+      deepLink: "kalorimerkezi://feedback",
+    });
+    if (!result.ok && ["BadDeviceToken", "Unregistered", "DeviceTokenNotForTopic"].includes(result.reason || "")) {
+      await document.ref.set({ active: false, invalidReason: result.reason, invalidatedAt: FieldValue.serverTimestamp() }, { merge: true });
+    }
+  }));
 }
 
 export async function POST(request: NextRequest) {
@@ -146,6 +165,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, synced: meals.length }, { headers: { "cache-control": "private, no-store" } });
     }
 
+    if (action === "submitFeedback") {
+      const professionalAccount = await adminDb.collection("mobile_app_users").doc(user.uid).get();
+      const role = String(professionalAccount.data()?.professionalRole || "customer");
+      if (!ROLES.has(role)) return NextResponse.json({ message: "Profesyonel hesap yetkisi gerekli." }, { status: 403 });
+      const customerUid = String(body.customerUid || "").trim();
+      const mealID = String(body.mealID || "").trim();
+      const feedback = String(body.feedback || "").trim().slice(0, 1500);
+      const reviewStatus = ["İncelenecek", "Uygun", "Dikkat"].includes(String(body.reviewStatus))
+        ? String(body.reviewStatus) : "İncelenecek";
+      if (!customerUid || !/^[0-9a-fA-F-]{36}$/.test(mealID) || !feedback) {
+        return NextResponse.json({ message: "Geri bildirim bilgileri eksik." }, { status: 400 });
+      }
+      const relationship = await adminDb.collection("coaching_relationships").doc(`${user.uid}_${customerUid}`).get();
+      if (!relationship.exists || relationship.data()?.active !== true) {
+        return NextResponse.json({ message: "Aktif müşteri bağlantısı bulunamadı." }, { status: 403 });
+      }
+      const mealRef = adminDb.collection("coaching_customers").doc(customerUid).collection("meals").doc(mealID);
+      const meal = await mealRef.get();
+      if (!meal.exists) return NextResponse.json({ message: "Öğün bulunamadı." }, { status: 404 });
+      const professional = await adminAuth.getUser(user.uid);
+      await mealRef.set({
+        feedback,
+        reviewStatus,
+        feedbackByUid: user.uid,
+        feedbackByName: professional.displayName || professional.email || (role === "trainer" ? "Antrenör" : "Diyetisyen"),
+        feedbackByRole: role,
+        feedbackAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      await notifyCustomerFeedback(customerUid, professional.displayName || (role === "trainer" ? "Antrenörün" : "Diyetisyenin"), String(meal.data()?.title || "öğün"));
+      return NextResponse.json({ ok: true }, { headers: { "cache-control": "private, no-store" } });
+    }
+
     return NextResponse.json({ message: "Geçersiz işlem." }, { status: 400 });
   } catch (error) {
     return responseError(error);
@@ -168,6 +219,35 @@ export async function GET(request: NextRequest) {
         };
       });
       return NextResponse.json({ connections }, { headers: { "cache-control": "private, no-store" } });
+    }
+
+    if (scope === "feedback") {
+      const relationships = await adminDb.collection("coaching_relationships").where("customerUid", "==", user.uid).limit(100).get();
+      const activeProfessionals = new Map(relationships.docs
+        .filter(document => document.data().active === true)
+        .map(document => [String(document.data().professionalUid), {
+          name: String(document.data().professionalName || "Uzman"),
+          role: String(document.data().professionalRole || "dietitian"),
+        }]));
+      const meals = await adminDb.collection("coaching_customers").doc(user.uid)
+        .collection("meals").orderBy("date", "desc").limit(80).get();
+      const feedback = meals.docs.flatMap(document => {
+        const value = document.data();
+        const professional = activeProfessionals.get(String(value.feedbackByUid || ""));
+        if (!professional || typeof value.feedback !== "string" || !value.feedback.trim()) return [];
+        return [{
+          id: document.id,
+          mealID: document.id,
+          mealTitle: String(value.title || "Öğün"),
+          mealDate: value.date instanceof Timestamp ? value.date.toDate().toISOString() : null,
+          feedback: value.feedback,
+          reviewStatus: String(value.reviewStatus || "İncelenecek"),
+          professionalName: String(value.feedbackByName || professional.name),
+          professionalRole: String(value.feedbackByRole || professional.role),
+          feedbackAt: value.feedbackAt instanceof Timestamp ? value.feedbackAt.toDate().toISOString() : null,
+        }];
+      });
+      return NextResponse.json({ feedback }, { headers: { "cache-control": "private, no-store" } });
     }
 
     const professionalAccount = await adminDb.collection("mobile_app_users").doc(user.uid).get();
