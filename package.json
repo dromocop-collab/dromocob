@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test:hafiz": "node --test --experimental-strip-types tests/hafiz-*.test.ts",
-    "quran:validate": "node --experimental-strip-types scripts/hafiz-quran/validate-dataset.ts"
+    "quran:validate": "node --experimental-strip-types scripts/hafiz-quran/validate-dataset.ts",
+    "quran:build:tanzil": "node --experimental-strip-types scripts/hafiz-quran/build-tanzil-dataset.ts"
   },
   "dependencies": {
     "firebase": "^12.16.0",

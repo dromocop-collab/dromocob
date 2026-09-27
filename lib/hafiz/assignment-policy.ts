@@ -26,6 +26,16 @@ export function teacherMayTargetClass(
     && assignment.institutionId === context.institutionID;
 }
 
+export function findAuthorizedTeacherClassAssignment(
+  context: AssignmentTeacherContext,
+  assignments: readonly AuthorizedClass[],
+  requestedClassID: string,
+): AuthorizedClass | null {
+  return assignments.find(assignment =>
+    teacherMayTargetClass(context, assignment, requestedClassID)
+  ) ?? null;
+}
+
 export function targetContainsOnlyAuthorizedStudents(
   target: AssignmentTarget,
   authorizedStudentIDs: ReadonlySet<string>,

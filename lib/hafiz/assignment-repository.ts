@@ -13,6 +13,7 @@ import {
   validateAssignmentSnapshot,
 } from "@/lib/hafiz/assignment-schema";
 import {
+  findAuthorizedTeacherClassAssignment,
   mayTransitionAssignmentStatus,
   recipientKeepsPublishedRevision,
   targetContainsOnlyAuthorizedStudents,
@@ -309,13 +310,18 @@ async function resolveTarget(context: HafizContext, input: unknown): Promise<Ass
   const target = asObject(input);
   if (target.type === "CLASS") {
     const classID = requiredString(target.classId);
-    const assignment = await adminDb.collection("hafiz_teacher_class_assignments")
-      .doc(`${classID}_${context.membershipID}`).get();
-    if (!teacherMayTargetClass(
+    // Authorize from trusted fields rather than a synthesized document id.
+    // Older/admin-created assignments may use a different id convention.
+    const assignmentSnapshot = await adminDb.collection("hafiz_teacher_class_assignments")
+      .where("institutionId", "==", context.institutionID)
+      .where("teacherMembershipId", "==", context.membershipID)
+      .where("status", "==", "ACTIVE").get();
+    const assignment = findAuthorizedTeacherClassAssignment(
       context,
-      assignment.exists ? assignment.data() as never : null,
+      assignmentSnapshot.docs.map(document => document.data() as never),
       classID,
-    )) throw forbiddenTarget();
+    );
+    if (!teacherMayTargetClass(context, assignment, classID)) throw forbiddenTarget();
     const memberships = await adminDb.collection("hafiz_class_memberships")
       .where("institutionId", "==", context.institutionID)
       .where("classId", "==", classID)
@@ -350,7 +356,12 @@ async function authorizedStudentIDs(context: HafizContext): Promise<Set<string>>
 }
 
 async function requireActiveStudents(context: HafizContext, studentIDs: string[]) {
-  if (studentIDs.length === 0 || studentIDs.length > 200) throw forbiddenTarget();
+  if (studentIDs.length === 0) {
+    throw invalidInput("Seçilen sınıfta aktif öğrenci bulunmuyor. Önce sınıfa en az bir aktif öğrenci ekleyin.");
+  }
+  if (studentIDs.length > 200) {
+    throw invalidInput("Bir görev en fazla 200 öğrenciye gönderilebilir.");
+  }
   const profiles = await adminDb.getAll(...studentIDs.map(id =>
     adminDb.collection("hafiz_student_profiles").doc(id)
   ));
@@ -465,7 +476,7 @@ function stringArray(value: unknown): string[] {
 }
 
 function invalidInput(message: string) {
-  return new HafizAuthorizationError(403, "INVALID_ASSIGNMENT", message);
+  return new HafizAuthorizationError(400, "INVALID_ASSIGNMENT", message);
 }
 
 function forbiddenTarget() {

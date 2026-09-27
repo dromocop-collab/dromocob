@@ -7,6 +7,7 @@ import {
   validateAssignmentSnapshot,
 } from "../lib/hafiz/assignment-schema.ts";
 import {
+  findAuthorizedTeacherClassAssignment,
   mayTransitionAssignmentStatus,
   recipientKeepsPublishedRevision,
   targetContainsOnlyAuthorizedStudents,
@@ -88,6 +89,19 @@ test("teacher cannot target another teacher or tenant class", () => {
   assert.equal(teacherMayTargetClass(context, {
     classId: "class-a", institutionId: "institution-a", teacherMembershipId: "teacher-b", status: "ACTIVE",
   }, "class-a"), false);
+});
+
+test("teacher class authorization uses trusted fields instead of document id conventions", () => {
+  const context = { role: "TEACHER" as const, membershipID: "teacher-a", institutionID: "institution-a" };
+  const assignments = [
+    { classId: "class-b", institutionId: "institution-a", teacherMembershipId: "teacher-a", status: "ACTIVE" as const },
+    { classId: "class-a", institutionId: "institution-a", teacherMembershipId: "teacher-a", status: "ACTIVE" as const },
+  ];
+  assert.equal(
+    findAuthorizedTeacherClassAssignment(context, assignments, "class-a")?.classId,
+    "class-a",
+  );
+  assert.equal(findAuthorizedTeacherClassAssignment(context, assignments, "class-c"), null);
 });
 
 test("new publication does not silently move an existing recipient revision", () => {

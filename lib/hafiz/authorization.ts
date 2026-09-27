@@ -42,7 +42,7 @@ export type HafizFirebaseIdentity = {
 
 export class HafizAuthorizationError extends Error {
   constructor(
-    readonly status: 401 | 403,
+    readonly status: 400 | 401 | 403,
     readonly code: string,
     message: string,
   ) {

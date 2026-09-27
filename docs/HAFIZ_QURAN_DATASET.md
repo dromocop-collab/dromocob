@@ -30,6 +30,22 @@ kullanılmamalıdır.
 
 ## Yerel doğrulama
 
+Onaylı Tanzil Uthmani kaynağından üretim artefaktı hazırlamak için:
+
+```bash
+HAFIZ_QURAN_APPROVAL_REFERENCE="kurum-ici-onay-referansi" \
+  npm run quran:build:tanzil -- /absolute/path/tanzil-uthmani.json
+```
+
+Bu komut metni Tanzil'in resmi indirme adresinden, 604 sayfalık Medine Mushafı yapısal
+metadata'sını Tanzil'in resmi metadata adresinden indirir. Uthmani 1.1 ve metadata 1.0 sürüm
+işaretlerini, 6.236 ayet / 114 sure / 30 cüz / 604 sayfa bütünlüğünü denetler; metni değiştirmeden
+canonical şemaya dönüştürür ve checksum'u hesaplar. Üretilen dosya repository'ye eklenmemeli,
+değiştirilemez bir release artefaktı olarak saklanmalıdır.
+
+Kaynak metin Tanzil Project tarafından CC BY 3.0 ile sunulur. Uygulama ve dağıtılan artefakt,
+Tanzil atfını ve `https://tanzil.net` bağlantısını görünür biçimde korumalı; metin değiştirilemez.
+
 Önce checksum hesaplanır:
 
 ```bash
