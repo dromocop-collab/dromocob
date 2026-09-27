@@ -4,8 +4,12 @@ import { FieldValue } from "firebase-admin/firestore";
 
 import { requireAdminRole } from "@/lib/admin-guard";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import {
+  DEFAULT_REGISTRATION_INSTITUTION_ID,
+  DEFAULT_REGISTRATION_INSTITUTION_NAME,
+} from "@/lib/hafiz/registration-constants";
 
-const PLATFORM_INSTITUTION_ID = "hafiz-platform";
+const PLATFORM_INSTITUTION_ID = DEFAULT_REGISTRATION_INSTITUTION_ID;
 
 export async function bootstrapHafizWebAdmin(authorization: string | null) {
   const admin = await requireAdminRole(authorization, ["super_admin"]);
@@ -26,8 +30,8 @@ export async function bootstrapHafizWebAdmin(authorization: string | null) {
     const now = FieldValue.serverTimestamp();
 
     transaction.set(institutionReference, {
-      name: "Hafız Platform Yönetimi",
-      nameNormalized: "hafız platform yönetimi",
+      name: DEFAULT_REGISTRATION_INSTITUTION_NAME,
+      nameNormalized: "hafız platformu",
       status: "ACTIVE",
       ...(institution.exists ? {} : { createdAt: now, createdBy: membershipID }),
       updatedAt: now,

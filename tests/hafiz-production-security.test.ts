@@ -68,6 +68,9 @@ test("registration remains pending until an institution admin approves trusted s
   assert.match(repository, /const REGISTRATION_ROLES = \["STUDENT", "TEACHER", "PARENT"\]/);
   assert.doesNotMatch(repository, /REGISTRATION_ROLES[^\n]+ADMIN/);
   assert.match(repository, /status: "PENDING"/);
+  assert.match(repository, /optionalInstitutionID\(payload\.institutionCode\)/);
+  assert.match(repository, /DEFAULT_REGISTRATION_INSTITUTION_ID/);
+  assert.match(repository, /transaction\.create\(institutionReference/);
   assert.match(repository, /transaction\.create\(scopeReference/);
   assert.match(repository, /decision === "APPROVE"/);
 });

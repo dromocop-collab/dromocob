@@ -9,6 +9,10 @@ import {
   requireInstitutionAccess,
 } from "./authorization";
 import { parsePageLimit, safeAuditMetadata } from "./production-policy";
+import {
+  DEFAULT_REGISTRATION_INSTITUTION_ID,
+  DEFAULT_REGISTRATION_INSTITUTION_NAME,
+} from "./registration-constants";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
 
 const REGISTRATION_ROLES = ["STUDENT", "TEACHER", "PARENT"] as const;
@@ -27,7 +31,7 @@ export async function submitRegistrationRequest(
 ) {
   const payload = asObject(body);
   const displayName = requiredText(payload.displayName, "Ad soyad", 2, 120);
-  const institutionID = requiredID(payload.institutionCode, "Kurum kodu");
+  const institutionID = optionalInstitutionID(payload.institutionCode);
   const requestedRole = registrationRole(payload.requestedRole);
   const requestReference = adminDb.collection("hafiz_registration_requests").doc(auth.userID);
   const institutionReference = adminDb.collection("hafiz_institutions").doc(institutionID);
@@ -39,7 +43,11 @@ export async function submitRegistrationRequest(
       transaction.get(requestReference),
       transaction.get(scopeReference),
     ]);
-    if (!institution.exists || institution.data()?.status !== "ACTIVE") {
+    const isDefaultInstitution = institutionID === DEFAULT_REGISTRATION_INSTITUTION_ID;
+    if (
+      (!institution.exists && !isDefaultInstitution)
+      || (institution.exists && institution.data()?.status !== "ACTIVE")
+    ) {
       throw invalidInput("Kurum kodu geçersiz veya kurum aktif değil.");
     }
     if (scope.exists) {
@@ -47,6 +55,18 @@ export async function submitRegistrationRequest(
     }
     if (existing.data()?.status === "APPROVED") {
       throw new HafizAuthorizationError(403, "REGISTRATION_ALREADY_APPROVED", "Başvuru zaten onaylandı.");
+    }
+
+    if (!institution.exists && isDefaultInstitution) {
+      transaction.create(institutionReference, {
+        name: DEFAULT_REGISTRATION_INSTITUTION_NAME,
+        nameNormalized: normalize(DEFAULT_REGISTRATION_INSTITUTION_NAME),
+        status: "ACTIVE",
+        createdAt: FieldValue.serverTimestamp(),
+        createdBy: "self-registration",
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: "self-registration",
+      });
     }
 
     transaction.set(requestReference, {
@@ -249,6 +269,14 @@ function requiredID(value: unknown, label: string): string {
   const id = requiredText(value, label, 2, 200);
   if (id.includes("/")) throw invalidInput(`${label} geçersiz.`);
   return id;
+}
+
+function optionalInstitutionID(value: unknown): string {
+  if (value === undefined || value === null) return DEFAULT_REGISTRATION_INSTITUTION_ID;
+  if (typeof value === "string" && value.trim() === "") {
+    return DEFAULT_REGISTRATION_INSTITUTION_ID;
+  }
+  return requiredID(value, "Kurum kodu");
 }
 
 function normalize(value: string): string {
