@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:hafiz": "node --test --experimental-strip-types tests/hafiz-*.test.ts",
+    "quran:validate": "node --experimental-strip-types scripts/hafiz-quran/validate-dataset.ts"
   },
   "dependencies": {
     "firebase": "^12.16.0",

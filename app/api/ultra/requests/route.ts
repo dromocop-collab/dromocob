@@ -373,7 +373,7 @@ export async function POST(
       ) ||
       "normal";
 
-    const module =
+    const requestModule =
       text(
         body.module,
         100,
@@ -537,7 +537,7 @@ export async function POST(
 
             priority,
 
-            module,
+            module: requestModule,
 
             diagnostics:
               diagnosticData,

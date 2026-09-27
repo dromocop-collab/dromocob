@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 // Runs existing route handlers against in-memory dependencies. No credentials/network.
 const fs = require('node:fs');
 const path = require('node:path');

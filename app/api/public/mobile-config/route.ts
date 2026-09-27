@@ -3,11 +3,12 @@ import { adminDb } from "@/lib/firebase-admin";
 
 export const dynamic = "force-dynamic";
 
-const supportedApps = new Set(["dromocob", "calorievision", "jackscoffee", "altincikuyumculuk"]);
+const supportedApps = new Set(["dromocob", "calorievision", "hafiz", "jackscoffee", "altincikuyumculuk"]);
 
 const appNames: Record<string, string> = {
   dromocob: "Dromocob",
   calorievision: "Kalori Merkezi",
+  hafiz: "Hafız",
   jackscoffee: "The Jack's Coffee",
   altincikuyumculuk: "6'ncı Kuyumculuk",
 };

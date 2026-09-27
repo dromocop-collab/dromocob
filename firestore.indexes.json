@@ -87,6 +87,188 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "hafiz_assignment_recipients",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "institutionId", "order": "ASCENDING" },
+        { "fieldPath": "studentMembershipId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "hafiz_assignments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "institutionId", "order": "ASCENDING" },
+        { "fieldPath": "ownerTeacherMembershipId", "order": "ASCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "hafiz_classes",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_classes",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_institutions",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_teacher_profiles",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_teacher_profiles",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_student_profiles",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_student_profiles",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_parent_profiles",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_parent_profiles",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_teacher_class_assignments",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "teacherMembershipId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_class_memberships",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "classId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_class_memberships",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_parent_student_links",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "parentMembershipId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_assignment_recipients",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "lastActivityAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_assignment_reviews",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_progress_events",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "receivedAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_audio_assets",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_revision_schedules",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "teacherMembershipId", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_assignment_recipients",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "lastActivityAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_assignment_recipients",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "assignmentId", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_assignment_recipients",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_help_requests",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_audio_assets",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_assignment_reviews",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_progress_events",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "receivedAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_notifications",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "targetMembershipId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_notifications",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "deliveryStatus", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_push_tokens",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "membershipId", "order": "ASCENDING" }, { "fieldPath": "active", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_audit_events",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }, { "fieldPath": "__name__", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_audit_events",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "action", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }, { "fieldPath": "__name__", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_audit_events",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "resourceType", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }, { "fieldPath": "__name__", "order": "DESCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_workflow_presets",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "nameNormalized", "order": "ASCENDING" }, { "fieldPath": "__name__", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_registration_requests",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }, { "fieldPath": "__name__", "order": "DESCENDING" }]
     }
   ],
   "fieldOverrides": []

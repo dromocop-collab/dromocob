@@ -1789,6 +1789,50 @@ service cloud.firestore {
     match /mobile_premium_audit_logs/{documentId} { allow read, write: if false; }
     match /mobile_app_users/{documentId} { allow read, write: if false; }
 
+    // Hafız platformunda rol, kurum ve aktif üyelik kararları yalnızca
+    // Firebase Admin SDK kullanan sunucu policy katmanında verilir.
+    // iOS/web istemcileri bu koleksiyonlara doğrudan erişemez.
+    match /hafiz_institutions/{documentId} { allow read, write: if false; }
+    match /hafiz_user_scopes/{documentId} { allow read, write: if false; }
+    match /hafiz_memberships/{documentId} { allow read, write: if false; }
+    match /hafiz_classes/{documentId} { allow read, write: if false; }
+    match /hafiz_teacher_profiles/{documentId} { allow read, write: if false; }
+    match /hafiz_student_profiles/{documentId} { allow read, write: if false; }
+    match /hafiz_parent_profiles/{documentId} { allow read, write: if false; }
+    match /hafiz_class_memberships/{documentId} { allow read, write: if false; }
+    match /hafiz_teacher_class_assignments/{documentId} { allow read, write: if false; }
+    match /hafiz_parent_student_links/{documentId} { allow read, write: if false; }
+    match /hafiz_quran_editions/{documentId} { allow read, write: if false; }
+    match /hafiz_quran_imports/{documentId} { allow read, write: if false; }
+    match /hafiz_quran_juzs/{documentId} { allow read, write: if false; }
+    match /hafiz_quran_surahs/{documentId} { allow read, write: if false; }
+    match /hafiz_quran_pages/{documentId} { allow read, write: if false; }
+    match /hafiz_quran_ayahs/{documentId} { allow read, write: if false; }
+    match /hafiz_assignment_quran_grants/{documentId} { allow read, write: if false; }
+    match /hafiz_assignments/{documentId} { allow read, write: if false; }
+    match /hafiz_assignment_revisions/{documentId} { allow read, write: if false; }
+    match /hafiz_assignment_recipients/{documentId} { allow read, write: if false; }
+    match /hafiz_progress_events/{documentId} { allow read, write: if false; }
+    match /hafiz_help_requests/{documentId} { allow read, write: if false; }
+    match /hafiz_difficulty_feedback/{documentId} { allow read, write: if false; }
+    match /hafiz_audio_assets/{documentId} { allow read, write: if false; }
+    match /hafiz_assignment_reviews/{documentId} { allow read, write: if false; }
+    match /hafiz_memorization_approvals/{documentId} { allow read, write: if false; }
+    match /hafiz_memorization_progress/{documentId} { allow read, write: if false; }
+    match /hafiz_mastery_events/{documentId} { allow read, write: if false; }
+    match /hafiz_revision_templates/{documentId} { allow read, write: if false; }
+    match /hafiz_revision_schedules/{documentId} { allow read, write: if false; }
+    match /hafiz_revision_history/{documentId} { allow read, write: if false; }
+    match /hafiz_audit_events/{documentId} { allow read, write: if false; }
+    match /hafiz_notifications/{documentId} { allow read, write: if false; }
+    match /hafiz_notification_preferences/{documentId} { allow read, write: if false; }
+    match /hafiz_notification_rate_buckets/{documentId} { allow read, write: if false; }
+    match /hafiz_push_tokens/{documentId} { allow read, write: if false; }
+    match /hafiz_teacher_messages/{documentId} { allow read, write: if false; }
+    match /hafiz_system_config/{documentId} { allow read, write: if false; }
+    match /hafiz_workflow_presets/{documentId} { allow read, write: if false; }
+    match /hafiz_registration_requests/{documentId} { allow read, write: if false; }
+
 
     // =========================================================
     // DEFAULT DENY

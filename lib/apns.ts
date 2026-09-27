@@ -10,6 +10,8 @@ type APNSMessage = {
   title: string;
   body: string;
   deepLink?: string;
+  idempotencyId?: string;
+  collapseId?: string;
 };
 
 let cachedJWT: { value: string; createdAt: number } | null = null;
@@ -97,6 +99,8 @@ export async function sendAPNS(message: APNSMessage) {
       "apns-push-type": "alert",
       "apns-priority": "10",
       "content-type": "application/json",
+      ...(message.idempotencyId ? { "apns-id": message.idempotencyId } : {}),
+      ...(message.collapseId ? { "apns-collapse-id": message.collapseId.slice(0, 64) } : {}),
     });
     let status = 0;
     let response = "";
