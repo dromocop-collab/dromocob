@@ -141,9 +141,10 @@ export async function listTeacherClasses(context: HafizContext) {
     .where("teacherMembershipId", "==", context.membershipID)
     .where("status", "==", "ACTIVE")
     .get();
-  const classes = await Promise.all(assignments.docs.map(document =>
-    adminDb.collection("hafiz_classes").doc(requiredString(document.data().classId)).get()
-  ));
+  const classReferences = assignments.docs.map(document =>
+    adminDb.collection("hafiz_classes").doc(requiredString(document.data().classId))
+  );
+  const classes = classReferences.length > 0 ? await adminDb.getAll(...classReferences) : [];
   return {
     items: classes
       .filter(snapshot => snapshot.exists

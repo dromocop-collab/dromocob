@@ -31,6 +31,12 @@ type DirectoryResource = "institutions" | "teachers" | "students" | "parents" | 
 
 type Institution = { id: string; name: string; status: string; institutionId: string };
 type DirectoryRecord = Institution & { email?: string | null; academicPeriod?: string | null };
+type TeacherClassAssignment = {
+  id: string;
+  classId: string;
+  teacherMembershipId: string;
+  status: string;
+};
 type Registration = {
   id: string;
   email: string;
@@ -144,6 +150,9 @@ export default function HafizControlCenter() {
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([]);
   const [directoryResource, setDirectoryResource] = useState<DirectoryResource>("students");
   const [directoryItems, setDirectoryItems] = useState<DirectoryRecord[]>([]);
+  const [teacherOptions, setTeacherOptions] = useState<DirectoryRecord[]>([]);
+  const [classOptions, setClassOptions] = useState<DirectoryRecord[]>([]);
+  const [teacherClassAssignments, setTeacherClassAssignments] = useState<TeacherClassAssignment[]>([]);
   const [directorySearch, setDirectorySearch] = useState("");
   const [workingID, setWorkingID] = useState("");
 
@@ -166,6 +175,24 @@ export default function HafizControlCenter() {
     setDirectoryItems(page.items);
   }, []);
 
+  const loadTeacherClassOptions = useCallback(async (selectedID: string) => {
+    const scoped = encodeURIComponent(selectedID);
+    const [teachers, classes, assignments] = await Promise.all([
+      authorizedFetch<{ items: DirectoryRecord[] }>(
+        `/api/hafiz/admin/directory/teachers?institutionId=${scoped}&status=ACTIVE&limit=100`,
+      ),
+      authorizedFetch<{ items: DirectoryRecord[] }>(
+        `/api/hafiz/admin/directory/classes?institutionId=${scoped}&status=ACTIVE&limit=100`,
+      ),
+      authorizedFetch<{ items: TeacherClassAssignment[] }>(
+        `/api/hafiz/admin/relationships/teacherClassAssignment?institutionId=${scoped}&status=ACTIVE&limit=100`,
+      ),
+    ]);
+    setTeacherOptions(teachers.items);
+    setClassOptions(classes.items);
+    setTeacherClassAssignments(assignments.items);
+  }, []);
+
   const loadInstitution = useCallback(async (selectedID: string, resource: DirectoryResource) => {
     setRefreshing(true);
     setError("");
@@ -180,19 +207,20 @@ export default function HafizControlCenter() {
         authorizedFetch<{ items: AuditEvent[] }>(
           `/api/hafiz/admin/audit-events?institutionId=${scoped}&limit=30`,
         ),
+        loadDirectory(resource, selectedID),
+        loadTeacherClassOptions(selectedID),
       ]);
       setDashboard(dashboardPayload);
       setRegistrations(registrationPayload.items);
       setSystem(systemPayload);
       setAuditEvents(auditPayload.items);
-      await loadDirectory(resource, selectedID);
       localStorage.setItem("dromocob.hafiz.institution", selectedID);
     } catch (value) {
       setError(value instanceof Error ? value.message : "Hafız verileri yüklenemedi.");
     } finally {
       setRefreshing(false);
     }
-  }, [loadDirectory]);
+  }, [loadDirectory, loadTeacherClassOptions]);
 
   const initialize = useCallback(async () => {
     setBooting(true);
@@ -277,19 +305,60 @@ export default function HafizControlCenter() {
     setWorkingID("create");
     setError("");
     try {
-      await authorizedFetch(`/api/hafiz/admin/directory/${resource}`, {
+      const created = await authorizedFetch<{ id: string }>(`/api/hafiz/admin/directory/${resource}`, {
         method: "POST",
         body: JSON.stringify(body),
       });
+      const teacherMembershipId = String(data.get("teacherMembershipId") || "");
+      if (resource === "classes" && teacherMembershipId) {
+        await authorizedFetch("/api/hafiz/admin/relationships/teacherClassAssignment", {
+          method: "POST",
+          body: JSON.stringify({
+            institutionId: institutionID,
+            classId: created.id,
+            teacherMembershipId,
+          }),
+        });
+      }
       form.reset();
-      setNotice(resource === "institutions" ? "Yeni kurum oluşturuldu." : "Yeni sınıf oluşturuldu.");
+      setNotice(resource === "institutions"
+        ? "Yeni kurum oluşturuldu."
+        : teacherMembershipId
+          ? "Yeni sınıf oluşturuldu ve öğretmene atandı."
+          : "Yeni sınıf oluşturuldu.");
       const institutionPage = await authorizedFetch<{ items: Institution[] }>(
         "/api/hafiz/admin/directory/institutions?limit=50",
       );
       setInstitutions(institutionPage.items);
-      await loadDirectory(directoryResource, institutionID, directorySearch);
+      await Promise.all([
+        loadDirectory(directoryResource, institutionID, directorySearch),
+        loadTeacherClassOptions(institutionID),
+      ]);
     } catch (value) {
       setError(value instanceof Error ? value.message : "Kayıt oluşturulamadı.");
+    } finally {
+      setWorkingID("");
+    }
+  }
+
+  async function createTeacherClassAssignment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    setWorkingID("teacher-class");
+    setError("");
+    try {
+      await authorizedFetch("/api/hafiz/admin/relationships/teacherClassAssignment", {
+        method: "POST",
+        body: JSON.stringify({
+          institutionId: institutionID,
+          classId: String(data.get("classId") || ""),
+          teacherMembershipId: String(data.get("teacherMembershipId") || ""),
+        }),
+      });
+      setNotice("Öğretmen sınıfa bağlandı. Sınıf iOS uygulamasında artık görünür.");
+      await loadTeacherClassOptions(institutionID);
+    } catch (value) {
+      setError(value instanceof Error ? value.message : "Öğretmen sınıfa bağlanamadı.");
     } finally {
       setWorkingID("");
     }
@@ -422,14 +491,23 @@ export default function HafizControlCenter() {
             </div>)}
           </div>}
         </div>
-        <form className={`${styles.panel} ${styles.createCard}`} onSubmit={createDirectoryRecord}>
-          <PanelHeading icon={Building2} eyebrow="HIZLI OLUŞTUR" title="Kurum veya sınıf ekle" description="Kullanıcılar güvenli başvuru ve onay akışından eklenir." />
-          <label><span>Kayıt türü</span><select name="resource"><option value="classes">Sınıf</option><option value="institutions">Kurum</option></select></label>
-          <label><span>Ad</span><input name="name" required minLength={2} placeholder="Örn. 2026 Hafızlık A" /></label>
-          <label><span>Akademik dönem</span><input name="academicPeriod" placeholder="2026–2027" /></label>
-          <button className={styles.primaryButton} disabled={workingID === "create"}>{workingID === "create" ? <Loader2 className={styles.spin} /> : <Check />} Kaydı oluştur</button>
-          <div className={styles.infoBox}><ShieldCheck /><span>Yeni kullanıcılar önce başvuru oluşturur; rol yetkisi yalnızca yönetici onayından sonra açılır.</span></div>
-        </form>
+        <div style={{ display: "grid", gap: 14 }}>
+          <form className={`${styles.panel} ${styles.createCard}`} onSubmit={createDirectoryRecord}>
+            <PanelHeading icon={Building2} eyebrow="HIZLI OLUŞTUR" title="Kurum veya sınıf ekle" description="Sınıfı oluştururken öğretmeni de bağlayabilirsin." />
+            <label><span>Kayıt türü</span><select name="resource"><option value="classes">Sınıf</option><option value="institutions">Kurum</option></select></label>
+            <label><span>Ad</span><input name="name" required minLength={2} placeholder="Örn. 2026 Hafızlık A" /></label>
+            <label><span>Akademik dönem</span><input name="academicPeriod" placeholder="2026–2027" /></label>
+            <label><span>Öğretmen (isteğe bağlı)</span><select name="teacherMembershipId"><option value="">Daha sonra ata</option>{teacherOptions.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+            <button className={styles.primaryButton} disabled={workingID === "create"}>{workingID === "create" ? <Loader2 className={styles.spin} /> : <Check />} Kaydı oluştur</button>
+            <div className={styles.infoBox}><ShieldCheck /><span>Sınıf, yalnızca bağlanan öğretmenin iOS uygulamasında görünür.</span></div>
+          </form>
+          <form className={`${styles.panel} ${styles.createCard}`} onSubmit={createTeacherClassAssignment}>
+            <PanelHeading icon={GraduationCap} eyebrow="YETKİ BAĞLANTISI" title="Öğretmeni sınıfa bağla" description={`Aktif bağlantı: ${teacherClassAssignments.length}`} />
+            <label><span>Sınıf</span><select name="classId" required><option value="">Sınıf seç</option>{classOptions.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+            <label><span>Öğretmen</span><select name="teacherMembershipId" required><option value="">Öğretmen seç</option>{teacherOptions.map(item => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+            <button className={styles.primaryButton} disabled={workingID === "teacher-class" || !classOptions.length || !teacherOptions.length}>{workingID === "teacher-class" ? <Loader2 className={styles.spin} /> : <UserCheck />} Bağlantıyı etkinleştir</button>
+          </form>
+        </div>
       </section>}
 
       {tab === "settings" && <form className={styles.panel} onSubmit={saveSystemSettings}>

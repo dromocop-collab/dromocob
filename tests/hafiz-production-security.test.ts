@@ -75,6 +75,20 @@ test("registration remains pending until an institution admin approves trusted s
   assert.match(repository, /decision === "APPROVE"/);
 });
 
+test("teacher class visibility requires an explicit admin-managed assignment", () => {
+  const relationships = readFileSync(new URL("../lib/hafiz/relationships.ts", import.meta.url), "utf8");
+  const adminCenter = readFileSync(new URL("../components/admin/hafiz-control-center.tsx", import.meta.url), "utf8");
+  const route = readFileSync(
+    new URL("../app/api/hafiz/admin/relationships/[kind]/route.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(route, /requireHafizContext\(request, \["ADMIN"\]\)/);
+  assert.match(relationships, /teacherMembershipId/);
+  assert.match(relationships, /adminDb\.getAll\(\.\.\.classReferences\)/);
+  assert.match(adminCenter, /relationships\/teacherClassAssignment/);
+  assert.match(adminCenter, /Öğretmeni sınıfa bağla/);
+});
+
 test("push payload never contains protected content", () => {
   const payload = publicPushPayload({ notificationID: "n1", event: "REVISION_REQUIRED", role: "STUDENT" });
   assert.deepEqual(Object.keys(payload).sort(), ["event", "notificationId", "role"]);
