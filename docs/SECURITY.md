@@ -42,3 +42,10 @@ Run Firebase Emulator integration tests, deploy/test rules in a staging project,
 - Firestore rules deny direct reads and writes to `hafiz_registration_requests`.
 - Approval creates authorization records in one server transaction and writes an audit event; rejection creates no scope.
 - Production ingress must rate-limit registration attempts and protect the endpoint against automated abuse.
+
+## Web admin bridge
+
+- `/api/admin/hafiz/bootstrap` is POST-only and requires the existing server-verified Dromocob `super_admin` role.
+- The browser cannot choose the bootstrapped role, membership id or platform claim.
+- The bootstrap is idempotent, audited and merges existing Firebase custom claims.
+- After bootstrap, every operation still passes through `requireHafizContext`; the UI is not an authorization boundary.

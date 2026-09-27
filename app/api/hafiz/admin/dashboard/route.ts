@@ -5,6 +5,6 @@ import { hafizErrorResponse, noStoreJSON } from "@/lib/hafiz/http";
 
 export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
-  try { return noStoreJSON(await getAdminDashboard(await requireHafizContext(request, ["ADMIN"]))); }
+  try { return noStoreJSON(await getAdminDashboard(await requireHafizContext(request, ["ADMIN"]), request.nextUrl.searchParams.get("institutionId"))); }
   catch (error) { return hafizErrorResponse(error, "ADMIN DASHBOARD"); }
 }

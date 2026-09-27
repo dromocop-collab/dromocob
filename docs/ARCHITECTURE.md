@@ -26,3 +26,7 @@ Authenticated API traffic uses an ephemeral `URLSession`, `no-store` responses a
 ## Registration and approval
 
 Self-registration first creates a Firebase identity and a `PENDING` record in `hafiz_registration_requests`. It does not create an active membership, role profile or authorization scope. The authenticated applicant may read only their own request status. An authorized admin approves or rejects the request; approval atomically creates the membership, role profile and user scope and records an audit event. The iOS client retains the refresh token while pending and restores the trusted role shell automatically after approval without requiring another login.
+
+## Web administration
+
+The Dromocob control panel exposes `/admin/hafiz` as a server-authorized Hafız operations surface. Its one-time bootstrap accepts only an existing Dromocob `super_admin`, creates a dedicated platform-management membership and adds the trusted `hafizPlatformAdmin` custom claim without accepting role or institution data from the browser. All subsequent dashboard, approval, directory, settings and audit requests use the standard Hafız authorization layer and explicit institution scopes.

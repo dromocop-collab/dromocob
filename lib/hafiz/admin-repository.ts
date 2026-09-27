@@ -17,9 +17,9 @@ import { adminAuth, adminDb } from "@/lib/firebase-admin";
 
 const COMPLETION_POLICIES = ["STUDENT_CONFIRM", "UPLOAD_REQUIRED", "TEACHER_APPROVAL", "AUTOMATIC"] as const;
 
-export async function getAdminDashboard(context: HafizContext) {
+export async function getAdminDashboard(context: HafizContext, requestedInstitutionID?: string | null) {
   requireAdmin(context);
-  const institutionID = requireInstitutionAccess(context, null);
+  const institutionID = requireInstitutionAccess(context, requestedInstitutionID || null);
   const scoped = (collection: string) => adminDb.collection(collection)
     .where("institutionId", "==", institutionID);
   const [memberships, classes, assignments, reviews, pendingReviews, auditEvents] = await Promise.all([
@@ -76,9 +76,9 @@ export async function listAuditEvents(context: HafizContext, searchParams: URLSe
   };
 }
 
-export async function getSystemConfiguration(context: HafizContext) {
+export async function getSystemConfiguration(context: HafizContext, requestedInstitutionID?: string | null) {
   requireAdmin(context);
-  const institutionID = requireInstitutionAccess(context, null);
+  const institutionID = requireInstitutionAccess(context, requestedInstitutionID || null);
   const snapshot = await adminDb.collection("hafiz_system_config").doc(institutionID).get();
   const data = snapshot.data() || {};
   return {

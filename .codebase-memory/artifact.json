@@ -1,11 +1,11 @@
 {
     "schema_version": 2,
-    "commit": "ea9dfe365c7fe344600e4dc6fae24222fc620d33",
-    "indexed_at": "2026-09-27T12:07:14Z",
+    "commit": "11d63668fa181a5a6a42dad4c4dacb569ee51832",
+    "indexed_at": "2026-09-27T12:27:19Z",
     "project": "dromocob-backend",
-    "nodes": 3350,
-    "edges": 9836,
+    "nodes": 3401,
+    "edges": 9990,
     "original_size": 9306112,
-    "compressed_size": 1958635,
+    "compressed_size": 1978533,
     "compression_level": 9
 }

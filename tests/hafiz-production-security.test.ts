@@ -92,3 +92,15 @@ test("admin control plane is role guarded, bounded and strips unsafe audit data"
   assert.throws(() => parseManagedAccountStatus("SUPERUSER"));
   assert.deepEqual(safeAuditMetadata({ safeKey: "x".repeat(500), "bad-key!": "secret", nested: { token: "no" } }), { safeKey: "x".repeat(300) });
 });
+
+test("web admin bootstrap is restricted to an existing super admin", () => {
+  const route = readFileSync(new URL("../app/api/admin/hafiz/bootstrap/route.ts", import.meta.url), "utf8");
+  const bootstrap = readFileSync(new URL("../lib/hafiz/web-admin-bootstrap.ts", import.meta.url), "utf8");
+  assert.match(route, /bootstrapHafizWebAdmin\(request\.headers\.get\("authorization"\)\)/);
+  assert.match(bootstrap, /requireAdminRole\(authorization, \["super_admin"\]\)/);
+  assert.match(bootstrap, /!user\.emailVerified/);
+  assert.match(bootstrap, /hafizPlatformAdmin: true/);
+  assert.match(bootstrap, /role: "ADMIN"/);
+  assert.match(bootstrap, /activeMembershipId: membershipID/);
+  assert.doesNotMatch(bootstrap, /request\.json/);
+});

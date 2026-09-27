@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useState } from "react";
-import { BarChart3, Boxes, CircleGauge, Command, Crown, ExternalLink, FolderKanban, GalleryVerticalEnd, Gift, Globe2, KeyRound, LogOut, Mail, Megaphone, Menu, MessageSquare, Package, RadioTower, Rocket, Settings2, Smartphone, Sparkles, X } from "lucide-react";
+import { BarChart3, BookOpenCheck, Boxes, CircleGauge, Command, Crown, ExternalLink, FolderKanban, GalleryVerticalEnd, Gift, Globe2, KeyRound, LogOut, Mail, Megaphone, Menu, MessageSquare, Package, RadioTower, Rocket, Settings2, Smartphone, Sparkles, X } from "lucide-react";
 
 const nav = [
   { icon: CircleGauge, label: "Genel Bakış", href: "/admin", group: "Komuta" },
@@ -16,6 +16,7 @@ const nav = [
   { icon: KeyRound, label: "Lisans Cloud", href: "/admin/lisanslar", group: "Ürünler" },
   { icon: Crown, label: "Mobil Hesaplar", href: "/admin/mobil-hesaplar", group: "Ürünler" },
   { icon: RadioTower, label: "Uygulama Kontrolü", href: "/admin/uygulama-kontrol", group: "Ürünler" },
+  { icon: BookOpenCheck, label: "Hafız", href: "/admin/hafiz", group: "Ürünler", live: true },
   { icon: FolderKanban, label: "Projeler", href: "/admin/projeler", group: "İçerik" },
   { icon: Package, label: "Paketler", href: "/admin/paketler", group: "İçerik" },
   { icon: Sparkles, label: "Teklif Motoru", href: "/admin/teklif", group: "İçerik" },
