@@ -93,6 +93,32 @@ export async function updateDirectoryRecord(
       : personConfiguration[resource].collection;
   const reference = adminDb.collection(collection).doc(id);
 
+  if (payload.password !== undefined) {
+    if (resource !== "teachers" && resource !== "students" && resource !== "parents") {
+      throw invalidInput("Bu kayıt türü için giriş şifresi tanımlanamaz.");
+    }
+    const snapshot = await reference.get();
+    if (!snapshot.exists) throw notFound();
+    const data = snapshot.data() || {};
+    const institutionID = requireInstitutionAccess(
+      context,
+      requiredString(data.institutionId),
+    );
+    const userID = requiredString(data.userId);
+    const password = requiredPassword(payload.password);
+    await adminAuth.updateUser(userID, { password, disabled: false });
+    await adminDb.collection("hafiz_audit_events").add({
+      institutionId: institutionID,
+      actorMembershipId: context.membershipID,
+      actorUserId: context.userID,
+      action: `${personConfiguration[resource].role}_PASSWORD_RESET`,
+      resourceType: resource,
+      resourceId: id,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+    return { ok: true };
+  }
+
   await adminDb.runTransaction(async transaction => {
     const snapshot = await transaction.get(reference);
     if (!snapshot.exists) throw notFound();
@@ -220,6 +246,7 @@ async function createPerson(
 ) {
   const email = requiredText(payload.email, "E-posta", 5, 320).toLowerCase();
   const displayName = requiredText(payload.displayName, "Ad soyad", 2, 120);
+  const password = requiredPassword(payload.password);
   const config = personConfiguration[resource];
   let createdFirebaseUser = false;
   let user;
@@ -227,8 +254,17 @@ async function createPerson(
     user = await adminAuth.getUserByEmail(email);
   } catch (error) {
     if ((error as { code?: string }).code !== "auth/user-not-found") throw error;
-    user = await adminAuth.createUser({ email, displayName, disabled: false });
+    user = await adminAuth.createUser({ email, password, displayName, disabled: false });
     createdFirebaseUser = true;
+  }
+
+  const hasPasswordProvider = user.providerData.some(provider => provider.providerId === "password");
+  if (!createdFirebaseUser && hasPasswordProvider) {
+    throw new HafizAuthorizationError(
+      403,
+      "ACCOUNT_ALREADY_HAS_PASSWORD",
+      "Bu e-posta için giriş şifresi zaten tanımlı. Mevcut hesabı kullanın veya güvenli şifre sıfırlama akışını başlatın.",
+    );
   }
 
   const membershipID = `${institutionID}_${user.uid}_${config.role.toLowerCase()}`;
@@ -275,6 +311,22 @@ async function createPerson(
   } catch (error) {
     if (createdFirebaseUser) await adminAuth.deleteUser(user.uid).catch(() => undefined);
     throw error;
+  }
+
+  if (!createdFirebaseUser) {
+    try {
+      await adminAuth.updateUser(user.uid, { password, displayName, disabled: false });
+    } catch (error) {
+      await adminDb.runTransaction(async transaction => {
+        const scopeSnapshot = await transaction.get(scopeReference);
+        transaction.delete(membershipReference);
+        transaction.delete(profileReference);
+        if (scopeSnapshot.data()?.activeMembershipId === membershipID) {
+          transaction.delete(scopeReference);
+        }
+      }).catch(() => undefined);
+      throw error;
+    }
   }
   return { id: membershipID };
 }
@@ -323,6 +375,16 @@ function requiredText(value: unknown, label: string, min: number, max: number): 
   const result = value.trim();
   if (result.length < min || result.length > max) throw invalidInput(`${label} geçersiz.`);
   return result;
+}
+
+function requiredPassword(value: unknown): string {
+  if (typeof value !== "string" || value.length < 8 || value.length > 128) {
+    throw invalidInput("Şifre en az 8, en fazla 128 karakter olmalı.");
+  }
+  if (!/[A-Za-zÇĞİÖŞÜçğıöşü]/.test(value) || !/[0-9]/.test(value)) {
+    throw invalidInput("Şifre en az bir harf ve bir rakam içermeli.");
+  }
+  return value;
 }
 
 function optionalString(value: unknown): string | null {

@@ -75,6 +75,18 @@ test("registration remains pending until an institution admin approves trusted s
   assert.match(repository, /decision === "APPROVE"/);
 });
 
+test("admin-created people receive Firebase credentials without persisting a password", () => {
+  const directory = readFileSync(new URL("../lib/hafiz/directory.ts", import.meta.url), "utf8");
+  assert.match(directory, /const password = requiredPassword\(payload\.password\)/);
+  assert.match(directory, /adminAuth\.createUser\(\{ email, password, displayName, disabled: false \}\)/);
+  assert.match(directory, /provider\.providerId === "password"/);
+  assert.match(directory, /ACCOUNT_ALREADY_HAS_PASSWORD/);
+  assert.match(directory, /adminAuth\.updateUser\(userID, \{ password, disabled: false \}\)/);
+  assert.match(directory, /_PASSWORD_RESET/);
+  assert.doesNotMatch(directory, /transaction\.(?:create|set|update)\([^\n]+password/);
+  assert.doesNotMatch(directory, /metadata: [^\n]*password/);
+});
+
 test("teacher class visibility requires an explicit admin-managed assignment", () => {
   const relationships = readFileSync(new URL("../lib/hafiz/relationships.ts", import.meta.url), "utf8");
   const adminCenter = readFileSync(new URL("../components/admin/hafiz-control-center.tsx", import.meta.url), "utf8");
