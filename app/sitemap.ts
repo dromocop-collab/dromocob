@@ -29,7 +29,7 @@ const updated = {
   products: "2026-08-17",
   licenses: "2026-08-17",
   packages: "2026-08-17",
-  legal: "2026-08-17",
+  legal: "2026-09-28",
 } as const;
 
 const openGraphImage = "/opengraph-image";
@@ -132,6 +132,7 @@ const publicRoutes: PublicRoute[] = [
 },
   { path: "/kalori-merkezi/destek", priority: 0.3, changeFrequency: "yearly", lastModified: updated.legal },
   { path: "/kalori-merkezi/gizlilik", priority: 0.3, changeFrequency: "yearly", lastModified: updated.legal },
+  { path: "/hafiz/gizlilik", priority: 0.3, changeFrequency: "yearly", lastModified: updated.legal },
   { path: "/kurumsal", priority: 0.84, changeFrequency: "monthly", lastModified: updated.core, images: [openGraphImage] },
   { path: "/hakkimda", priority: 0.76, changeFrequency: "monthly", lastModified: updated.core, images: [openGraphImage] },
   { path: "/iletisim", priority: 0.82, changeFrequency: "monthly", lastModified: updated.core, images: [openGraphImage] },
