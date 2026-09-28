@@ -110,6 +110,42 @@ test("admin control plane is role guarded, bounded and strips unsafe audit data"
   assert.deepEqual(safeAuditMetadata({ safeKey: "x".repeat(500), "bad-key!": "secret", nested: { token: "no" } }), { safeKey: "x".repeat(300) });
 });
 
+test("student institution transfer is platform-admin guarded and revokes old active links", () => {
+  const route = readFileSync("app/api/hafiz/admin/student-transfer/route.ts", "utf8");
+  const repository = readFileSync("lib/hafiz/admin-repository.ts", "utf8");
+  assert.match(route, /requireHafizContext\(request, \["ADMIN"\]\)/);
+  assert.match(repository, /PLATFORM_ADMIN_REQUIRED/);
+  assert.match(repository, /STUDENT_INSTITUTION_TRANSFERRED/);
+  assert.match(repository, /STUDENT_TRANSFERRED_OUT/);
+  assert.match(repository, /STUDENT_TRANSFERRED_IN/);
+  assert.match(repository, /activeMembershipId: membershipID/);
+  assert.match(repository, /status: "REVOKED"/);
+});
+
+test("directory institution transfer is platform-admin guarded and preserves historical scope", () => {
+  const route = readFileSync("app/api/hafiz/admin/directory-transfer/route.ts", "utf8");
+  const repository = readFileSync("lib/hafiz/admin-repository.ts", "utf8");
+  assert.match(route, /requireHafizContext\(request, \["ADMIN"\]\)/);
+  assert.match(repository, /requirePlatformAdmin\(context\)/);
+  assert.match(repository, /deactivatedReason: `\$\{role\}_INSTITUTION_TRANSFERRED`/);
+  assert.match(repository, /CLASS_INSTITUTION_TRANSFERRED/);
+  assert.match(repository, /transferredFromClassId/);
+  assert.match(repository, /transaction\.update\(sourceReference, \{\s*status: "INACTIVE"/);
+});
+
+test("institution transfer queries have explicit composite indexes", () => {
+  const config = JSON.parse(readFileSync("firestore.indexes.json", "utf8")) as {
+    indexes: Array<{ collectionGroup: string; fields: Array<{ fieldPath: string }> }>;
+  };
+  const hasIndex = (collection: string, fields: string[]) => config.indexes.some(index =>
+    index.collectionGroup === collection
+      && fields.every(field => index.fields.some(candidate => candidate.fieldPath === field))
+  );
+  assert.equal(hasIndex("hafiz_teacher_class_assignments", ["institutionId", "classId", "status"]), true);
+  assert.equal(hasIndex("hafiz_parent_student_links", ["institutionId", "studentMembershipId", "status"]), true);
+  assert.equal(hasIndex("hafiz_assignment_quran_grants", ["institutionId", "studentMembershipId", "status"]), true);
+});
+
 test("web admin bootstrap is restricted to an existing super admin", () => {
   const route = readFileSync(new URL("../app/api/admin/hafiz/bootstrap/route.ts", import.meta.url), "utf8");
   const bootstrap = readFileSync(new URL("../lib/hafiz/web-admin-bootstrap.ts", import.meta.url), "utf8");

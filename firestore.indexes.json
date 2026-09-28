@@ -156,6 +156,11 @@
       "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "teacherMembershipId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
     },
     {
+      "collectionGroup": "hafiz_teacher_class_assignments",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "classId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
+    },
+    {
       "collectionGroup": "hafiz_class_memberships",
       "queryScope": "COLLECTION",
       "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "classId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
@@ -169,6 +174,16 @@
       "collectionGroup": "hafiz_parent_student_links",
       "queryScope": "COLLECTION",
       "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "parentMembershipId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_parent_student_links",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
+    },
+    {
+      "collectionGroup": "hafiz_assignment_quran_grants",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "status", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "hafiz_assignment_recipients",

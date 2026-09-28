@@ -207,6 +207,302 @@ export async function updateAccountStatus(context: HafizContext, body: unknown) 
   return { ok: true, status };
 }
 
+export async function transferStudentInstitution(context: HafizContext, body: unknown) {
+  requireAdmin(context);
+  if (!context.isPlatformAdmin) {
+    throw new HafizAuthorizationError(
+      403,
+      "PLATFORM_ADMIN_REQUIRED",
+      "Kurumlar arası öğrenci taşıma için platform yöneticisi yetkisi gerekli.",
+    );
+  }
+  const payload = asObject(body);
+  const membershipID = requiredText(payload.membershipId, 3, 300);
+  const targetInstitutionID = requiredText(payload.targetInstitutionId, 3, 200);
+  if (membershipID === context.membershipID) throw invalidInput("Yönetici hesabı taşınamaz.");
+
+  const membershipReference = adminDb.collection("hafiz_memberships").doc(membershipID);
+  const profileReference = adminDb.collection("hafiz_student_profiles").doc(membershipID);
+  const targetInstitutionReference = adminDb.collection("hafiz_institutions").doc(targetInstitutionID);
+  const [membership, profile, targetInstitution] = await Promise.all([
+    membershipReference.get(),
+    profileReference.get(),
+    targetInstitutionReference.get(),
+  ]);
+  if (!membership.exists || !profile.exists || membership.data()?.role !== "STUDENT") throw notFound();
+  const sourceInstitutionID = requiredText(membership.data()?.institutionId, 3, 200);
+  if (profile.data()?.institutionId !== sourceInstitutionID) throw invalidInput("Öğrenci kapsamı tutarsız.");
+  if (sourceInstitutionID === targetInstitutionID) throw invalidInput("Öğrenci zaten bu kurumda.");
+  if (!targetInstitution.exists || targetInstitution.data()?.status !== "ACTIVE") {
+    throw invalidInput("Hedef kurum aktif değil.");
+  }
+  const userID = requiredText(membership.data()?.userId, 3, 200);
+
+  const [classLinks, parentLinks, quranGrants] = await Promise.all([
+    adminDb.collection("hafiz_class_memberships")
+      .where("institutionId", "==", sourceInstitutionID)
+      .where("studentMembershipId", "==", membershipID)
+      .where("status", "==", "ACTIVE").limit(120).get(),
+    adminDb.collection("hafiz_parent_student_links")
+      .where("institutionId", "==", sourceInstitutionID)
+      .where("studentMembershipId", "==", membershipID)
+      .where("status", "==", "ACTIVE").limit(120).get(),
+    adminDb.collection("hafiz_assignment_quran_grants")
+      .where("institutionId", "==", sourceInstitutionID)
+      .where("studentMembershipId", "==", membershipID)
+      .where("status", "==", "ACTIVE").limit(120).get(),
+  ]);
+
+  await adminDb.runTransaction(async transaction => {
+    const [freshMembership, freshProfile, freshTarget] = await Promise.all([
+      transaction.get(membershipReference),
+      transaction.get(profileReference),
+      transaction.get(targetInstitutionReference),
+    ]);
+    if (!freshMembership.exists || !freshProfile.exists
+      || freshMembership.data()?.role !== "STUDENT"
+      || freshMembership.data()?.institutionId !== sourceInstitutionID
+      || freshProfile.data()?.institutionId !== sourceInstitutionID
+      || freshTarget.data()?.status !== "ACTIVE") throw invalidInput("Taşıma kapsamı değişti; tekrar deneyin.");
+
+    const transferFields = {
+      institutionId: targetInstitutionID,
+      transferredFromInstitutionId: sourceInstitutionID,
+      transferredAt: FieldValue.serverTimestamp(),
+      transferredBy: context.membershipID,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: context.membershipID,
+    };
+    transaction.update(membershipReference, transferFields);
+    transaction.update(profileReference, transferFields);
+    transaction.set(adminDb.collection("hafiz_user_scopes").doc(userID), {
+      status: "ACTIVE",
+      activeMembershipId: membershipID,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: context.membershipID,
+    }, { merge: true });
+
+    for (const document of classLinks.docs) {
+      transaction.update(document.ref, {
+        status: "INACTIVE",
+        deactivatedReason: "STUDENT_INSTITUTION_TRANSFERRED",
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: context.membershipID,
+      });
+    }
+    for (const document of parentLinks.docs) {
+      transaction.update(document.ref, {
+        status: "INACTIVE",
+        deactivatedReason: "STUDENT_INSTITUTION_TRANSFERRED",
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: context.membershipID,
+      });
+    }
+    for (const document of quranGrants.docs) {
+      transaction.update(document.ref, {
+        status: "REVOKED",
+        revokedReason: "STUDENT_INSTITUTION_TRANSFERRED",
+        revokedAt: FieldValue.serverTimestamp(),
+        updatedBy: context.membershipID,
+      });
+    }
+    writeAudit(transaction, context, sourceInstitutionID, "STUDENT_TRANSFERRED_OUT", "student", membershipID, {
+      targetInstitutionId: targetInstitutionID,
+    });
+    writeAudit(transaction, context, targetInstitutionID, "STUDENT_TRANSFERRED_IN", "student", membershipID, {
+      sourceInstitutionId: sourceInstitutionID,
+    });
+  });
+  return {
+    ok: true,
+    membershipId: membershipID,
+    sourceInstitutionId: sourceInstitutionID,
+    targetInstitutionId: targetInstitutionID,
+  };
+}
+
+export async function transferDirectoryEntityInstitution(context: HafizContext, body: unknown) {
+  requireAdmin(context);
+  requirePlatformAdmin(context);
+  const payload = asObject(body);
+  const resource = requiredText(payload.resource, 3, 40);
+  const id = requiredText(payload.id, 3, 300);
+  const targetInstitutionID = requiredText(payload.targetInstitutionId, 3, 200);
+  if (resource === "students") {
+    return transferStudentInstitution(context, {
+      membershipId: id,
+      targetInstitutionId: targetInstitutionID,
+    });
+  }
+  if (resource === "teachers" || resource === "parents") {
+    return transferPersonInstitution(context, resource, id, targetInstitutionID);
+  }
+  if (resource === "classes") {
+    return transferClassInstitution(context, id, targetInstitutionID);
+  }
+  throw invalidInput("Bu kayıt türü kurumlar arasında taşınamaz.");
+}
+
+async function transferPersonInstitution(
+  context: HafizContext,
+  resource: "teachers" | "parents",
+  membershipID: string,
+  targetInstitutionID: string,
+) {
+  const role = resource === "teachers" ? "TEACHER" : "PARENT";
+  const profileCollection = resource === "teachers"
+    ? "hafiz_teacher_profiles"
+    : "hafiz_parent_profiles";
+  const membershipReference = adminDb.collection("hafiz_memberships").doc(membershipID);
+  const profileReference = adminDb.collection(profileCollection).doc(membershipID);
+  const targetReference = adminDb.collection("hafiz_institutions").doc(targetInstitutionID);
+  const [membership, profile, target] = await Promise.all([
+    membershipReference.get(),
+    profileReference.get(),
+    targetReference.get(),
+  ]);
+  if (!membership.exists || !profile.exists || membership.data()?.role !== role) throw notFound();
+  const sourceInstitutionID = requiredText(membership.data()?.institutionId, 3, 200);
+  if (profile.data()?.institutionId !== sourceInstitutionID) throw invalidInput("Kullanıcı kapsamı tutarsız.");
+  if (sourceInstitutionID === targetInstitutionID) throw invalidInput("Kullanıcı zaten bu kurumda.");
+  if (!target.exists || target.data()?.status !== "ACTIVE") throw invalidInput("Hedef kurum aktif değil.");
+  const userID = requiredText(membership.data()?.userId, 3, 200);
+  const links = resource === "teachers"
+    ? await adminDb.collection("hafiz_teacher_class_assignments")
+      .where("institutionId", "==", sourceInstitutionID)
+      .where("teacherMembershipId", "==", membershipID)
+      .where("status", "==", "ACTIVE").limit(200).get()
+    : await adminDb.collection("hafiz_parent_student_links")
+      .where("institutionId", "==", sourceInstitutionID)
+      .where("parentMembershipId", "==", membershipID)
+      .where("status", "==", "ACTIVE").limit(200).get();
+
+  await adminDb.runTransaction(async transaction => {
+    const [freshMembership, freshProfile, freshTarget] = await Promise.all([
+      transaction.get(membershipReference),
+      transaction.get(profileReference),
+      transaction.get(targetReference),
+    ]);
+    if (!freshMembership.exists || !freshProfile.exists
+      || freshMembership.data()?.role !== role
+      || freshMembership.data()?.institutionId !== sourceInstitutionID
+      || freshProfile.data()?.institutionId !== sourceInstitutionID
+      || freshTarget.data()?.status !== "ACTIVE") throw invalidInput("Taşıma kapsamı değişti; tekrar deneyin.");
+    const fields = {
+      institutionId: targetInstitutionID,
+      transferredFromInstitutionId: sourceInstitutionID,
+      transferredAt: FieldValue.serverTimestamp(),
+      transferredBy: context.membershipID,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: context.membershipID,
+    };
+    transaction.update(membershipReference, fields);
+    transaction.update(profileReference, fields);
+    transaction.set(adminDb.collection("hafiz_user_scopes").doc(userID), {
+      status: "ACTIVE",
+      activeMembershipId: membershipID,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: context.membershipID,
+    }, { merge: true });
+    for (const document of links.docs) {
+      transaction.update(document.ref, {
+        status: "INACTIVE",
+        deactivatedReason: `${role}_INSTITUTION_TRANSFERRED`,
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: context.membershipID,
+      });
+    }
+    writeAudit(transaction, context, sourceInstitutionID, `${role}_TRANSFERRED_OUT`, resource, membershipID, {
+      targetInstitutionId: targetInstitutionID,
+    });
+    writeAudit(transaction, context, targetInstitutionID, `${role}_TRANSFERRED_IN`, resource, membershipID, {
+      sourceInstitutionId: sourceInstitutionID,
+    });
+  });
+  return { ok: true, id: membershipID, sourceInstitutionId: sourceInstitutionID, targetInstitutionId: targetInstitutionID };
+}
+
+async function transferClassInstitution(
+  context: HafizContext,
+  classID: string,
+  targetInstitutionID: string,
+) {
+  const sourceReference = adminDb.collection("hafiz_classes").doc(classID);
+  const targetInstitutionReference = adminDb.collection("hafiz_institutions").doc(targetInstitutionID);
+  const [source, target] = await Promise.all([sourceReference.get(), targetInstitutionReference.get()]);
+  if (!source.exists) throw notFound();
+  const sourceData = source.data() || {};
+  const sourceInstitutionID = requiredText(sourceData.institutionId, 3, 200);
+  if (sourceInstitutionID === targetInstitutionID) throw invalidInput("Sınıf zaten bu kurumda.");
+  if (!target.exists || target.data()?.status !== "ACTIVE") throw invalidInput("Hedef kurum aktif değil.");
+  const targetReference = adminDb.collection("hafiz_classes").doc();
+  const [studentLinks, teacherLinks] = await Promise.all([
+    adminDb.collection("hafiz_class_memberships")
+      .where("institutionId", "==", sourceInstitutionID)
+      .where("classId", "==", classID)
+      .where("status", "==", "ACTIVE").limit(200).get(),
+    adminDb.collection("hafiz_teacher_class_assignments")
+      .where("institutionId", "==", sourceInstitutionID)
+      .where("classId", "==", classID)
+      .where("status", "==", "ACTIVE").limit(200).get(),
+  ]);
+  await adminDb.runTransaction(async transaction => {
+    const [freshSource, freshTarget] = await Promise.all([
+      transaction.get(sourceReference),
+      transaction.get(targetInstitutionReference),
+    ]);
+    if (!freshSource.exists || freshSource.data()?.institutionId !== sourceInstitutionID
+      || freshTarget.data()?.status !== "ACTIVE") throw invalidInput("Taşıma kapsamı değişti; tekrar deneyin.");
+    transaction.create(targetReference, {
+      institutionId: targetInstitutionID,
+      name: String(sourceData.name || "Sınıf"),
+      nameNormalized: String(sourceData.nameNormalized || "sınıf"),
+      academicPeriod: sourceData.academicPeriod || null,
+      status: "ACTIVE",
+      transferredFromClassId: classID,
+      createdAt: FieldValue.serverTimestamp(),
+      createdBy: context.membershipID,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: context.membershipID,
+    });
+    transaction.update(sourceReference, {
+      status: "INACTIVE",
+      transferredToClassId: targetReference.id,
+      transferredAt: FieldValue.serverTimestamp(),
+      transferredBy: context.membershipID,
+      updatedAt: FieldValue.serverTimestamp(),
+      updatedBy: context.membershipID,
+    });
+    for (const document of [...studentLinks.docs, ...teacherLinks.docs]) {
+      transaction.update(document.ref, {
+        status: "INACTIVE",
+        deactivatedReason: "CLASS_INSTITUTION_TRANSFERRED",
+        updatedAt: FieldValue.serverTimestamp(),
+        updatedBy: context.membershipID,
+      });
+    }
+    writeAudit(transaction, context, sourceInstitutionID, "CLASS_TRANSFERRED_OUT", "classes", classID, {
+      targetInstitutionId: targetInstitutionID,
+      targetClassId: targetReference.id,
+    });
+    writeAudit(transaction, context, targetInstitutionID, "CLASS_TRANSFERRED_IN", "classes", targetReference.id, {
+      sourceInstitutionId: sourceInstitutionID,
+      sourceClassId: classID,
+    });
+  });
+  return { ok: true, id: targetReference.id, sourceInstitutionId: sourceInstitutionID, targetInstitutionId: targetInstitutionID };
+}
+
+function requirePlatformAdmin(context: HafizContext) {
+  if (!context.isPlatformAdmin) {
+    throw new HafizAuthorizationError(
+      403,
+      "PLATFORM_ADMIN_REQUIRED",
+      "Kurumlar arası taşıma için platform yöneticisi yetkisi gerekli.",
+    );
+  }
+}
+
 function requireAdmin(context: HafizContext) {
   if (context.role !== "ADMIN") throw new HafizAuthorizationError(403, "ROLE_FORBIDDEN", "Yönetici yetkisi gerekli.");
 }
