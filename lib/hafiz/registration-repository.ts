@@ -37,6 +37,10 @@ export async function submitRegistrationRequest(
   const institutionReference = adminDb.collection("hafiz_institutions").doc(institutionID);
   const scopeReference = adminDb.collection("hafiz_user_scopes").doc(auth.userID);
   const mobileAccountReference = adminDb.collection("mobile_app_users").doc(auth.userID);
+  const autoApproveStudent = requestedRole === "STUDENT";
+  const membershipID = `${institutionID}_${auth.userID}_${requestedRole.toLowerCase()}`;
+  const membershipReference = adminDb.collection("hafiz_memberships").doc(membershipID);
+  const profileReference = adminDb.collection(profileCollections[requestedRole]).doc(membershipID);
 
   await adminDb.runTransaction(async transaction => {
     const [institution, existing, scope] = await Promise.all([
@@ -70,6 +74,7 @@ export async function submitRegistrationRequest(
       });
     }
 
+    const now = FieldValue.serverTimestamp();
     transaction.set(requestReference, {
       userId: auth.userID,
       email: auth.email,
@@ -77,41 +82,154 @@ export async function submitRegistrationRequest(
       nameNormalized: normalize(displayName),
       institutionId: institutionID,
       requestedRole,
-      status: "PENDING",
-      createdAt: existing.exists ? existing.data()?.createdAt : FieldValue.serverTimestamp(),
+      status: autoApproveStudent ? "APPROVED" : "PENDING",
+      createdAt: existing.exists ? existing.data()?.createdAt : now,
       createdBy: auth.userID,
-      updatedAt: FieldValue.serverTimestamp(),
+      ...(autoApproveStudent ? { reviewedAt: now, reviewedBy: "student-self-registration" } : {}),
+      updatedAt: now,
       updatedBy: auth.userID,
     });
+    if (autoApproveStudent) {
+      const common = {
+        institutionId: institutionID,
+        membershipId: membershipID,
+        userId: auth.userID,
+        status: "ACTIVE",
+        createdAt: now,
+        createdBy: "student-self-registration",
+        updatedAt: now,
+        updatedBy: "student-self-registration",
+      };
+      transaction.create(membershipReference, { ...common, role: requestedRole });
+      transaction.create(profileReference, {
+        ...common,
+        displayName,
+        nameNormalized: normalize(displayName),
+        email: auth.email,
+      });
+      transaction.create(scopeReference, {
+        status: "ACTIVE",
+        activeMembershipId: membershipID,
+        createdAt: now,
+        createdBy: "student-self-registration",
+        updatedAt: now,
+        updatedBy: "student-self-registration",
+      });
+    }
     transaction.set(mobileAccountReference, {
       apps: FieldValue.arrayUnion("hafiz"),
-      lastSeenAt: FieldValue.serverTimestamp(),
+      lastSeenAt: now,
     }, { merge: true });
     transaction.create(adminDb.collection("hafiz_audit_events").doc(), {
       institutionId: institutionID,
       actorUserId: auth.userID,
       actorMembershipId: "registration",
-      action: existing.exists ? "REGISTRATION_RESUBMITTED" : "REGISTRATION_SUBMITTED",
+      action: autoApproveStudent
+        ? "STUDENT_REGISTRATION_AUTO_APPROVED"
+        : (existing.exists ? "REGISTRATION_RESUBMITTED" : "REGISTRATION_SUBMITTED"),
       resourceType: "registrationRequest",
       resourceId: auth.userID,
-      metadata: safeAuditMetadata({ requestedRole }),
-      createdAt: FieldValue.serverTimestamp(),
+      metadata: safeAuditMetadata({ requestedRole, membershipId: autoApproveStudent ? membershipID : null }),
+      createdAt: now,
     });
   });
 
-  await adminAuth.updateUser(auth.userID, { displayName });
-  return { ok: true, status: "PENDING" as const };
+  await adminAuth.updateUser(auth.userID, { displayName, disabled: false });
+  return { ok: true, status: autoApproveStudent ? "APPROVED" as const : "PENDING" as const };
 }
 
 export async function getRegistrationStatus(auth: HafizFirebaseIdentity) {
   const snapshot = await adminDb.collection("hafiz_registration_requests").doc(auth.userID).get();
   if (!snapshot.exists) throw notFound();
   const data = snapshot.data() || {};
+  if (data.status === "PENDING" && data.requestedRole === "STUDENT") {
+    const approved = await autoApprovePendingStudentRegistration(auth);
+    if (approved) {
+      return {
+        status: "APPROVED" as const,
+        displayName: String(data.displayName || ""),
+        requestedRole: "STUDENT",
+      };
+    }
+  }
   return {
     status: registrationStatus(String(data.status || "PENDING")),
     displayName: String(data.displayName || ""),
     requestedRole: String(data.requestedRole || "STUDENT"),
   };
+}
+
+async function autoApprovePendingStudentRegistration(auth: HafizFirebaseIdentity) {
+  const requestReference = adminDb.collection("hafiz_registration_requests").doc(auth.userID);
+  const scopeReference = adminDb.collection("hafiz_user_scopes").doc(auth.userID);
+  const approved = await adminDb.runTransaction(async transaction => {
+    const request = await transaction.get(requestReference);
+    const data = request.data() || {};
+    if (data.status === "APPROVED") return true;
+    if (data.status !== "PENDING" || data.requestedRole !== "STUDENT") return false;
+
+    const institutionID = requiredID(data.institutionId, "Kurum");
+    const institutionReference = adminDb.collection("hafiz_institutions").doc(institutionID);
+    const [institution, scope] = await Promise.all([
+      transaction.get(institutionReference),
+      transaction.get(scopeReference),
+    ]);
+    if (!institution.exists || institution.data()?.status !== "ACTIVE" || scope.exists) {
+      return false;
+    }
+
+    const membershipID = `${institutionID}_${auth.userID}_student`;
+    const membershipReference = adminDb.collection("hafiz_memberships").doc(membershipID);
+    const profileReference = adminDb.collection(profileCollections.STUDENT).doc(membershipID);
+    const displayName = requiredText(data.displayName, "Ad soyad", 2, 120);
+    const email = requiredText(data.email || auth.email, "E-posta", 5, 320);
+    const now = FieldValue.serverTimestamp();
+    const common = {
+      institutionId: institutionID,
+      membershipId: membershipID,
+      userId: auth.userID,
+      status: "ACTIVE",
+      createdAt: now,
+      createdBy: "student-auto-approval-migration",
+      updatedAt: now,
+      updatedBy: "student-auto-approval-migration",
+    };
+    transaction.create(membershipReference, { ...common, role: "STUDENT" });
+    transaction.create(profileReference, {
+      ...common,
+      displayName,
+      nameNormalized: normalize(displayName),
+      email,
+    });
+    transaction.create(scopeReference, {
+      status: "ACTIVE",
+      activeMembershipId: membershipID,
+      createdAt: now,
+      createdBy: "student-auto-approval-migration",
+      updatedAt: now,
+      updatedBy: "student-auto-approval-migration",
+    });
+    transaction.update(requestReference, {
+      status: "APPROVED",
+      reviewedAt: now,
+      reviewedBy: "student-auto-approval-migration",
+      updatedAt: now,
+      updatedBy: "student-auto-approval-migration",
+    });
+    transaction.create(adminDb.collection("hafiz_audit_events").doc(), {
+      institutionId: institutionID,
+      actorUserId: auth.userID,
+      actorMembershipId: "registration",
+      action: "STUDENT_REGISTRATION_AUTO_APPROVED",
+      resourceType: "registrationRequest",
+      resourceId: auth.userID,
+      metadata: safeAuditMetadata({ requestedRole: "STUDENT", membershipId: membershipID }),
+      createdAt: now,
+    });
+    return true;
+  });
+  if (approved) await adminAuth.updateUser(auth.userID, { disabled: false });
+  return approved;
 }
 
 export async function listRegistrationRequests(

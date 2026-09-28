@@ -4,6 +4,7 @@ import test from "node:test";
 import { assignmentPreset, type AssignmentWorkflowStep } from "../lib/hafiz/assignment-schema.ts";
 import {
   initializeWorkflow,
+  maySubmitDifficulty,
   normalizeStoredWorkflow,
   transitionWorkflow,
   WorkflowTransitionError,
@@ -121,6 +122,13 @@ test("legacy all-locked progress is repaired with the first step available", () 
 test("normalized progress omits absent Firestore optional values", () => {
   const repaired = normalizeStoredWorkflow(steps, initializeWorkflow(steps, true).progress, true);
   assert.equal(Object.hasOwn(repaired.progress[1], "updatedAt"), false);
+});
+
+test("difficulty feedback remains available after student completion and teacher approval", () => {
+  assert.equal(maySubmitDifficulty("STUDENT_WORK_COMPLETE"), true);
+  assert.equal(maySubmitDifficulty("AWAITING_REVIEW"), true);
+  assert.equal(maySubmitDifficulty("APPROVED"), true);
+  assert.equal(maySubmitDifficulty("IN_PROGRESS"), false);
 });
 
 function initializeFromStored(progress: ReturnType<typeof initializeWorkflow>["progress"]) {

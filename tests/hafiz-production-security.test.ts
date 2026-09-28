@@ -58,7 +58,7 @@ test("direct Firestore and Storage access remain default-denied", () => {
   assert.match(storage, /match \/hafiz-private-audio\/\{allPaths=\*\*\} \{\s*allow read, write: if false;/);
 });
 
-test("registration remains pending until an institution admin approves trusted scope", () => {
+test("student registration is auto-approved while teacher and parent remain admin-approved", () => {
   const publicRoute = readFileSync(new URL("../app/api/hafiz/auth/register/route.ts", import.meta.url), "utf8");
   const adminRoute = readFileSync(new URL("../app/api/hafiz/admin/registration-requests/route.ts", import.meta.url), "utf8");
   const repository = readFileSync(new URL("../lib/hafiz/registration-repository.ts", import.meta.url), "utf8");
@@ -67,11 +67,13 @@ test("registration remains pending until an institution admin approves trusted s
   assert.match(adminRoute, /requireHafizContext\(request, \["ADMIN"\]\)/);
   assert.match(repository, /const REGISTRATION_ROLES = \["STUDENT", "TEACHER", "PARENT"\]/);
   assert.doesNotMatch(repository, /REGISTRATION_ROLES[^\n]+ADMIN/);
-  assert.match(repository, /status: "PENDING"/);
+  assert.match(repository, /const autoApproveStudent = requestedRole === "STUDENT"/);
+  assert.match(repository, /status: autoApproveStudent \? "APPROVED" : "PENDING"/);
+  assert.match(repository, /STUDENT_REGISTRATION_AUTO_APPROVED/);
+  assert.match(repository, /transaction\.create\(scopeReference/);
   assert.match(repository, /optionalInstitutionID\(payload\.institutionCode\)/);
   assert.match(repository, /DEFAULT_REGISTRATION_INSTITUTION_ID/);
   assert.match(repository, /transaction\.create\(institutionReference/);
-  assert.match(repository, /transaction\.create\(scopeReference/);
   assert.match(repository, /decision === "APPROVE"/);
 });
 

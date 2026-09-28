@@ -1,7 +1,12 @@
 import type { AssignmentWorkflowStep, WorkflowStepType } from "./assignment-schema";
 
 export type StepState = "LOCKED" | "AVAILABLE" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED" | "AWAITING_REVIEW";
-export type RecipientWorkflowStatus = "NOT_STARTED" | "IN_PROGRESS" | "STUDENT_WORK_COMPLETE" | "AWAITING_REVIEW";
+export type RecipientWorkflowStatus =
+  | "NOT_STARTED"
+  | "IN_PROGRESS"
+  | "STUDENT_WORK_COMPLETE"
+  | "AWAITING_REVIEW"
+  | "APPROVED";
 export type StudentWorkflowAction =
   | "START"
   | "COMPLETE"
@@ -142,7 +147,9 @@ export function transitionWorkflow(input: WorkflowTransitionInput): WorkflowTran
 }
 
 export function maySubmitDifficulty(status: RecipientWorkflowStatus): boolean {
-  return status === "STUDENT_WORK_COMPLETE" || status === "AWAITING_REVIEW";
+  return status === "STUDENT_WORK_COMPLETE"
+    || status === "AWAITING_REVIEW"
+    || status === "APPROVED";
 }
 
 function normalizeWorkflow(
