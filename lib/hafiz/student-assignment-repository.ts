@@ -7,6 +7,7 @@ import { HafizAuthorizationError, type HafizContext } from "@/lib/hafiz/authoriz
 import {
   initializeWorkflow,
   maySubmitDifficulty,
+  normalizeStoredWorkflow,
   type StepProgressRecord,
   type StudentWorkflowAction,
   transitionWorkflow,
@@ -18,6 +19,7 @@ import { enqueueHafizNotification } from "@/lib/hafiz/notification-repository";
 
 const ACTIONS: StudentWorkflowAction[] = [
   "START", "COMPLETE", "SKIP", "ADD_STUDY_SECONDS", "INCREMENT_REPETITION",
+  "INCREMENT_STEP_COUNT",
   "VIDEO_LESSON_COMPLETE", "AUDIO_SUBMITTED",
 ];
 
@@ -373,7 +375,30 @@ async function loadStudentAssignment(context: HafizContext, recipientID: string)
       lastActivityAt: now,
     }, revisionData);
   }
-  return publicStudentAssignment(assignmentID, data, revisionData);
+  if (data.status === "APPROVED") {
+    return publicStudentAssignment(assignmentID, data, revisionData);
+  }
+  const normalized = normalizeStoredWorkflow(
+    revisionData.workflowSteps,
+    readProgress(data.stepProgress),
+    revisionData.sequentialSteps,
+  );
+  const normalizedRecipient = {
+    ...data,
+    status: normalized.recipientStatus,
+    stepProgress: normalized.progress,
+    lastActiveStepId: normalized.activeStepId,
+    completionPercent: normalized.completionPercent,
+  };
+  if (workflowNeedsRepair(data, normalized)) {
+    await recipient.ref.update({
+      status: normalized.recipientStatus,
+      stepProgress: normalized.progress,
+      lastActiveStepId: normalized.activeStepId,
+      completionPercent: normalized.completionPercent,
+    });
+  }
+  return publicStudentAssignment(assignmentID, normalizedRecipient, revisionData);
 }
 
 function publicStudentAssignment(
@@ -433,14 +458,26 @@ function readProgress(value: unknown): StepProgressRecord[] {
   if (!Array.isArray(value)) return [];
   return value.filter(item => item && typeof item === "object").map(item => {
     const record = item as Record<string, unknown>;
+    const updatedAt = optionalString(record.updatedAt);
     return {
       stepId: String(record.stepId || ""),
       state: String(record.state || "LOCKED") as StepProgressRecord["state"],
       studySeconds: Number(record.studySeconds || 0),
       repetitionCount: Number(record.repetitionCount || 0),
-      updatedAt: optionalString(record.updatedAt) || undefined,
+      completionCount: Number(record.completionCount || 0),
+      ...(updatedAt ? { updatedAt } : {}),
     };
   });
+}
+
+function workflowNeedsRepair(
+  recipient: FirebaseFirestore.DocumentData,
+  normalized: ReturnType<typeof normalizeStoredWorkflow>,
+) {
+  return recipient.status !== normalized.recipientStatus
+    || recipient.lastActiveStepId !== normalized.activeStepId
+    || Number(recipient.completionPercent || 0) !== normalized.completionPercent
+    || JSON.stringify(readProgress(recipient.stepProgress)) !== JSON.stringify(normalized.progress);
 }
 
 function requireStudent(context: HafizContext) {

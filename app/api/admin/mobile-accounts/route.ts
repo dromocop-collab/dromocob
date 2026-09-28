@@ -8,6 +8,17 @@ import { effectivePremiumStatus, parsePremiumInput, serializeAdminValue } from "
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 100;
 
+async function getAuthUsers(uids: string[]) {
+  const chunks: string[][] = [];
+  for (let index = 0; index < uids.length; index += PAGE_SIZE) {
+    chunks.push(uids.slice(index, index + PAGE_SIZE));
+  }
+  const results = await Promise.all(
+    chunks.map(chunk => adminAuth.getUsers(chunk.map(uid => ({ uid })))),
+  );
+  return results.flatMap(result => result.users);
+}
+
 function responseError(error: unknown) {
   const message = error instanceof Error ? error.message : "UNKNOWN";
   if (message === "UNAUTHORIZED") return new NextResponse("Unauthorized", { status: 401 });
@@ -27,13 +38,17 @@ export async function GET(request: NextRequest) {
       .orderBy("lastSeenAt", "desc")
       .limit(PAGE_SIZE)
       .get();
-    const markerUIDs = markerSnapshot.docs
-      .map(document => document.id);
+    const hafizScopeSnapshot = await adminDb.collection("hafiz_user_scopes")
+      .limit(PAGE_SIZE)
+      .get();
+    const hafizUIDs = new Set(hafizScopeSnapshot.docs.map(document => document.id));
+    const markerUIDs = Array.from(new Set([
+      ...markerSnapshot.docs.map(document => document.id),
+      ...hafizUIDs,
+    ]));
     const markerByUID = new Map(markerSnapshot.docs.map(document => [document.id, serializeAdminValue(document.data()) as Record<string, unknown>]));
-    const authResult = markerUIDs.length
-      ? await adminAuth.getUsers(markerUIDs.map(uid => ({ uid })))
-      : { users: [], notFound: [] };
-    const filtered = authResult.users.filter(user => !search || user.uid.toLowerCase().includes(search) || (user.email || "").toLowerCase().includes(search) || (user.displayName || "").toLowerCase().includes(search));
+    const authUsers = markerUIDs.length ? await getAuthUsers(markerUIDs) : [];
+    const filtered = authUsers.filter(user => !search || user.uid.toLowerCase().includes(search) || (user.email || "").toLowerCase().includes(search) || (user.displayName || "").toLowerCase().includes(search));
     const entitlementDocs = filtered.length
       ? await adminDb.getAll(...filtered.map(user => adminDb.collection("mobile_premium_entitlements").doc(user.uid)))
       : [];
@@ -41,20 +56,34 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      accounts: filtered.map(user => ({
-        uid: user.uid,
-        email: user.email || null,
-        displayName: user.displayName || null,
-        disabled: user.disabled,
-        emailVerified: user.emailVerified,
-        createdAt: user.metadata.creationTime,
-        lastSignInAt: user.metadata.lastSignInTime || null,
-        app: markerByUID.get(user.uid)?.app || "calorievision",
-        apps: markerByUID.get(user.uid)?.apps || [markerByUID.get(user.uid)?.app || "calorievision"],
-        professionalRole: markerByUID.get(user.uid)?.professionalRole || "customer",
-        entitlement: entitlementByUid.get(user.uid) || null,
-      })),
-      total: markerSnapshot.size,
+      accounts: filtered.map(user => {
+        const marker = markerByUID.get(user.uid);
+        const markerApps = Array.isArray(marker?.apps)
+          ? marker.apps.filter((app): app is string => typeof app === "string")
+          : [];
+        const apps = Array.from(new Set([
+          ...markerApps,
+          ...(typeof marker?.app === "string" ? [marker.app] : []),
+          ...(hafizUIDs.has(user.uid) ? ["hafiz"] : []),
+        ]));
+        const primaryApp = typeof marker?.app === "string"
+          ? marker.app
+          : apps[0] || "calorievision";
+        return {
+          uid: user.uid,
+          email: user.email || null,
+          displayName: user.displayName || null,
+          disabled: user.disabled,
+          emailVerified: user.emailVerified,
+          createdAt: user.metadata.creationTime,
+          lastSignInAt: user.metadata.lastSignInTime || null,
+          app: primaryApp,
+          apps,
+          professionalRole: marker?.professionalRole || "customer",
+          entitlement: entitlementByUid.get(user.uid) || null,
+        };
+      }),
+      total: markerUIDs.length,
       nextPageToken: null,
     }, { headers: { "cache-control": "no-store, max-age=0" } });
   } catch (error) {

@@ -25,13 +25,14 @@ type Account = {
   emailVerified: boolean;
   createdAt: string;
   lastSignInAt: string | null;
-  app: "calorievision" | "dromocob";
-  apps: Array<"calorievision" | "dromocob">;
+  app: MobileApp;
+  apps: MobileApp[];
   entitlement: Entitlement | null;
   professionalRole: "customer" | "dietitian" | "trainer";
 };
 
-type AppFilter = "all" | "calorievision" | "dromocob";
+type MobileApp = "calorievision" | "dromocob" | "hafiz";
+type AppFilter = "all" | MobileApp;
 type RoleFilter = "all" | Account["professionalRole"];
 
 const featureOptions = [
@@ -82,6 +83,12 @@ function labelDate(value: string | null) {
 
 function roleLabel(role: Account["professionalRole"]) {
   return role === "dietitian" ? "Diyetisyen" : role === "trainer" ? "Antrenör" : "Kullanıcı";
+}
+
+function appLabel(app: MobileApp) {
+  if (app === "dromocob") return "Dromocob";
+  if (app === "hafiz") return "Hafız";
+  return "Kalori Merkezi";
 }
 
 function statusLabel(status?: Entitlement["status"]) {
@@ -201,9 +208,9 @@ export default function MobileAccountControlCenter() {
   return <div className="mobile-accounts-admin">
     <section className="mobile-account-hero">
       <div>
-        <p className="admin-kicker">CALORIEVISION / PREMIUM COMMAND CENTER</p>
+        <p className="admin-kicker">DROMOCOB APPS / PREMIUM COMMAND CENTER</p>
         <h1>Üyelik ve uzman rolleri</h1>
-        <p>Premium erişimi, diyetisyen ve antrenör rollerini birkaç saniyede yönet.</p>
+        <p>Kalori Merkezi ve Hafız premium erişimlerini, diyetisyen ve antrenör rollerini tek merkezden yönet.</p>
       </div>
       <button className="admin-action" onClick={() => void load()} disabled={loading}><RefreshCw className={loading ? "spin" : ""} size={17}/> Verileri yenile</button>
     </section>
@@ -217,14 +224,14 @@ export default function MobileAccountControlCenter() {
     </section>
     <section className="mobile-account-panel">
       <div className="mobile-account-filter-deck">
-        <div className="mobile-app-filter" role="tablist" aria-label="Uygulama filtresi">{(["all", "dromocob", "calorievision"] as AppFilter[]).map(item => <button key={item} className={appFilter === item ? "active" : ""} onClick={() => setAppFilter(item)}><Smartphone size={14}/>{item === "all" ? "Tüm uygulamalar" : item === "dromocob" ? "Dromocob" : "Kalori Merkezi"}</button>)}</div>
+        <div className="mobile-app-filter" role="tablist" aria-label="Uygulama filtresi">{(["all", "dromocob", "calorievision", "hafiz"] as AppFilter[]).map(item => <button key={item} className={appFilter === item ? "active" : ""} onClick={() => setAppFilter(item)}><Smartphone size={14}/>{item === "all" ? "Tüm uygulamalar" : appLabel(item)}</button>)}</div>
         <div className="mobile-role-filter" role="tablist" aria-label="Rol filtresi">{(["all", "customer", "dietitian", "trainer"] as RoleFilter[]).map(item => <button key={item} className={roleFilter === item ? "active" : ""} onClick={() => setRoleFilter(item)}>{item === "all" ? "Tüm roller" : roleLabel(item)}</button>)}</div>
       </div>
       <div className="mobile-account-toolbar"><div><h2>Hesap dizini</h2><small>{filtered.length} hesap gösteriliyor</small></div><label><Search size={16}/><input value={search} onChange={event => setSearch(event.target.value)} placeholder="E-posta, ad veya UID ara"/></label></div>
       <div className="mobile-account-table">
         <div className="mobile-account-table-head"><span>Hesap</span><span>Rol</span><span>Durum</span><span>Plan / Bitiş</span><span/></div>
         {filtered.map(account => <button key={account.uid} onClick={() => open(account)}>
-          <span><i>{(account.displayName || account.email || "?").slice(0, 2).toUpperCase()}</i><b>{account.displayName || "İsimsiz hesap"}<small>{account.email || account.uid}</small><small className="mobile-app-tags">{(account.apps || [account.app]).map(app => <em key={app}>{app === "dromocob" ? "Dromocob" : "Kalori Merkezi"}</em>)}</small></b></span>
+          <span><i>{(account.displayName || account.email || "?").slice(0, 2).toUpperCase()}</i><b>{account.displayName || "İsimsiz hesap"}<small>{account.email || account.uid}</small><small className="mobile-app-tags">{(account.apps || [account.app]).map(app => <em key={app}>{appLabel(app)}</em>)}</small></b></span>
           <span><em className={`professional-role ${account.professionalRole}`}>{roleLabel(account.professionalRole)}</em></span>
           <span><em className={`entitlement-status ${account.entitlement?.status || "inactive"}`}>{statusLabel(account.entitlement?.status)}</em>{account.disabled && <small>Askıda</small>}</span>
           <span><b className="plan-name">{account.entitlement?.plan?.replace("_", " ") || "free"}</b><small>{labelDate(account.entitlement?.expiresAt || null)}</small></span>

@@ -221,6 +221,7 @@ export async function createRevisionDraft(context: HafizContext, suggestionID: s
     deadlineAt: deadline.toISOString(),
     teacherNote: optionalString(data.teacherNote).slice(0, 2000),
     quranScope: data.quranScope as QuranScopeSnapshot,
+    quranHighlights: Array.isArray(data.quranHighlights) ? data.quranHighlights : [],
     workflowSteps: assignmentPreset("RECENT_REVISION"),
     target: { type: "STUDENTS", classId: null, studentMembershipIds: [studentMembershipID] },
   };

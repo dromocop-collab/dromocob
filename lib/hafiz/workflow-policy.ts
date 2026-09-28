@@ -8,6 +8,7 @@ export type StudentWorkflowAction =
   | "SKIP"
   | "ADD_STUDY_SECONDS"
   | "INCREMENT_REPETITION"
+  | "INCREMENT_STEP_COUNT"
   | "VIDEO_LESSON_COMPLETE"
   | "AUDIO_SUBMITTED";
 
@@ -16,6 +17,7 @@ export type StepProgressRecord = {
   state: StepState;
   studySeconds: number;
   repetitionCount: number;
+  completionCount: number;
   updatedAt?: string;
 };
 
@@ -55,6 +57,15 @@ export function initializeWorkflow(
   return normalizeWorkflow(enabled, initial, sequential);
 }
 
+export function normalizeStoredWorkflow(
+  steps: AssignmentWorkflowStep[],
+  progress: StepProgressRecord[],
+  sequential: boolean,
+): WorkflowTransitionResult {
+  const enabled = orderedEnabledSteps(steps);
+  return normalizeWorkflow(enabled, mergeProgress(enabled, progress), sequential);
+}
+
 export function transitionWorkflow(input: WorkflowTransitionInput): WorkflowTransitionResult {
   const steps = orderedEnabledSteps(input.steps);
   const definition = steps.find(step => step.id === input.stepId);
@@ -80,6 +91,7 @@ export function transitionWorkflow(input: WorkflowTransitionInput): WorkflowTran
   case "COMPLETE":
     requireState(target, ["AVAILABLE", "IN_PROGRESS"]);
     if (!["STUDENT_CONFIRM", "AUTOMATIC"].includes(definition.completionPolicy)) invalidTransition();
+    if (targetCount(definition) !== null) invalidTransition();
     mutable.state = "COMPLETED";
     break;
   case "SKIP":
@@ -99,7 +111,13 @@ export function transitionWorkflow(input: WorkflowTransitionInput): WorkflowTran
     requireType(definition.type, "REPEAT");
     requireState(target, ["AVAILABLE", "IN_PROGRESS"]);
     mutable.repetitionCount += 1;
-    mutable.state = mutable.repetitionCount >= input.repetitionTarget ? "COMPLETED" : "IN_PROGRESS";
+    mutable.state = mutable.repetitionCount >= (targetCount(definition) ?? input.repetitionTarget) ? "COMPLETED" : "IN_PROGRESS";
+    break;
+  case "INCREMENT_STEP_COUNT":
+    if (!["LISTEN", "READ_FROM_PAGE", "MEMORIZE"].includes(definition.type)) invalidTransition();
+    requireState(target, ["AVAILABLE", "IN_PROGRESS"]);
+    mutable.completionCount += 1;
+    mutable.state = mutable.completionCount >= (targetCount(definition) ?? 1) ? "COMPLETED" : "IN_PROGRESS";
     break;
   case "VIDEO_LESSON_COMPLETE":
     requireType(definition.type, "VIDEO_LESSON");
@@ -199,13 +217,19 @@ function mergeProgress(steps: AssignmentWorkflowStep[], records: StepProgressRec
       state: record.state,
       studySeconds: Math.max(0, Number(record.studySeconds) || 0),
       repetitionCount: Math.max(0, Number(record.repetitionCount) || 0),
-      updatedAt: record.updatedAt,
+      completionCount: Math.max(0, Number(record.completionCount) || 0),
+      ...(record.updatedAt ? { updatedAt: record.updatedAt } : {}),
     } : emptyProgress(step.id);
   });
 }
 
 function emptyProgress(stepId: string): StepProgressRecord {
-  return { stepId, state: "LOCKED", studySeconds: 0, repetitionCount: 0 };
+  return { stepId, state: "LOCKED", studySeconds: 0, repetitionCount: 0, completionCount: 0 };
+}
+
+function targetCount(step: AssignmentWorkflowStep) {
+  const value = Number(step.configuration.targetCount);
+  return Number.isSafeInteger(value) && value >= 1 && value <= 1000 ? value : null;
 }
 
 function orderedEnabledSteps(steps: AssignmentWorkflowStep[]) {

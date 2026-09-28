@@ -19,7 +19,10 @@ import {
   targetContainsOnlyAuthorizedStudents,
   teacherMayTargetClass,
 } from "@/lib/hafiz/assignment-policy";
-import { previewQuranSelection } from "@/lib/hafiz/quran-repository";
+import {
+  previewQuranSelection,
+  validateQuranHighlightsForScope,
+} from "@/lib/hafiz/quran-repository";
 import { initializeWorkflow } from "@/lib/hafiz/workflow-policy";
 import { adminDb } from "@/lib/firebase-admin";
 import { enqueueHafizNotification } from "@/lib/hafiz/notification-repository";
@@ -290,6 +293,7 @@ async function resolveAndValidateSnapshot(
   if (!ASSIGNMENT_TYPES.includes(assignmentType)) throw invalidInput("Çalışma türü geçersiz.");
   const target = await resolveTarget(context, payload.target);
   const quranScope = await previewQuranSelection(context, payload.quranSelection) as QuranScopeSnapshot;
+  const quranHighlights = await validateQuranHighlightsForScope(quranScope, payload.quranHighlights);
   const workflowSteps = parseWorkflowSteps(payload.workflowSteps);
   const value: AssignmentSnapshotInput = {
     assignmentType,
@@ -298,6 +302,7 @@ async function resolveAndValidateSnapshot(
     deadlineAt: requiredString(payload.deadlineAt),
     teacherNote: optionalString(payload.teacherNote).slice(0, 2000),
     quranScope,
+    quranHighlights,
     workflowSteps,
     target,
   };
@@ -404,6 +409,7 @@ function pickSnapshot(data: FirebaseFirestore.DocumentData): AssignmentSnapshotI
     deadlineAt: data.deadlineAt,
     teacherNote: data.teacherNote,
     quranScope: data.quranScope,
+    quranHighlights: Array.isArray(data.quranHighlights) ? data.quranHighlights : [],
     workflowSteps: data.workflowSteps,
     target: data.target,
   };

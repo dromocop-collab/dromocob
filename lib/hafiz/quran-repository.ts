@@ -3,6 +3,11 @@ import "server-only";
 import { FieldValue } from "firebase-admin/firestore";
 
 import {
+  QURAN_HIGHLIGHT_COLORS,
+  type QuranHighlight,
+  type QuranScopeSnapshot,
+} from "@/lib/hafiz/assignment-schema";
+import {
   HafizAuthorizationError,
   type HafizContext,
 } from "@/lib/hafiz/authorization";
@@ -16,9 +21,35 @@ import {
   validateQuranDataset,
 } from "@/lib/hafiz/quran-schema";
 import { adminDb } from "@/lib/firebase-admin";
+import { buildAssignmentRecitation } from "@/lib/hafiz/quran-audio";
 
 type QuranNavigationMode = "page" | "surah" | "juz";
 type QuranSelectionKind = "SINGLE_PAGE" | "PAGE_RANGE" | "SURAH" | "JUZ" | "AYAH_RANGE";
+
+export async function validateQuranHighlightsForScope(
+  scope: QuranScopeSnapshot,
+  input: unknown,
+): Promise<QuranHighlight[]> {
+  if (input == null) return [];
+  if (!Array.isArray(input) || input.length > 300) {
+    throw invalidInput("Kur'an renklendirmesi en fazla 300 ayet içerebilir.");
+  }
+  const available = await loadQuranPages(scope.editionId, scope.pageNumbers);
+  const scopedAyahs = new Set(available.pages.flatMap(page => page.ayahs)
+    .filter(ayah => scope.ayahIds == null || scope.ayahIds.includes(ayah.id))
+    .map(ayah => ayah.id));
+  const seen = new Set<string>();
+  return input.map(item => {
+    const value = asObject(item);
+    const ayahId = requiredString(value.ayahId, "Renklendirilecek ayet gerekli.");
+    const color = String(value.color) as QuranHighlight["color"];
+    if (!scopedAyahs.has(ayahId) || seen.has(ayahId) || !QURAN_HIGHLIGHT_COLORS.includes(color)) {
+      throw invalidInput("Kur'an renklendirmesi görev kapsamıyla eşleşmiyor.");
+    }
+    seen.add(ayahId);
+    return { ayahId, color };
+  });
+}
 
 export async function listQuranEditions(context: HafizContext) {
   requireCatalogRole(context);
@@ -222,9 +253,44 @@ export async function getAssignmentQuranContent(
     throw new HafizAuthorizationError(403, "ASSIGNMENT_QURAN_NOT_FOUND", "Yetkili Kur'an içeriği bulunamadı.");
   }
   const revisionNumber = requiredPositiveInteger(recipientSnapshot.data()?.assignedRevisionNumber);
-  const grantSnapshot = await adminDb.collection("hafiz_assignment_quran_grants")
-    .doc(`${assignmentID}_${revisionNumber}_${context.membershipID}`).get();
-  const grant = grantSnapshot.exists ? grantSnapshot.data() as AssignmentQuranGrant : null;
+  const revision = await adminDb.collection("hafiz_assignment_revisions")
+    .doc(`${assignmentID}_${revisionNumber}`).get();
+  const revisionData = revision.data();
+  if (!revision.exists
+    || revisionData?.assignmentId !== assignmentID
+    || revisionData?.institutionId !== context.institutionID
+    || revisionData?.status !== "PUBLISHED") {
+    throw new HafizAuthorizationError(403, "ASSIGNMENT_QURAN_NOT_FOUND", "Yetkili Kur'an içeriği bulunamadı.");
+  }
+  const grantReference = adminDb.collection("hafiz_assignment_quran_grants")
+    .doc(`${assignmentID}_${revisionNumber}_${context.membershipID}`);
+  const grantSnapshot = await grantReference.get();
+  let grant = grantSnapshot.exists ? grantSnapshot.data() as AssignmentQuranGrant : null;
+  if (!grant) {
+    const scope = revisionData?.quranScope as Record<string, unknown> | undefined;
+    if (scope
+      && typeof scope.editionId === "string"
+      && Array.isArray(scope.pageNumbers)) {
+      grant = {
+        assignmentId: assignmentID,
+        revisionNumber,
+        studentMembershipId: context.membershipID,
+        institutionId: context.institutionID,
+        editionId: scope.editionId,
+        pageNumbers: scope.pageNumbers.map(Number),
+        ayahIds: Array.isArray(scope.ayahIds) ? scope.ayahIds.map(String) : null,
+        status: "ACTIVE",
+      };
+      if (studentMayResolveAssignmentQuran(context, grant, assignmentID)) {
+        await grantReference.set({
+          ...grant,
+          editionChecksum: String(scope.editionChecksum || ""),
+          createdAt: FieldValue.serverTimestamp(),
+          repairedFromRevision: true,
+        });
+      }
+    }
+  }
   if (!studentMayResolveAssignmentQuran(context, grant, assignmentID) || !grant) {
     throw new HafizAuthorizationError(403, "ASSIGNMENT_QURAN_NOT_FOUND", "Yetkili Kur'an içeriği bulunamadı.");
   }
@@ -248,6 +314,8 @@ export async function getAssignmentQuranContent(
       pageNumbers: grant.pageNumbers,
       ayahIds: grant.ayahIds || null,
     },
+    highlights: Array.isArray(revisionData.quranHighlights) ? revisionData.quranHighlights : [],
+    recitation: buildAssignmentRecitation(pages.flatMap(page => page.ayahs)),
     pages,
   };
 }

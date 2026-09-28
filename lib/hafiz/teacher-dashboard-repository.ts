@@ -271,6 +271,7 @@ export async function prepareBulkAssignmentDraft(context: HafizContext, body: un
     deadlineAt: deadline.toISOString(),
     teacherNote: "Operasyon panelindeki açıklanabilir sinyallerden hazırlanan tekrar taslağı.",
     quranScope: source.quranScope,
+    quranHighlights: Array.isArray(source.quranHighlights) ? source.quranHighlights : [],
     workflowSteps: assignmentPreset("RECENT_REVISION"),
     target: { type: "STUDENTS", classId: null, studentMembershipIds: requestedStudents },
   };

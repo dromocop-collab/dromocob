@@ -380,6 +380,7 @@ function readProgress(value: unknown): StepProgressRecord[] {
     const item = raw as Record<string, unknown>;
     return { stepId: String(item.stepId || ""), state: String(item.state || "LOCKED") as StepProgressRecord["state"],
       studySeconds: Number(item.studySeconds || 0), repetitionCount: Number(item.repetitionCount || 0),
+      completionCount: Number(item.completionCount || 0),
       updatedAt: optionalString(item.updatedAt) || undefined };
   });
 }

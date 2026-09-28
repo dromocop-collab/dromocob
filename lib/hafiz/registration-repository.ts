@@ -36,6 +36,7 @@ export async function submitRegistrationRequest(
   const requestReference = adminDb.collection("hafiz_registration_requests").doc(auth.userID);
   const institutionReference = adminDb.collection("hafiz_institutions").doc(institutionID);
   const scopeReference = adminDb.collection("hafiz_user_scopes").doc(auth.userID);
+  const mobileAccountReference = adminDb.collection("mobile_app_users").doc(auth.userID);
 
   await adminDb.runTransaction(async transaction => {
     const [institution, existing, scope] = await Promise.all([
@@ -82,6 +83,10 @@ export async function submitRegistrationRequest(
       updatedAt: FieldValue.serverTimestamp(),
       updatedBy: auth.userID,
     });
+    transaction.set(mobileAccountReference, {
+      apps: FieldValue.arrayUnion("hafiz"),
+      lastSeenAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
     transaction.create(adminDb.collection("hafiz_audit_events").doc(), {
       institutionId: institutionID,
       actorUserId: auth.userID,

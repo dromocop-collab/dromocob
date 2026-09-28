@@ -89,7 +89,7 @@ function isTeacherControlled(step: AssignmentWorkflowStep) {
 }
 
 function emptyProgress(stepId: string): StepProgressRecord {
-  return { stepId, state: "LOCKED", studySeconds: 0, repetitionCount: 0 };
+  return { stepId, state: "LOCKED", studySeconds: 0, repetitionCount: 0, completionCount: 0 };
 }
 
 function byIDRecord(records: StepProgressRecord[], stepID: string) {

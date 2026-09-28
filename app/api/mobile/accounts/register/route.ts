@@ -11,7 +11,9 @@ export async function POST(request: NextRequest) {
   if (!token) return new NextResponse("Unauthorized", { status: 401 });
 
   const payload = await request.json().catch(() => ({})) as { app?: unknown; platform?: unknown };
-  const app = payload.app === "dromocob" ? "dromocob" : "calorievision";
+  const app = ["dromocob", "calorievision", "hafiz"].includes(String(payload.app))
+    ? String(payload.app)
+    : "calorievision";
   const platform = payload.platform === "macos" ? "macos" : "ios";
 
   let decoded;

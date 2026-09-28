@@ -45,6 +45,12 @@ export type QuranScopeSnapshot = {
   endPage: number;
 };
 
+export const QURAN_HIGHLIGHT_COLORS = [
+  "YELLOW", "GREEN", "BLUE", "ORANGE", "PINK", "PURPLE",
+] as const;
+export type QuranHighlightColor = (typeof QURAN_HIGHLIGHT_COLORS)[number];
+export type QuranHighlight = { ayahId: string; color: QuranHighlightColor };
+
 export type AssignmentTarget =
   | { type: "CLASS"; classId: string; studentMembershipIds: string[] }
   | { type: "STUDENTS"; classId: null; studentMembershipIds: string[] };
@@ -56,6 +62,7 @@ export type AssignmentSnapshotInput = {
   deadlineAt: string;
   teacherNote: string;
   quranScope: QuranScopeSnapshot;
+  quranHighlights: QuranHighlight[];
   workflowSteps: AssignmentWorkflowStep[];
   target: AssignmentTarget;
 };
@@ -118,6 +125,12 @@ export function validateAssignmentSnapshot(
   if (!value.quranScope.pageNumbers.every(page => Number.isSafeInteger(page) && page > 0)) {
     errors.push("Kur'an sayfa kapsamı geçersiz.");
   }
+  if (value.quranHighlights.length > 300
+    || new Set(value.quranHighlights.map(highlight => highlight.ayahId)).size !== value.quranHighlights.length
+    || value.quranHighlights.some(highlight => !highlight.ayahId
+      || !QURAN_HIGHLIGHT_COLORS.includes(highlight.color))) {
+    errors.push("Kur'an renklendirmesi geçersiz.");
+  }
   if (value.target.studentMembershipIds.length === 0) errors.push("En az bir öğrenci seçilmelidir.");
   if (new Set(value.target.studentMembershipIds).size !== value.target.studentMembershipIds.length) {
     errors.push("Hedef öğrenci listesi tekrar içeremez.");
@@ -138,6 +151,13 @@ export function validateAssignmentSnapshot(
     if (!step.enabled && step.required) errors.push("Devre dışı bir adım zorunlu olamaz.");
     if (!COMPLETION_POLICIES[step.type]?.includes(step.completionPolicy)) {
       errors.push(`${step.type} için tamamlama politikası geçersiz.`);
+    }
+    if (step.configuration.targetCount != null) {
+      const target = Number(step.configuration.targetCount);
+      if (!Number.isSafeInteger(target) || target < 1 || target > 1000
+        || !["LISTEN", "READ_FROM_PAGE", "MEMORIZE", "REPEAT"].includes(step.type)) {
+        errors.push(`${step.type} hedef adedi geçersiz.`);
+      }
     }
   }
   const review = enabled.find(step => step.type === "TEACHER_REVIEW");
