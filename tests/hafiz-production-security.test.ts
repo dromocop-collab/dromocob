@@ -123,6 +123,23 @@ test("push payload never contains protected content", () => {
   assert.doesNotMatch(lockScreenSafeBody("TEACHER_SENT_MESSAGE", "Mahrem öğretmen mesajı"), /Mahrem/);
 });
 
+test("student progress and teacher review keep core writes independent from notification delivery", () => {
+  const studentRepository = readFileSync(
+    new URL("../lib/hafiz/student-assignment-repository.ts", import.meta.url), "utf8",
+  );
+  const reviewRepository = readFileSync(
+    new URL("../lib/hafiz/review-repository.ts", import.meta.url), "utf8",
+  );
+  assert.match(studentRepository, /transaction\.update\(recipientReference, recipientUpdate\)/);
+  assert.match(studentRepository, /STUDENT PROGRESS NOTIFICATION/);
+  assert.match(reviewRepository, /REVIEW STUDENT NOTIFICATION/);
+  assert.match(reviewRepository, /if \(approvedAyahs\.length\)/);
+  assert.doesNotMatch(
+    reviewRepository,
+    /approvedAyahIds:\s*FieldValue\.arrayUnion\(\.\.\.\(revisionData\.quranScope\.ayahIds \|\| \[\]\)\)/,
+  );
+});
+
 test("admin control plane is role guarded, bounded and strips unsafe audit data", () => {
   for (const route of ["dashboard", "audit-events", "system", "workflow-presets", "account-status"]) {
     const source = readFileSync(new URL(`../app/api/hafiz/admin/${route}/route.ts`, import.meta.url), "utf8");

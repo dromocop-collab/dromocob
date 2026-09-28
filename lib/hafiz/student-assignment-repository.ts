@@ -121,8 +121,7 @@ export async function transitionStudentAssignment(
     }
     const now = new Date().toISOString();
     const studyDelta = action === "ADD_STUDY_SECONDS" ? Number(payload.value) : 0;
-    const nextRecipient = {
-      ...recipientData,
+    const recipientUpdate = {
       status: result.recipientStatus,
       stepProgress: result.progress.map(item => item.stepId === stepID ? { ...item, updatedAt: now } : item),
       lastActiveStepId: result.activeStepId,
@@ -132,7 +131,10 @@ export async function transitionStudentAssignment(
       studentWorkCompletedAt: result.eventType === "STUDENT_WORK_COMPLETE"
         ? now : recipientData.studentWorkCompletedAt || null,
     };
-    transaction.update(recipientReference, nextRecipient);
+    // Update only server-owned progress fields. Re-writing the complete recipient document
+    // can carry legacy/unknown values into a transaction and make an otherwise valid step
+    // transition fail Firestore serialization.
+    transaction.update(recipientReference, recipientUpdate);
     transaction.create(eventReference, {
       institutionId: context.institutionID,
       assignmentId: assignmentID,
@@ -151,7 +153,11 @@ export async function transitionStudentAssignment(
     if (result.eventType === "STUDENT_WORK_COMPLETE" && action !== "AUDIO_SUBMITTED") {
       teacherNotification.teacherID = String(root.data()?.ownerTeacherMembershipId || "");
     }
-    response = publicStudentAssignment(assignmentID, nextRecipient, revisionData);
+    response = publicStudentAssignment(
+      assignmentID,
+      { ...recipientData, ...recipientUpdate },
+      revisionData,
+    );
   });
   if (!response) throw notFound();
   if (teacherNotification?.teacherID) {
@@ -160,7 +166,8 @@ export async function transitionStudentAssignment(
       sourceID: `${assignmentID}:${clientEventID}`, title: "Çalışma tamamlandı",
       body: "Bir öğrenci çalışmasını tamamladı ve kontrolünü bekliyor.",
       deepLink: `hafiz://teacher/review/${assignmentID}_${context.membershipID}`,
-      metadata: { assignmentId: assignmentID, studentMembershipId: context.membershipID } });
+      metadata: { assignmentId: assignmentID, studentMembershipId: context.membershipID } })
+      .catch(error => console.error("[HAFIZ STUDENT PROGRESS NOTIFICATION]", error));
   }
   return response;
 }
@@ -516,7 +523,7 @@ function optionalString(value: unknown) {
 }
 
 function invalidTransition(message: string) {
-  return new HafizAuthorizationError(403, "INVALID_WORKFLOW_TRANSITION", message);
+  return new HafizAuthorizationError(400, "INVALID_WORKFLOW_TRANSITION", message);
 }
 
 function notFound() {

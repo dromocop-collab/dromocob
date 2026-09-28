@@ -278,15 +278,22 @@ export async function submitTeacherReview(
         );
         const progressReference = adminDb.collection("hafiz_memorization_progress")
           .doc(`${context.institutionID}_${recipientData.studentMembershipId}_${revisionData.quranScope.editionId}`);
-        transaction.set(progressReference, {
+        const progressUpdate: Record<string, unknown> = {
           institutionId: context.institutionID,
           studentMembershipId: recipientData.studentMembershipId,
           editionId: revisionData.quranScope.editionId,
-          approvedPageNumbers: FieldValue.arrayUnion(...revisionData.quranScope.pageNumbers),
-          approvedAyahIds: FieldValue.arrayUnion(...(revisionData.quranScope.ayahIds || [])),
           approvedAssignmentIds: FieldValue.arrayUnion(assignmentID),
           updatedAt: FieldValue.serverTimestamp(),
-        }, { merge: true });
+        };
+        const approvedPages = revisionData.quranScope.pageNumbers || [];
+        const approvedAyahs = revisionData.quranScope.ayahIds || [];
+        if (approvedPages.length) {
+          progressUpdate.approvedPageNumbers = FieldValue.arrayUnion(...approvedPages);
+        }
+        if (approvedAyahs.length) {
+          progressUpdate.approvedAyahIds = FieldValue.arrayUnion(...approvedAyahs);
+        }
+        transaction.set(progressReference, progressUpdate, { merge: true });
       }
     }
   });
@@ -299,7 +306,7 @@ export async function submitTeacherReview(
       body: note || shortcut || (decision === "APPROVED" ? "Eline sağlık, çalışman onaylandı." : "Çalışmanı yeniden gözden geçir."),
       deepLink: `hafiz://assignment/${reviewedAssignmentID}`,
       metadata: { reviewId: reviewID, decision },
-    });
+    }).catch(error => console.error("[HAFIZ REVIEW STUDENT NOTIFICATION]", error));
     if (visibility === "PARENT_VISIBLE" && (note || shortcut)) {
       const links = await adminDb.collection("hafiz_parent_student_links")
         .where("institutionId", "==", context.institutionID)
@@ -413,6 +420,6 @@ function requiredEventID(value: unknown) {
   const id = optionalString(value); if (!/^[A-Za-z0-9_-]{8,100}$/.test(id)) throw invalidReview("İşlem kimliği geçersiz."); return id;
 }
 function requireTeacher(context: HafizContext) { if (context.role !== "TEACHER") throw notFound(); }
-function invalidReview(message: string) { return new HafizAuthorizationError(403, "INVALID_REVIEW", message); }
+function invalidReview(message: string) { return new HafizAuthorizationError(400, "INVALID_REVIEW", message); }
 function notFound() { return new HafizAuthorizationError(403, "REVIEW_NOT_FOUND", "İnceleme bulunamadı."); }
 function audioNotFound() { return new HafizAuthorizationError(403, "AUDIO_NOT_FOUND", "Ses kaydı bulunamadı."); }
