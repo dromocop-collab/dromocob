@@ -7,7 +7,8 @@
 - Repository functions apply tenant, ownership, relationship and state-transition checks before data access.
 - Firestore and Storage client rules deny every Hafız collection/object. Admin SDK API routes are the only data plane.
 - Quran text is canonical imported data. Students receive only assignment-scoped resolver output.
-- Audio is stored under `hafiz-private-audio`; teachers receive bytes only through an owner- and tenant-checked no-store endpoint.
+- Student submission audio is stored under `hafiz-private-audio`; teachers receive those bytes only through an owner- and tenant-checked no-store endpoint.
+- The `LISTEN` step does not require a teacher upload. Its ordered Mishari Rashid al-Afasy ayah tracks are derived server-side from the already authorized assignment scope and use Quran Foundation's public verse CDN. Arbitrary audio/Quran lookup is not exposed to students.
 
 ## Administration
 

@@ -81,3 +81,13 @@ Doğrulayıcı şunları denetler:
 
 Import öncesi ve sonrası kaynak dosyası, checksum, onay kaydı ve doğrulama raporu değiştirilemez
 bir release artefaktı olarak saklanmalıdır.
+
+## Görev kıraati
+
+`LISTEN` adımında öğretmen ayrıca ses yüklemez. Sunucu, öğrencinin yetkili görev çözümleyicisinden
+çıkan sıralı canonical ayet kimliklerini Mishari Rashid al-Afasy kıraat yollarına dönüştürür ve
+yalnızca aynı assignment-scoped yanıtta döndürür. Ses dosyaları Quran Foundation'ın
+`https://verses.quran.foundation/Alafasy/mp3/` CDN alanından yayınlanır. İstemciye bağımsız ayet,
+sayfa veya sure için genel bir ses tarama endpoint'i verilmez; görev kapsamı dışındaki ayetler ses
+listesine giremez. Sağlayıcı veya kıraat değişikliği yayınlanmadan önce kaynak sürekliliği, kullanım
+koşulları ve örnek dosya bütünlüğü yeniden doğrulanmalıdır.

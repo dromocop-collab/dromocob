@@ -4,6 +4,7 @@ import test from "node:test";
 import { assignmentPreset, type AssignmentWorkflowStep } from "../lib/hafiz/assignment-schema.ts";
 import {
   initializeWorkflow,
+  normalizeStoredWorkflow,
   transitionWorkflow,
   WorkflowTransitionError,
 } from "../lib/hafiz/workflow-policy.ts";
@@ -28,6 +29,27 @@ test("malicious completion of a locked future step is rejected", () => {
     steps, progress: state.progress, sequential: true, repetitionTarget: 10,
     stepId: steps[3].id, action: "COMPLETE",
   }), (error: unknown) => error instanceof WorkflowTransitionError && error.code === "STEP_LOCKED");
+});
+
+test("counted listen target cannot be bypassed and unlocks only at target", () => {
+  const counted = assignmentPreset("LISTENING").map((step, index) =>
+    index === 0 ? { ...step, configuration: { targetCount: "3" } } : step
+  );
+  let state = initializeWorkflow(counted, true);
+  assert.throws(() => transitionWorkflow({
+    steps: counted, progress: state.progress, sequential: true, repetitionTarget: 1,
+    stepId: counted[0].id, action: "COMPLETE",
+  }), (error: unknown) => error instanceof WorkflowTransitionError
+    && error.code === "INVALID_TRANSITION");
+  for (let count = 1; count <= 3; count++) {
+    state = transitionWorkflow({
+      steps: counted, progress: state.progress, sequential: true, repetitionTarget: 1,
+      stepId: counted[0].id, action: "INCREMENT_STEP_COUNT",
+    });
+    assert.equal(state.progress[0].completionCount, count);
+    assert.equal(state.progress[0].state, count === 3 ? "COMPLETED" : "IN_PROGRESS");
+  }
+  assert.equal(state.progress[1].state, "AVAILABLE");
 });
 
 test("stored progress resumes at the legitimate active step", () => {
@@ -80,6 +102,25 @@ test("non-sequential workflow exposes all student-controlled steps", () => {
     .filter(step => step.completionPolicy !== "TEACHER_APPROVAL")
     .map(step => state.progress.find(item => item.stepId === step.id)?.state);
   assert.ok(studentStates.every(value => value === "AVAILABLE"));
+});
+
+test("legacy all-locked progress is repaired with the first step available", () => {
+  const legacy = steps.map(step => ({
+    stepId: step.id,
+    state: "LOCKED" as const,
+    studySeconds: 0,
+    repetitionCount: 0,
+    completionCount: 0,
+  }));
+  const repaired = normalizeStoredWorkflow(steps, legacy, true);
+  assert.equal(repaired.activeStepId, steps[0].id);
+  assert.equal(repaired.progress[0].state, "AVAILABLE");
+  assert.equal(repaired.progress[1].state, "LOCKED");
+});
+
+test("normalized progress omits absent Firestore optional values", () => {
+  const repaired = normalizeStoredWorkflow(steps, initializeWorkflow(steps, true).progress, true);
+  assert.equal(Object.hasOwn(repaired.progress[1], "updatedAt"), false);
 });
 
 function initializeFromStored(progress: ReturnType<typeof initializeWorkflow>["progress"]) {

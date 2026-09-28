@@ -33,6 +33,7 @@ function validSnapshot(): AssignmentSnapshotInput {
       startPage: 341,
       endPage: 343,
     },
+    quranHighlights: [],
     workflowSteps: assignmentPreset("NEW_MEMORIZATION"),
     target: { type: "STUDENTS", classId: null, studentMembershipIds: ["student-a"] },
   };
@@ -76,6 +77,21 @@ test("invalid deadline and repetition target are rejected", () => {
   invalid.repetitionTarget = 0;
   const result = validateAssignmentSnapshot(invalid, now);
   assert.equal(result.valid, false);
+});
+
+test("Quran highlights require unique ayahs and an approved color", () => {
+  const duplicate = validSnapshot();
+  duplicate.quranHighlights = [
+    { ayahId: "2:1", color: "YELLOW" },
+    { ayahId: "2:1", color: "GREEN" },
+  ];
+  assert.equal(validateAssignmentSnapshot(duplicate, now).valid, false);
+
+  const invalidColor = validSnapshot();
+  invalidColor.quranHighlights = [
+    { ayahId: "2:1", color: "RED" as "YELLOW" },
+  ];
+  assert.equal(validateAssignmentSnapshot(invalidColor, now).valid, false);
 });
 
 test("teacher cannot target another teacher or tenant class", () => {

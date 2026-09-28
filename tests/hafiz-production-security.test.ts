@@ -75,6 +75,19 @@ test("registration remains pending until an institution admin approves trusted s
   assert.match(repository, /decision === "APPROVE"/);
 });
 
+test("Hafız accounts are discoverable in the shared premium control center", () => {
+  const registration = readFileSync(new URL("../lib/hafiz/registration-repository.ts", import.meta.url), "utf8");
+  const accountRoute = readFileSync(new URL("../app/api/admin/mobile-accounts/route.ts", import.meta.url), "utf8");
+  const mobileRegistration = readFileSync(new URL("../app/api/mobile/accounts/register/route.ts", import.meta.url), "utf8");
+  const controlCenter = readFileSync(new URL("../components/admin/mobile-account-control-center.tsx", import.meta.url), "utf8");
+  assert.match(registration, /apps: FieldValue\.arrayUnion\("hafiz"\)/);
+  assert.match(accountRoute, /collection\("hafiz_user_scopes"\)/);
+  assert.match(accountRoute, /hafizUIDs\.has\(user\.uid\)/);
+  assert.match(mobileRegistration, /"dromocob", "calorievision", "hafiz"/);
+  assert.match(controlCenter, /"calorievision" \| "dromocob" \| "hafiz"/);
+  assert.match(controlCenter, /app === "hafiz"/);
+});
+
 test("admin-created people receive Firebase credentials without persisting a password", () => {
   const directory = readFileSync(new URL("../lib/hafiz/directory.ts", import.meta.url), "utf8");
   assert.match(directory, /const password = requiredPassword\(payload\.password\)/);
