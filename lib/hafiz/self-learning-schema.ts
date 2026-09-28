@@ -62,9 +62,19 @@ export function mergeSelfLearningProgress(
 
   const incomingIsNewer = Date.parse(incoming.updatedAt) >= Date.parse(stored.updatedAt);
   const preference = incomingIsNewer ? incoming : stored;
+  // A fresh install or a signed-out client starts with null onboarding fields.
+  // Null must never erase an already verified age/placement choice merely because
+  // the new device timestamp is newer.
+  const ageBand = preference.ageBand ?? stored.ageBand ?? incoming.ageBand;
+  const startingLevel = ageBand === "ADULT_18_PLUS"
+    ? (preference.startingLevel ?? stored.startingLevel ?? incoming.startingLevel)
+    : ageBand == null ? null : "BEGINNER";
   return {
     ...preference,
     curriculumVersion: SELF_LEARNING_CURRICULUM_VERSION,
+    mode: ageBand === "ADULT_18_PLUS" ? "STANDARD" : ageBand == null ? preference.mode : "CHILD",
+    ageBand,
+    startingLevel,
     completedLessonIDs: union(stored.completedLessonIDs, incoming.completedLessonIDs),
     rewardUnlockedLessonIDs: union(stored.rewardUnlockedLessonIDs, incoming.rewardUnlockedLessonIDs),
     updatedAt: now.toISOString(),

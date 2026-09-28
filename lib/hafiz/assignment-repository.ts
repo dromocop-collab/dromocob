@@ -281,7 +281,38 @@ export async function updateAssignmentStatus(
     transaction.update(root.ref, { status: next, updatedAt: now, updatedBy: context.membershipID });
     writeAudit(transaction, context, `ASSIGNMENT_${next}`, assignmentID, Number(root.data()?.publishedRevisionNumber || 0));
   });
+  if (next === "CANCELLED" || next === "ARCHIVED") {
+    await revokeAssignmentFromStudents(context, assignmentID, now);
+  }
   return { ok: true, status: next };
+}
+
+async function revokeAssignmentFromStudents(
+  context: HafizContext,
+  assignmentID: string,
+  now: string,
+) {
+  const [recipients, grants] = await Promise.all([
+    adminDb.collection("hafiz_assignment_recipients")
+      .where("assignmentId", "==", assignmentID).get(),
+    adminDb.collection("hafiz_assignment_quran_grants")
+      .where("assignmentId", "==", assignmentID).get(),
+  ]);
+  const writes = [
+    ...recipients.docs.map(document => ({
+      reference: document.ref,
+      data: { status: "CANCELLED", cancelledAt: now, cancelledBy: context.membershipID },
+    })),
+    ...grants.docs.map(document => ({
+      reference: document.ref,
+      data: { status: "REVOKED", revokedAt: now, revokedBy: context.membershipID },
+    })),
+  ];
+  for (let offset = 0; offset < writes.length; offset += 400) {
+    const batch = adminDb.batch();
+    writes.slice(offset, offset + 400).forEach(write => batch.set(write.reference, write.data, { merge: true }));
+    await batch.commit();
+  }
 }
 
 async function resolveAndValidateSnapshot(

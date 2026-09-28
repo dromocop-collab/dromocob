@@ -26,6 +26,20 @@ test("self-learning sync preserves progress from both device and account", () =>
   assert.equal(merged.updatedAt, "2026-09-28T12:00:00.000Z");
 });
 
+test("empty fresh client cannot erase saved age and placement", () => {
+  const merged = mergeSelfLearningProgress(base, {
+    ...base,
+    ageBand: null,
+    startingLevel: null,
+    completedLessonIDs: [],
+    updatedAt: "2026-09-28T13:00:00.000Z",
+  }, new Date("2026-09-28T14:00:00.000Z"));
+
+  assert.equal(merged.ageBand, "ADULT_18_PLUS");
+  assert.equal(merged.startingLevel, "BEGINNER");
+  assert.deepEqual(merged.completedLessonIDs, ["elifba-1-1"]);
+});
+
 test("unknown lesson identifiers are rejected", () => {
   assert.throws(() => normalizeSelfLearningProgress({
     ...base,
