@@ -1,6 +1,5 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
 import { FieldValue } from "firebase-admin/firestore";
 
 import { HafizAuthorizationError, type HafizContext } from "@/lib/hafiz/authorization";
@@ -34,6 +33,7 @@ export async function syncSelfLearningProgress(
     }
     transaction.set(reference, {
       ownerUserId: context.userID,
+      currentMembershipId: context.membershipID,
       currentInstitutionId: context.institutionID,
       currentRole: context.role,
       curriculumVersion: progress.curriculumVersion,
@@ -74,11 +74,21 @@ export async function loadSelfLearningLeague(
     if (!progress) return [];
     return [{
       userID: document.id,
-      alias: anonymousAlias(document.id),
+      membershipID: typeof data.currentMembershipId === "string"
+        ? data.currentMembershipId
+        : null,
+      institutionID: typeof data.currentInstitutionId === "string"
+        ? data.currentInstitutionId
+        : null,
       progress,
     }];
   });
-  const league = buildSelfLearningLeague(candidates, context.userID);
+  const displayNames = await loadStudentNames(candidates, scope, context.institutionID);
+  const league = buildSelfLearningLeague(candidates.map(candidate => ({
+    userID: candidate.userID,
+    alias: displayNames.get(candidate.userID) || "Öğrenci",
+    progress: candidate.progress,
+  })), context.userID);
 
   return {
     scope,
@@ -89,18 +99,76 @@ export async function loadSelfLearningLeague(
   };
 }
 
+async function loadStudentNames(
+  candidates: Array<{
+    userID: string;
+    membershipID: string | null;
+    institutionID: string | null;
+  }>,
+  scope: SelfLearningLeagueScope,
+  institutionID: string,
+): Promise<Map<string, string>> {
+  const membershipByUser = new Map(
+    candidates.flatMap(candidate => candidate.membershipID
+      ? [[candidate.userID, candidate.membershipID] as const]
+      : []),
+  );
+  const missing = candidates.filter(candidate => !candidate.membershipID);
+  if (missing.length) {
+    const scopes = await adminDb.getAll(...missing.map(candidate =>
+      adminDb.collection("hafiz_user_scopes").doc(candidate.userID)));
+    scopes.forEach((scope, index) => {
+      const membershipID = scope.data()?.activeMembershipId;
+      if (scope.exists && typeof membershipID === "string" && membershipID) {
+        membershipByUser.set(missing[index].userID, membershipID);
+      }
+    });
+  }
+
+  const membershipIDs = [...new Set(membershipByUser.values())];
+  if (!membershipIDs.length) return new Map();
+  const profiles = await adminDb.getAll(...membershipIDs.map(membershipID =>
+    adminDb.collection("hafiz_student_profiles").doc(membershipID)));
+  const candidateByMembership = new Map(
+    [...membershipByUser].map(([userID, membershipID]) => [membershipID, userID] as const),
+  );
+  const candidateByUser = new Map(candidates.map(candidate => [candidate.userID, candidate]));
+  const nameByMembership = new Map(profiles.flatMap(profile => {
+    const data = profile.data();
+    const displayName = typeof data?.displayName === "string" ? data.displayName.trim() : "";
+    const userID = candidateByMembership.get(profile.id);
+    const expectedInstitutionID = userID
+      ? candidateByUser.get(userID)?.institutionID
+      : null;
+    const isAuthorizedInstitution = scope === "INSTITUTION"
+      ? data?.institutionId === institutionID
+      : typeof expectedInstitutionID === "string"
+        && data?.institutionId === expectedInstitutionID;
+    return profile.exists && data?.status === "ACTIVE"
+      && isAuthorizedInstitution && displayName
+      ? [[profile.id, scope === "INSTITUTION" ? displayName : publicStudentName(displayName)] as const]
+      : [];
+  }));
+
+  return new Map([...membershipByUser].flatMap(([userID, membershipID]) => {
+    const displayName = nameByMembership.get(membershipID);
+    return displayName ? [[userID, displayName] as const] : [];
+  }));
+}
+
+function publicStudentName(displayName: string): string {
+  const parts = displayName.split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return parts[0] || "Öğrenci";
+  const surname = parts.pop()!;
+  return `${parts.join(" ")} ${surname.charAt(0).toLocaleUpperCase("tr-TR")}.`;
+}
+
 function safeProgress(value: unknown): SelfLearningProgress | null {
   try {
     return normalizeSelfLearningProgress(value);
   } catch {
     return null;
   }
-}
-
-function anonymousAlias(userID: string): string {
-  const token = createHash("sha256").update(`hafiz-league:${userID}`).digest("hex")
-    .slice(0, 5).toUpperCase();
-  return `Hafız ${token}`;
 }
 
 function seasonTitle(date: Date): string {

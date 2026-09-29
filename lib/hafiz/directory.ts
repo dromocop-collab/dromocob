@@ -9,6 +9,7 @@ import {
   requireInstitutionAccess,
 } from "@/lib/hafiz/authorization";
 import { adminAuth, adminDb } from "@/lib/firebase-admin";
+import { DEFAULT_REGISTRATION_INSTITUTION_ID } from "@/lib/hafiz/registration-constants";
 
 export type DirectoryResource = "institutions" | "teachers" | "students" | "parents" | "classes";
 
@@ -142,6 +143,13 @@ export async function updateDirectoryRecord(
       const status = parseMutableStatus(payload.status);
       if (resource === "institutions" && !context.isPlatformAdmin) {
         throw new HafizAuthorizationError(403, "PLATFORM_ADMIN_REQUIRED", "Kurum durumu değiştirilemez.");
+      }
+      if (
+        resource === "institutions"
+        && snapshot.id === DEFAULT_REGISTRATION_INSTITUTION_ID
+        && status !== "ACTIVE"
+      ) {
+        throw invalidInput("Ana Hafız Platformu kurumu pasifleştirilemez.");
       }
       updates.status = status;
       if (resource === "teachers" || resource === "students" || resource === "parents") {

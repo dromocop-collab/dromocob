@@ -36,6 +36,7 @@ export async function getStudentToday(context: HafizContext) {
   const active = assignments.find(item => !["STUDENT_WORK_COMPLETE", "APPROVED"].includes(item.recipientStatus))
     || assignments.find(item => item.recipientStatus === "STUDENT_WORK_COMPLETE")
     || null;
+  const teacher = await resolveAssignedTeacher(context, active?.id || null);
   return {
     completionPercent: assignments.length === 0
       ? 0
@@ -45,8 +46,28 @@ export async function getStudentToday(context: HafizContext) {
     teacherMessages: assignments
       .filter(item => item.revision.teacherNote.trim())
       .map(item => ({ assignmentId: item.id, message: item.revision.teacherNote })),
+    teacher,
     assignments,
   };
+}
+
+async function resolveAssignedTeacher(context: HafizContext, assignmentID: string | null) {
+  if (!assignmentID) return null;
+  const assignment = await adminDb.collection("hafiz_assignments").doc(assignmentID).get();
+  const assignmentData = assignment.data();
+  const teacherMembershipID = String(assignmentData?.ownerTeacherMembershipId || "");
+  if (!assignment.exists
+    || assignmentData?.institutionId !== context.institutionID
+    || !teacherMembershipID) return null;
+
+  const profile = await adminDb.collection("hafiz_teacher_profiles").doc(teacherMembershipID).get();
+  const profileData = profile.data();
+  if (!profile.exists
+    || profileData?.institutionId !== context.institutionID
+    || profileData?.status !== "ACTIVE") return null;
+
+  const displayName = String(profileData?.displayName || "").trim();
+  return displayName ? { displayName } : null;
 }
 
 export async function getStudentAssignment(context: HafizContext, assignmentID: string) {

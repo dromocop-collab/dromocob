@@ -142,6 +142,19 @@ test("student progress and teacher review keep core writes independent from noti
   );
 });
 
+test("student today exposes only the active assignment teacher's safe display name", () => {
+  const studentRepository = readFileSync(
+    new URL("../lib/hafiz/student-assignment-repository.ts", import.meta.url), "utf8",
+  );
+  assert.match(studentRepository, /resolveAssignedTeacher\(context, active\?\.id \|\| null\)/);
+  assert.match(studentRepository, /assignmentData\?\.ownerTeacherMembershipId/);
+  assert.match(studentRepository, /collection\("hafiz_teacher_profiles"\)/);
+  assert.match(studentRepository, /profileData\?\.institutionId !== context\.institutionID/);
+  assert.match(studentRepository, /profileData\?\.status !== "ACTIVE"/);
+  assert.match(studentRepository, /return displayName \? \{ displayName \} : null/);
+  assert.doesNotMatch(studentRepository, /return displayName \? \{ displayName, email/);
+});
+
 test("admin control plane is role guarded, bounded and strips unsafe audit data", () => {
   for (const route of ["dashboard", "audit-events", "system", "workflow-presets", "account-status"]) {
     const source = readFileSync(new URL(`../app/api/hafiz/admin/${route}/route.ts`, import.meta.url), "utf8");
@@ -200,4 +213,26 @@ test("web admin bootstrap is restricted to an existing super admin", () => {
   assert.match(bootstrap, /role: "ADMIN"/);
   assert.match(bootstrap, /activeMembershipId: membershipID/);
   assert.doesNotMatch(bootstrap, /request\.json/);
+});
+
+test("platform institution cannot be deactivated and lock every admin out", () => {
+  const directory = readFileSync(new URL("../lib/hafiz/directory.ts", import.meta.url), "utf8");
+  assert.match(directory, /DEFAULT_REGISTRATION_INSTITUTION_ID/);
+  assert.match(directory, /snapshot\.id === DEFAULT_REGISTRATION_INSTITUTION_ID/);
+  assert.match(directory, /Ana Hafız Platformu kurumu pasifleştirilemez/);
+});
+
+test("league uses verified student names and limits surname disclosure globally", () => {
+  const repository = readFileSync(
+    new URL("../lib/hafiz/self-learning-repository.ts", import.meta.url),
+    "utf8",
+  );
+  assert.match(repository, /scope === "INSTITUTION"/);
+  assert.match(repository, /collection\("hafiz_student_profiles"\)/);
+  assert.match(repository, /data\?\.status === "ACTIVE"/);
+  assert.match(repository, /data\?\.institutionId === institutionID/);
+  assert.match(repository, /data\?\.institutionId === expectedInstitutionID/);
+  assert.match(repository, /publicStudentName\(displayName\)/);
+  assert.match(repository, /displayNames\.get\(candidate\.userID\) \|\| "Öğrenci"/);
+  assert.doesNotMatch(repository, /anonymousAlias/);
 });
