@@ -5,7 +5,9 @@ import {
   mayReadClassMembership,
   parentMayReadStudent,
   studentMayReadStudent,
+  teacherMayManageClass,
   teacherMayReadStudent,
+  teacherMayTransferStudent,
   type ClassMembershipRecord,
   type ParentStudentLinkRecord,
   type RelationshipContext,
@@ -74,4 +76,36 @@ test("unauthorized class membership is denied", () => {
     status: "ACTIVE",
   };
   assert.equal(mayReadClassMembership(teacher, assignment, otherClassMembership), false);
+});
+
+test("teacher manages only explicitly assigned classes", () => {
+  const assignment: TeacherClassAssignmentRecord = {
+    institutionId: "institution-a", teacherMembershipId: "teacher-a",
+    classId: "class-a", status: "ACTIVE",
+  };
+  assert.equal(teacherMayManageClass(teacher, assignment, "class-a"), true);
+  assert.equal(teacherMayManageClass(teacher, assignment, "class-b"), false);
+  assert.equal(teacherMayManageClass(teacher, { ...assignment, status: "INACTIVE" }, "class-a"), false);
+});
+
+test("student transfer requires source and target class authority", () => {
+  const source: TeacherClassAssignmentRecord = {
+    institutionId: "institution-a", teacherMembershipId: "teacher-a",
+    classId: "class-a", status: "ACTIVE",
+  };
+  const target: TeacherClassAssignmentRecord = { ...source, classId: "class-b" };
+  const membership: ClassMembershipRecord = {
+    institutionId: "institution-a", classId: "class-a",
+    studentMembershipId: "student-a", status: "ACTIVE",
+  };
+  assert.equal(teacherMayTransferStudent(
+    teacher, source, target, membership, "student-a", "class-a", "class-b",
+  ), true);
+  assert.equal(teacherMayTransferStudent(
+    teacher, source, { ...target, teacherMembershipId: "teacher-b" }, membership,
+    "student-a", "class-a", "class-b",
+  ), false);
+  assert.equal(teacherMayTransferStudent(
+    teacher, source, target, membership, "student-a", "class-a", "class-a",
+  ), false);
 });

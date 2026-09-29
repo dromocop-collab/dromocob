@@ -82,3 +82,35 @@ export function mayReadClassMembership(
     && assignment.teacherMembershipId === context.membershipID
     && assignment.classId === membership.classId;
 }
+
+export function teacherMayManageClass(
+  context: RelationshipContext,
+  assignment: TeacherClassAssignmentRecord | null,
+  classID: string,
+): boolean {
+  return context.role === "TEACHER"
+    && assignment !== null
+    && assignment.status === "ACTIVE"
+    && assignment.institutionId === context.institutionID
+    && assignment.teacherMembershipId === context.membershipID
+    && assignment.classId === classID;
+}
+
+export function teacherMayTransferStudent(
+  context: RelationshipContext,
+  sourceAssignment: TeacherClassAssignmentRecord | null,
+  targetAssignment: TeacherClassAssignmentRecord | null,
+  sourceMembership: ClassMembershipRecord | null,
+  studentMembershipID: string,
+  sourceClassID: string,
+  targetClassID: string,
+): boolean {
+  return sourceClassID !== targetClassID
+    && teacherMayManageClass(context, sourceAssignment, sourceClassID)
+    && teacherMayManageClass(context, targetAssignment, targetClassID)
+    && sourceMembership !== null
+    && sourceMembership.status === "ACTIVE"
+    && sourceMembership.institutionId === context.institutionID
+    && sourceMembership.classId === sourceClassID
+    && sourceMembership.studentMembershipId === studentMembershipID;
+}

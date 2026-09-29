@@ -236,3 +236,21 @@ test("league uses verified student names and limits surname disclosure globally"
   assert.match(repository, /displayNames\.get\(candidate\.userID\) \|\| "Öğrenci"/);
   assert.doesNotMatch(repository, /anonymousAlias/);
 });
+
+test("teacher class mutations stay teacher-only and authorization scoped", () => {
+  const route = readFileSync(
+    new URL("../app/api/hafiz/teacher/class-management/route.ts", import.meta.url), "utf8",
+  );
+  const transferRoute = readFileSync(
+    new URL("../app/api/hafiz/teacher/class-management/transfer/route.ts", import.meta.url), "utf8",
+  );
+  const repository = readFileSync(
+    new URL("../lib/hafiz/teacher-class-management-repository.ts", import.meta.url), "utf8",
+  );
+  assert.match(route, /requireHafizContext\(request, \["TEACHER"\]\)/);
+  assert.match(transferRoute, /requireHafizContext\(request, \["TEACHER"\]\)/);
+  assert.match(repository, /teacherMayManageClass/);
+  assert.match(repository, /teacherMayTransferStudent/);
+  assert.match(repository, /sourceClassID !== targetClassID|sourceClassId: sourceClassID/);
+  assert.match(repository, /TEACHER_STUDENT_CLASS_TRANSFERRED/);
+});
