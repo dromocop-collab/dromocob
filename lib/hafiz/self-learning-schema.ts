@@ -10,6 +10,21 @@ export type SelfLearningProgress = {
   updatedAt: string;
 };
 
+export type SelfLearningLeagueCandidate = {
+  userID: string;
+  alias: string;
+  progress: SelfLearningProgress;
+};
+
+export type SelfLearningLeagueRow = {
+  rank: number;
+  alias: string;
+  xp: number;
+  level: number;
+  completedLessons: number;
+  isYou: boolean;
+};
+
 const modes = new Set(["STANDARD", "CHILD"]);
 const ageBands = new Set(["CHILD_6_8", "CHILD_9_12", "TEEN_13_17", "ADULT_18_PLUS"]);
 const startingLevels = new Set(["BEGINNER", "RECOGNIZES_LETTERS", "READS_WITH_MARKS", "READS_QURAN"]);
@@ -78,6 +93,58 @@ export function mergeSelfLearningProgress(
     completedLessonIDs: union(stored.completedLessonIDs, incoming.completedLessonIDs),
     rewardUnlockedLessonIDs: union(stored.rewardUnlockedLessonIDs, incoming.rewardUnlockedLessonIDs),
     updatedAt: now.toISOString(),
+  };
+}
+
+export function selfLearningXP(progress: SelfLearningProgress): number {
+  return progress.completedLessonIDs.reduce((total, lessonID) => {
+    const match = /^elifba-(\d+)-(\d+)$/.exec(lessonID);
+    if (!match) return total;
+    return total + 25 + (Number(match[1]) * 5);
+  }, 0);
+}
+
+export function buildSelfLearningLeague(
+  candidates: SelfLearningLeagueCandidate[],
+  currentUserID: string,
+  visibleLimit = 25,
+): { entries: SelfLearningLeagueRow[]; user: SelfLearningLeagueRow | null; participantCount: number } {
+  const ordered = candidates
+    .filter(candidate => candidate.progress.mode === "STANDARD"
+      && candidate.progress.ageBand === "ADULT_18_PLUS")
+    .map(candidate => ({
+      ...candidate,
+      xp: selfLearningXP(candidate.progress),
+      completedLessons: candidate.progress.completedLessonIDs.length,
+    }))
+    .sort((left, right) => right.xp - left.xp
+      || right.completedLessons - left.completedLessons
+      || left.alias.localeCompare(right.alias, "tr"));
+
+  let previousXP: number | null = null;
+  let previousCompleted: number | null = null;
+  let previousRank = 0;
+  const ranked = ordered.map((candidate, index): SelfLearningLeagueRow => {
+    const rank = candidate.xp === previousXP && candidate.completedLessons === previousCompleted
+      ? previousRank
+      : index + 1;
+    previousXP = candidate.xp;
+    previousCompleted = candidate.completedLessons;
+    previousRank = rank;
+    return {
+      rank,
+      alias: candidate.alias,
+      xp: candidate.xp,
+      level: Math.max(1, Math.floor(candidate.xp / 250) + 1),
+      completedLessons: candidate.completedLessons,
+      isYou: candidate.userID === currentUserID,
+    };
+  });
+
+  return {
+    entries: ranked.slice(0, Math.max(1, Math.min(visibleLimit, 50))),
+    user: ranked.find(row => row.isYou) ?? null,
+    participantCount: ranked.length,
   };
 }
 

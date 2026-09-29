@@ -29,6 +29,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null);
     const email = normalizeEmail(body?.email);
+    const brandName = body?.app === "hafiz" ? "Hafız" : "Dromocob";
 
     if (!isValidEmail(email)) {
       return jsonError("Geçerli bir e-posta gir.", 400);
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     await enqueueMail({
       to: email,
-      ...passwordResetEmailTemplate(code),
+      ...passwordResetEmailTemplate(code, brandName),
     });
 
     return NextResponse.json({

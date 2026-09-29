@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  buildSelfLearningLeague,
   mergeSelfLearningProgress,
   normalizeSelfLearningProgress,
 } from "../lib/hafiz/self-learning-schema.ts";
@@ -53,4 +54,31 @@ test("minor profile cannot forge an advanced adult placement", () => {
     ageBand: "CHILD_6_8",
     startingLevel: "READS_QURAN",
   }));
+});
+
+test("league ranks verified adult progress and keeps aliases anonymous", () => {
+  const progress = normalizeSelfLearningProgress(base);
+  const stronger = normalizeSelfLearningProgress({
+    ...base,
+    completedLessonIDs: ["elifba-1-1", "elifba-1-2", "elifba-2-1"],
+  });
+  const child = normalizeSelfLearningProgress({
+    ...base,
+    mode: "CHILD",
+    ageBand: "CHILD_9_12",
+    startingLevel: "BEGINNER",
+  });
+
+  const result = buildSelfLearningLeague([
+    { userID: "current", alias: "Hafız A1B2C", progress },
+    { userID: "leader", alias: "Hafız C3D4E", progress: stronger },
+    { userID: "child", alias: "Hafız F5A6B", progress: child },
+  ], "current");
+
+  assert.equal(result.participantCount, 2);
+  assert.equal(result.entries[0]?.rank, 1);
+  assert.equal(result.entries[0]?.alias, "Hafız C3D4E");
+  assert.equal(result.user?.rank, 2);
+  assert.equal(result.user?.isYou, true);
+  assert.ok(result.entries.every(entry => !entry.alias.includes("current")));
 });

@@ -97,16 +97,19 @@ export function verificationEmailTemplate(code: string) {
   };
 }
 
-export function passwordResetEmailTemplate(code: string) {
+export function passwordResetEmailTemplate(
+  code: string,
+  brandName = "Dromocob"
+) {
   return {
-    subject: "Dromocob parola sıfırlama kodun",
+    subject: `${brandName} parola sıfırlama kodun`,
     text:
-      `Dromocob parola sıfırlama kodun: ${code}\n\n` +
+      `${brandName} parola sıfırlama kodun: ${code}\n\n` +
       "Bu kod 10 dakika geçerlidir. Bu işlemi sen başlatmadıysan parolan değişmez.",
     html: authCodeHtml({
       code,
       eyebrow: "Güvenli parola sıfırlama",
-      title: "Parolanı yenile",
+      title: `${brandName} parolanı yenile`,
       body: "Yeni parola belirlemek için bu 6 haneli kodu parola sıfırlama ekranına gir.",
     }),
   };
