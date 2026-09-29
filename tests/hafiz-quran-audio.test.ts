@@ -26,3 +26,17 @@ test("invalid canonical Quran identifiers cannot produce an audio URL", () => {
     { id: "0:1", surahNumber: 0, ayahNumber: 1 },
   ]));
 });
+
+test("licensed custom Quran audio CDN can replace the default provider path", () => {
+  const previous = process.env.HAFIZ_QURAN_AUDIO_BASE_URL;
+  process.env.HAFIZ_QURAN_AUDIO_BASE_URL = "https://audio.example.test/hafiz/";
+  try {
+    const value = buildAssignmentRecitation([
+      { id: "1:1", surahNumber: 1, ayahNumber: 1 },
+    ]);
+    assert.equal(value.tracks[0].url, "https://audio.example.test/hafiz/001001.mp3");
+  } finally {
+    if (previous === undefined) delete process.env.HAFIZ_QURAN_AUDIO_BASE_URL;
+    else process.env.HAFIZ_QURAN_AUDIO_BASE_URL = previous;
+  }
+});

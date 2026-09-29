@@ -91,3 +91,12 @@ yalnızca aynı assignment-scoped yanıtta döndürür. Ses dosyaları Quran Fou
 sayfa veya sure için genel bir ses tarama endpoint'i verilmez; görev kapsamı dışındaki ayetler ses
 listesine giremez. Sağlayıcı veya kıraat değişikliği yayınlanmadan önce kaynak sürekliliği, kullanım
 koşulları ve örnek dosya bütünlüğü yeniden doğrulanmalıdır.
+
+### Kendi lisanslı kıraat arşivini kullanma
+
+Sesleri ayet başına MP3 olarak HTTPS üzerinden yayınlanan bir klasöre yükleyin. Dosya adı üç
+haneli sure ve üç haneli ayet numarasının birleşimidir: Fâtiha 1 `001001.mp3`, Bakara 255
+`002255.mp3`. Ardından production ortamında `HAFIZ_QURAN_AUDIO_BASE_URL` değişkenini MP3
+klasörünün kök adresine ayarlayın ve servisi yeniden yayınlayın. Uygulama görev kapsamındaki
+ayetlerin adreslerini bu kökten otomatik üretir; öğretmenin her görev için ayrıca ses seçmesi
+gerekmez. Yalnızca yayınlama ve uygulama içinde kullanma hakkınız bulunan kayıtları kullanın.

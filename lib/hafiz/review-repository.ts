@@ -32,16 +32,42 @@ export async function listTeacherReviewQueue(context: HafizContext) {
     .where("ownerTeacherMembershipId", "==", context.membershipID)
     .limit(500).get();
   const owned = new Set(roots.docs.map(doc => doc.id));
-  const recipients = await adminDb.collection("hafiz_assignment_recipients")
-    .where("institutionId", "==", context.institutionID)
-    .where("status", "==", "STUDENT_WORK_COMPLETE")
-    .limit(500).get();
-  const candidates = recipients.docs.filter(doc => owned.has(String(doc.data().assignmentId)))
-    .sort((a, b) => timestampText(b.data().studentWorkCompletedAt || b.data().lastActivityAt)
-      .localeCompare(timestampText(a.data().studentWorkCompletedAt || a.data().lastActivityAt)))
+  const [recipients, openHelp] = await Promise.all([
+    adminDb.collection("hafiz_assignment_recipients")
+      .where("institutionId", "==", context.institutionID)
+      .where("status", "==", "STUDENT_WORK_COMPLETE")
+      .limit(500).get(),
+    adminDb.collection("hafiz_help_requests")
+      .where("institutionId", "==", context.institutionID)
+      .where("state", "==", "OPEN")
+      .limit(500).get(),
+  ]);
+  const helpRecipientIDs = [...new Set(openHelp.docs
+    .filter(doc => owned.has(String(doc.data().assignmentId)))
+    .map(doc => String(doc.data().assignmentRecipientId || ""))
+    .filter(Boolean))];
+  const helpRecipients = helpRecipientIDs.length
+    ? await adminDb.getAll(...helpRecipientIDs.map(id =>
+      adminDb.collection("hafiz_assignment_recipients").doc(id)))
+    : [];
+  const candidateByID = new Map<string, {
+    id: string; data: FirebaseFirestore.DocumentData;
+  }>();
+  for (const document of [...recipients.docs, ...helpRecipients]) {
+    const data = document.data();
+    if (document.exists && data?.institutionId === context.institutionID
+      && owned.has(String(data.assignmentId))) {
+      candidateByID.set(document.id, { id: document.id, data });
+    }
+  }
+  const helpSet = new Set(helpRecipientIDs);
+  const candidates = [...candidateByID.values()]
+    .sort((a, b) => timestampText(b.data.studentWorkCompletedAt || b.data.lastActivityAt)
+      .localeCompare(timestampText(a.data.studentWorkCompletedAt || a.data.lastActivityAt)))
     .slice(0, 100);
-  const studentIDs = [...new Set(candidates.map(doc => String(doc.data().studentMembershipId)))];
-  const revisionIDs = [...new Set(candidates.map(doc => `${doc.data().assignmentId}_${doc.data().assignedRevisionNumber}`))];
+  const studentIDs = [...new Set(candidates.map(item => String(item.data.studentMembershipId)))];
+  const revisionIDs = [...new Set(candidates.map(item =>
+    `${item.data.assignmentId}_${item.data.assignedRevisionNumber}`))];
   const [students, revisions] = await Promise.all([
     studentIDs.length ? adminDb.getAll(...studentIDs.map(id => adminDb.collection("hafiz_student_profiles").doc(id))) : [],
     revisionIDs.length ? adminDb.getAll(...revisionIDs.map(id => adminDb.collection("hafiz_assignment_revisions").doc(id))) : [],
@@ -50,7 +76,9 @@ export async function listTeacherReviewQueue(context: HafizContext) {
     .map(doc => [doc.id, doc.data()!]));
   const revisionByID = new Map(revisions.filter(doc => doc.exists && doc.data()?.institutionId === context.institutionID)
     .map(doc => [doc.id, doc.data()!]));
-  const items = candidates.map(doc => queueItem(doc.id, doc.data(), studentByID, revisionByID));
+  const items = candidates.map(item => queueItem(
+    item.id, item.data, studentByID, revisionByID, helpSet.has(item.id),
+  ));
   return { items, nextCursor: null };
 }
 
@@ -86,6 +114,8 @@ export async function getTeacherReview(context: HafizContext, recipientID: strin
       pageNumber: doc.data().pageNumber || null,
       message: doc.data().message || "",
       state: doc.data().state,
+      teacherReply: doc.data().teacherReply || null,
+      repliedAt: timestampText(doc.data().repliedAt),
       createdAt: timestampText(doc.data().createdAt),
     })).sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     audioSubmissions: audio.docs.map(doc => ({
@@ -101,6 +131,66 @@ export async function getTeacherReview(context: HafizContext, recipientID: strin
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
     assignmentOwnerMembershipId: root.data()?.ownerTeacherMembershipId,
   };
+}
+
+export async function replyToStudentHelpRequest(
+  context: HafizContext,
+  helpRequestID: string,
+  body: unknown,
+) {
+  requireTeacher(context);
+  const payload = asObject(body);
+  const reply = optionalString(payload.message).slice(0, 1000);
+  if (!reply) throw invalidReview("Öğrenciye gönderilecek cevap boş olamaz.");
+  const helpReference = adminDb.collection("hafiz_help_requests").doc(helpRequestID);
+  let studentMembershipID = "";
+  let assignmentID = "";
+  let recipientID = "";
+
+  await adminDb.runTransaction(async transaction => {
+    const help = await transaction.get(helpReference);
+    const helpData = help.data();
+    if (!help.exists || !helpData || helpData.institutionId !== context.institutionID) {
+      throw notFound();
+    }
+    assignmentID = String(helpData.assignmentId || "");
+    recipientID = String(helpData.assignmentRecipientId || "");
+    studentMembershipID = String(helpData.studentMembershipId || "");
+    const [root, recipient] = await Promise.all([
+      transaction.get(adminDb.collection("hafiz_assignments").doc(assignmentID)),
+      transaction.get(adminDb.collection("hafiz_assignment_recipients").doc(recipientID)),
+    ]);
+    if (!root.exists || !recipient.exists
+      || root.data()?.institutionId !== context.institutionID
+      || root.data()?.ownerTeacherMembershipId !== context.membershipID
+      || recipient.data()?.institutionId !== context.institutionID
+      || recipient.data()?.studentMembershipId !== studentMembershipID) throw notFound();
+    if (helpData.state !== "OPEN") {
+      throw invalidReview("Bu yardım isteği daha önce cevaplanmış.");
+    }
+    transaction.update(helpReference, {
+      state: "ANSWERED",
+      teacherReply: reply,
+      repliedAt: FieldValue.serverTimestamp(),
+      repliedBy: context.membershipID,
+    });
+    audit(transaction, context, "STUDENT_HELP_REQUEST_ANSWERED", recipientID, {
+      helpRequestId: helpRequestID, assignmentId: assignmentID,
+    });
+  });
+
+  await enqueueHafizNotification({
+    institutionID: context.institutionID,
+    targetMembershipID: studentMembershipID,
+    event: "TEACHER_SENT_MESSAGE",
+    sourceID: helpRequestID,
+    title: "Öğretmenin sorunu cevapladı",
+    body: reply,
+    deepLink: `hafiz://assignment/${assignmentID}`,
+    metadata: { assignmentId: assignmentID, helpRequestId: helpRequestID },
+  }).catch(error => console.error("[HAFIZ HELP REPLY NOTIFICATION]", error));
+
+  return { ok: true, id: helpRequestID, state: "ANSWERED" };
 }
 
 export async function submitTeacherReview(
@@ -359,7 +449,7 @@ async function requireOwnedRecipient(context: HafizContext, recipientID: string)
 
 function queueItem(id: string, data: FirebaseFirestore.DocumentData,
   students: Map<string, FirebaseFirestore.DocumentData>,
-  revisions: Map<string, FirebaseFirestore.DocumentData>) {
+  revisions: Map<string, FirebaseFirestore.DocumentData>, hasOpenHelpRequest = false) {
   const student = students.get(String(data.studentMembershipId));
   const revision = revisions.get(`${data.assignmentId}_${data.assignedRevisionNumber}`);
   const scope = revision?.quranScope;
@@ -372,6 +462,7 @@ function queueItem(id: string, data: FirebaseFirestore.DocumentData,
     submittedAt: timestampText(data.studentWorkCompletedAt || data.lastActivityAt),
     quranScope: scope ? { startPage: scope.startPage, endPage: scope.endPage } : null,
     difficulty: data.difficulty || null,
+    hasOpenHelpRequest,
   };
 }
 

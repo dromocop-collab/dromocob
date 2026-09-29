@@ -73,8 +73,13 @@ async function resolveAssignedTeacher(context: HafizContext, assignmentID: strin
 export async function getStudentAssignment(context: HafizContext, assignmentID: string) {
   const assignment = await loadStudentAssignment(context, `${assignmentID}_${context.membershipID}`);
   if (!assignment) throw notFound();
-  const reviews = await adminDb.collection("hafiz_assignment_reviews")
-    .where("assignmentRecipientId", "==", `${assignmentID}_${context.membershipID}`).get();
+  const recipientID = `${assignmentID}_${context.membershipID}`;
+  const [reviews, helpRequests] = await Promise.all([
+    adminDb.collection("hafiz_assignment_reviews")
+      .where("assignmentRecipientId", "==", recipientID).get(),
+    adminDb.collection("hafiz_help_requests")
+      .where("assignmentRecipientId", "==", recipientID).get(),
+  ]);
   return {
     ...assignment,
     teacherFeedback: reviews.docs.map(document => document.data())
@@ -85,6 +90,22 @@ export async function getStudentAssignment(context: HafizContext, assignmentID: 
         note: data.note || null,
         createdAt: data.createdAt?.toDate?.().toISOString?.() || "",
       })),
+    helpReplies: helpRequests.docs.map(document => {
+      const data = document.data();
+      return {
+        id: document.id,
+        state: String(data.state || "OPEN"),
+        stepId: String(data.stepId || ""),
+        question: String(data.message || ""),
+        reply: typeof data.teacherReply === "string" ? data.teacherReply : "",
+        repliedAt: data.repliedAt?.toDate?.().toISOString?.() || "",
+      };
+    })
+      .filter(data => data.state === "ANSWERED" && data.reply)
+      .map(({ id, stepId, question, reply, repliedAt }) => ({
+        id, stepId, question, reply, repliedAt,
+      }))
+      .sort((left, right) => right.repliedAt.localeCompare(left.repliedAt)),
   };
 }
 

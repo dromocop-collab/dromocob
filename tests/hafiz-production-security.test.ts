@@ -201,6 +201,19 @@ test("institution transfer queries have explicit composite indexes", () => {
   assert.equal(hasIndex("hafiz_teacher_class_assignments", ["institutionId", "classId", "status"]), true);
   assert.equal(hasIndex("hafiz_parent_student_links", ["institutionId", "studentMembershipId", "status"]), true);
   assert.equal(hasIndex("hafiz_assignment_quran_grants", ["institutionId", "studentMembershipId", "status"]), true);
+  assert.equal(hasIndex("hafiz_help_requests", ["institutionId", "state"]), true);
+});
+
+test("teacher can answer an open help request without prematurely approving work", () => {
+  const route = readFileSync(
+    "app/api/hafiz/teacher/help-requests/[requestId]/reply/route.ts", "utf8",
+  );
+  const repository = readFileSync("lib/hafiz/review-repository.ts", "utf8");
+  assert.match(route, /requireHafizContext\(request, \["TEACHER"\]\)/);
+  assert.match(repository, /state: "ANSWERED"/);
+  assert.match(repository, /STUDENT_HELP_REQUEST_ANSWERED/);
+  assert.match(repository, /event: "TEACHER_SENT_MESSAGE"/);
+  assert.match(repository, /where\("state", "==", "OPEN"\)/);
 });
 
 test("web admin bootstrap is restricted to an existing super admin", () => {

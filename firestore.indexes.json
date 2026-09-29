@@ -231,6 +231,11 @@
       "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }]
     },
     {
+      "collectionGroup": "hafiz_help_requests",
+      "queryScope": "COLLECTION",
+      "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "state", "order": "ASCENDING" }]
+    },
+    {
       "collectionGroup": "hafiz_audio_assets",
       "queryScope": "COLLECTION",
       "fields": [{ "fieldPath": "institutionId", "order": "ASCENDING" }, { "fieldPath": "studentMembershipId", "order": "ASCENDING" }, { "fieldPath": "createdAt", "order": "DESCENDING" }]
