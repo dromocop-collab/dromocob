@@ -22,9 +22,12 @@ export async function DELETE(request: NextRequest) {
 
     // Hesaba bağlı doğrudan belgeleri, olası alt koleksiyonlarıyla beraber sil.
     await Promise.all([
+      adminDb.recursiveDelete(adminDb.collection("users").doc(uid)),
       adminDb.recursiveDelete(adminDb.collection("mobile_app_users").doc(uid)),
       adminDb.recursiveDelete(adminDb.collection("mobile_premium_entitlements").doc(uid)),
       adminDb.recursiveDelete(adminDb.collection("coaching_customers").doc(uid)),
+      adminDb.collection("auth_password_reset_codes").doc(uid).delete(),
+      adminDb.collection("auth_email_codes").doc(uid).delete(),
     ]);
 
     // Bildirim token'larının belge kimliği cihaz token'ından üretildiği için UID ile sorgulanır.
@@ -42,9 +45,12 @@ export async function DELETE(request: NextRequest) {
       ...professionalRelationships.docs,
       ...coachingInvites.docs,
     ];
-    for (let index = 0; index < relatedDocuments.length; index += 400) {
+    const uniqueRelatedDocuments = [...new Map(
+      relatedDocuments.map(document => [document.ref.path, document]),
+    ).values()];
+    for (let index = 0; index < uniqueRelatedDocuments.length; index += 400) {
       const batch = adminDb.batch();
-      relatedDocuments.slice(index, index + 400).forEach(document => batch.delete(document.ref));
+      uniqueRelatedDocuments.slice(index, index + 400).forEach(document => batch.delete(document.ref));
       await batch.commit();
     }
 
