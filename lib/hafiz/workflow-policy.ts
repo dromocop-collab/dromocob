@@ -34,6 +34,7 @@ export type WorkflowTransitionInput = {
   stepId: string;
   action: StudentWorkflowAction;
   value?: number;
+  now?: Date;
 };
 
 export type WorkflowTransitionResult = {
@@ -56,26 +57,29 @@ export class WorkflowTransitionError extends Error {
 export function initializeWorkflow(
   steps: AssignmentWorkflowStep[],
   sequential: boolean,
+  now = new Date(),
 ): WorkflowTransitionResult {
   const enabled = orderedEnabledSteps(steps);
   const initial = enabled.map(step => emptyProgress(step.id));
-  return normalizeWorkflow(enabled, initial, sequential);
+  return normalizeWorkflow(enabled, initial, sequential, now);
 }
 
 export function normalizeStoredWorkflow(
   steps: AssignmentWorkflowStep[],
   progress: StepProgressRecord[],
   sequential: boolean,
+  now = new Date(),
 ): WorkflowTransitionResult {
   const enabled = orderedEnabledSteps(steps);
-  return normalizeWorkflow(enabled, mergeProgress(enabled, progress), sequential);
+  return normalizeWorkflow(enabled, mergeProgress(enabled, progress), sequential, now);
 }
 
 export function transitionWorkflow(input: WorkflowTransitionInput): WorkflowTransitionResult {
   const steps = orderedEnabledSteps(input.steps);
   const definition = steps.find(step => step.id === input.stepId);
   if (!definition) throw new WorkflowTransitionError("STEP_NOT_FOUND", "Çalışma adımı bulunamadı.");
-  let current = normalizeWorkflow(steps, mergeProgress(steps, input.progress), input.sequential);
+  const now = input.now ?? new Date();
+  let current = normalizeWorkflow(steps, mergeProgress(steps, input.progress), input.sequential, now);
   const target = current.progress.find(step => step.stepId === input.stepId);
   if (!target) throw new WorkflowTransitionError("STEP_NOT_FOUND", "Çalışma adımı bulunamadı.");
   if (target.state === "LOCKED" || target.state === "AWAITING_REVIEW") {
@@ -139,7 +143,7 @@ export function transitionWorkflow(input: WorkflowTransitionInput): WorkflowTran
     break;
   }
   const wasComplete = current.recipientStatus === "STUDENT_WORK_COMPLETE";
-  current = normalizeWorkflow(steps, next, input.sequential);
+  current = normalizeWorkflow(steps, next, input.sequential, now);
   if (!wasComplete && current.recipientStatus === "STUDENT_WORK_COMPLETE") {
     eventType = "STUDENT_WORK_COMPLETE";
   }
@@ -156,6 +160,7 @@ function normalizeWorkflow(
   steps: AssignmentWorkflowStep[],
   progress: StepProgressRecord[],
   sequential: boolean,
+  now: Date,
 ): WorkflowTransitionResult {
   const next = progress.map(item => ({ ...item }));
   const studentSteps = steps.filter(step => !isTeacherControlled(step));
@@ -168,7 +173,9 @@ function normalizeWorkflow(
   if (workComplete) {
     for (const step of steps) {
       const item = next.find(candidate => candidate.stepId === step.id)!;
-      if (isTeacherControlled(step)) item.state = "AWAITING_REVIEW";
+      if (isTeacherControlled(step)) {
+        item.state = isAvailable(step, now) ? "AWAITING_REVIEW" : "LOCKED";
+      }
       else if (!step.required && !["COMPLETED", "SKIPPED"].includes(item.state)) item.state = "SKIPPED";
     }
   } else if (sequential) {
@@ -182,6 +189,9 @@ function normalizeWorkflow(
       }
       if (isTeacherControlled(step)) {
         item.state = "LOCKED";
+      } else if (!isAvailable(step, now)) {
+        foundCurrent = true;
+        item.state = "LOCKED";
       } else if (!foundCurrent) {
         foundCurrent = true;
         if (item.state !== "IN_PROGRESS") item.state = "AVAILABLE";
@@ -193,7 +203,7 @@ function normalizeWorkflow(
     for (const step of steps) {
       const item = next.find(candidate => candidate.stepId === step.id)!;
       if (["COMPLETED", "SKIPPED", "IN_PROGRESS", "AWAITING_REVIEW"].includes(item.state)) continue;
-      item.state = isTeacherControlled(step) ? "LOCKED" : "AVAILABLE";
+      item.state = isTeacherControlled(step) || !isAvailable(step, now) ? "LOCKED" : "AVAILABLE";
     }
   }
 
@@ -204,15 +214,25 @@ function normalizeWorkflow(
   const active = next.find(item => item.state === "IN_PROGRESS")
     || next.find(item => item.state === "AVAILABLE");
   const started = next.some(item => item.state === "IN_PROGRESS" || item.state === "COMPLETED" || item.state === "SKIPPED");
+  const waitingForScheduledTeacher = workComplete && steps
+    .filter(isTeacherControlled)
+    .some(step => !isAvailable(step, now));
   return {
     progress: next,
-    recipientStatus: workComplete
+    recipientStatus: workComplete && !waitingForScheduledTeacher
       ? "STUDENT_WORK_COMPLETE"
       : (started ? "IN_PROGRESS" : "NOT_STARTED"),
     activeStepId: active?.stepId || null,
     completionPercent: studentSteps.length === 0 ? 100 : Math.round((completed / studentSteps.length) * 100),
     eventType: "WORKFLOW_INITIALIZED",
   };
+}
+
+function isAvailable(step: AssignmentWorkflowStep, now: Date) {
+  const value = step.configuration.availableAt;
+  if (typeof value !== "string" || !value.trim()) return true;
+  const scheduled = new Date(value);
+  return !Number.isNaN(scheduled.getTime()) && scheduled.getTime() <= now.getTime();
 }
 
 function mergeProgress(steps: AssignmentWorkflowStep[], records: StepProgressRecord[]) {

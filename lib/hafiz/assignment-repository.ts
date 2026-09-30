@@ -90,6 +90,65 @@ export async function createAssignmentDraft(context: HafizContext, body: unknown
   return getTeacherAssignment(context, assignmentReference.id);
 }
 
+export async function ensurePlanAssignmentDraft(
+  context: HafizContext,
+  assignmentID: string,
+  body: unknown,
+  plan: { id: string; title: string; trackIndex: number; juzNumber: number; pageNumber: number },
+) {
+  requireTeacher(context);
+  const assignmentReference = adminDb.collection("hafiz_assignments").doc(assignmentID);
+  const existing = await assignmentReference.get();
+  if (existing.exists) {
+    const data = existing.data() || {};
+    if (data.institutionId !== context.institutionID
+      || data.ownerTeacherMembershipId !== context.membershipID
+      || data.planId !== plan.id) throw notFound();
+    return getTeacherAssignment(context, assignmentID);
+  }
+  const snapshot = await resolveAndValidateSnapshot(context, body);
+  const revisionNumber = 1;
+  const now = new Date().toISOString();
+  await adminDb.runTransaction(async transaction => {
+    const fresh = await transaction.get(assignmentReference);
+    if (fresh.exists) return;
+    const planFields = {
+      planId: plan.id,
+      planTitle: plan.title,
+      planTrackIndex: plan.trackIndex,
+      planJuzNumber: plan.juzNumber,
+      planPageNumber: plan.pageNumber,
+    };
+    transaction.create(assignmentReference, {
+      institutionId: context.institutionID,
+      ownerTeacherMembershipId: context.membershipID,
+      status: "DRAFT",
+      currentDraftRevisionNumber: revisionNumber,
+      publishedRevisionNumber: null,
+      latestRevisionNumber: revisionNumber,
+      ...planFields,
+      createdAt: now,
+      createdBy: context.membershipID,
+      updatedAt: now,
+      updatedBy: context.membershipID,
+    });
+    transaction.create(revisionReference(assignmentID, revisionNumber), {
+      ...snapshot,
+      ...planFields,
+      assignmentId: assignmentID,
+      institutionId: context.institutionID,
+      ownerTeacherMembershipId: context.membershipID,
+      revisionNumber,
+      status: "DRAFT",
+      createdAt: now,
+      createdBy: context.membershipID,
+      updatedAt: now,
+    });
+    writeAudit(transaction, context, "ASSIGNMENT_PLAN_TRACK_CREATED", assignmentID, revisionNumber);
+  });
+  return getTeacherAssignment(context, assignmentID);
+}
+
 export async function updateAssignmentDraft(
   context: HafizContext,
   assignmentID: string,
@@ -162,6 +221,7 @@ export async function publishAssignment(
   context: HafizContext,
   assignmentID: string,
   activate: boolean,
+  notify = true,
 ) {
   const root = await requireOwnedAssignment(context, assignmentID);
   const rootData = root.data() || {};
@@ -225,6 +285,11 @@ export async function publishAssignment(
           completionPercent: initialWorkflow.completionPercent,
           totalStudySeconds: 0,
           lastActivityAt: null,
+          planId: rootData.planId || null,
+          planTitle: rootData.planTitle || null,
+          planTrackIndex: rootData.planTrackIndex ?? null,
+          planJuzNumber: rootData.planJuzNumber ?? null,
+          planPageNumber: rootData.planPageNumber ?? null,
           createdAt: now,
           createdBy: context.membershipID,
         });
@@ -238,9 +303,10 @@ export async function publishAssignment(
             institutionId: context.institutionID,
             editionId: snapshot.quranScope.editionId,
             editionChecksum: snapshot.quranScope.editionChecksum,
-            pageNumbers: snapshot.quranScope.pageNumbers,
-            ayahIds: snapshot.quranScope.ayahIds,
-            status: "ACTIVE",
+              pageNumbers: snapshot.quranScope.pageNumbers,
+              ayahIds: snapshot.quranScope.ayahIds,
+              availableAt: assignmentAvailableAt(snapshot.workflowSteps),
+              status: "ACTIVE",
             createdAt: now,
           },
         );
@@ -248,16 +314,18 @@ export async function publishAssignment(
     });
     writeAudit(transaction, context, "ASSIGNMENT_PUBLISHED", assignmentID, revisionNumber);
   });
-  await Promise.allSettled(studentIDs.map(studentID => enqueueHafizNotification({
-    institutionID: context.institutionID,
-    targetMembershipID: studentID,
-    event: "NEW_ASSIGNMENT",
-    sourceID: `${assignmentID}:${revisionNumber}`,
-    title: "Yeni görevin hazır",
-    body: snapshot.teacherNote.trim() || "Öğretmenin yeni bir çalışma gönderdi.",
-    deepLink: `hafiz://assignment/${assignmentID}`,
-    metadata: { assignmentId: assignmentID, revisionNumber },
-  })));
+  if (notify) {
+    await Promise.allSettled(studentIDs.map(studentID => enqueueHafizNotification({
+      institutionID: context.institutionID,
+      targetMembershipID: studentID,
+      event: "NEW_ASSIGNMENT",
+      sourceID: `${assignmentID}:${revisionNumber}`,
+      title: "Yeni görevin hazır",
+      body: snapshot.teacherNote.trim() || "Öğretmenin yeni bir çalışma gönderdi.",
+      deepLink: `hafiz://assignment/${assignmentID}`,
+      metadata: { assignmentId: assignmentID, revisionNumber },
+    })));
+  }
   return getTeacherAssignment(context, assignmentID);
 }
 
@@ -456,6 +524,11 @@ function publicAssignment(id: string, root: FirebaseFirestore.DocumentData, revi
     latestRevisionNumber: root.latestRevisionNumber,
     createdAt: root.createdAt,
     updatedAt: root.updatedAt,
+    planId: root.planId || null,
+    planTitle: root.planTitle || null,
+    planTrackIndex: root.planTrackIndex ?? null,
+    planJuzNumber: root.planJuzNumber ?? null,
+    planPageNumber: root.planPageNumber ?? null,
     revision: revision ? {
       revisionNumber: revision.revisionNumber,
       status: revision.status,
@@ -466,6 +539,15 @@ function publicAssignment(id: string, root: FirebaseFirestore.DocumentData, revi
 
 function revisionReference(assignmentID: string, revisionNumber: number) {
   return adminDb.collection("hafiz_assignment_revisions").doc(`${assignmentID}_${revisionNumber}`);
+}
+
+function assignmentAvailableAt(steps: AssignmentWorkflowStep[]) {
+  const values = steps
+    .filter(step => step.enabled && typeof step.configuration.availableAt === "string")
+    .map(step => String(step.configuration.availableAt))
+    .filter(value => !Number.isNaN(new Date(value).getTime()))
+    .sort();
+  return values[0] || null;
 }
 
 function writeAudit(

@@ -279,6 +279,7 @@ export async function getAssignmentQuranContent(
         editionId: scope.editionId,
         pageNumbers: scope.pageNumbers.map(Number),
         ayahIds: Array.isArray(scope.ayahIds) ? scope.ayahIds.map(String) : null,
+        availableAt: firstWorkflowAvailableAt(revisionData.workflowSteps),
         status: "ACTIVE",
       };
       if (studentMayResolveAssignmentQuran(context, grant, assignmentID)) {
@@ -318,6 +319,19 @@ export async function getAssignmentQuranContent(
     recitation: buildAssignmentRecitation(pages.flatMap(page => page.ayahs)),
     pages,
   };
+}
+
+function firstWorkflowAvailableAt(value: unknown) {
+  if (!Array.isArray(value)) return null;
+  const dates = value.flatMap(item => {
+    if (!item || typeof item !== "object") return [];
+    const configuration = (item as Record<string, unknown>).configuration;
+    if (!configuration || typeof configuration !== "object" || Array.isArray(configuration)) return [];
+    const availableAt = (configuration as Record<string, unknown>).availableAt;
+    return typeof availableAt === "string" && !Number.isNaN(new Date(availableAt).getTime())
+      ? [availableAt] : [];
+  }).sort();
+  return dates[0] || null;
 }
 
 async function writeDataset(dataset: QuranDataset) {
@@ -362,6 +376,26 @@ async function resolveNavigationPages(
   const pages = Array.from({ length: end - start + 1 }, (_, index) => start + index);
   await assertPagesExist(editionID, pages);
   return pages;
+}
+
+export async function resolveJuzEndPages(
+  editionID: string,
+  juzNumbers: number[],
+): Promise<Map<number, number>> {
+  await requireActiveEdition(editionID);
+  if (juzNumbers.length === 0 || juzNumbers.length > 30
+    || juzNumbers.some(number => !Number.isSafeInteger(number) || number < 1 || number > 30)) {
+    throw invalidInput("Cüz aralığı geçersiz.");
+  }
+  const unique = [...new Set(juzNumbers)];
+  const snapshots = await adminDb.getAll(...unique.map(number =>
+    adminDb.collection("hafiz_quran_juzs").doc(`${editionID}_${number}`)
+  ));
+  if (snapshots.some(snapshot => !snapshot.exists)) throw notFound();
+  return new Map(snapshots.map((snapshot, index) => [
+    unique[index],
+    requiredPositiveInteger(snapshot.data()?.endPage),
+  ]));
 }
 
 async function loadQuranPages(editionID: string, pageNumbers: number[]) {

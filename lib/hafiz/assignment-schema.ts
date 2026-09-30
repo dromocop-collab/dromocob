@@ -159,6 +159,13 @@ export function validateAssignmentSnapshot(
         errors.push(`${step.type} hedef adedi geçersiz.`);
       }
     }
+    if (step.configuration.availableAt != null) {
+      const availableAt = typeof step.configuration.availableAt === "string"
+        ? new Date(step.configuration.availableAt) : null;
+      if (!availableAt || Number.isNaN(availableAt.getTime())) {
+        errors.push(`${step.type} açılış zamanı geçersiz.`);
+      }
+    }
   }
   const review = enabled.find(step => step.type === "TEACHER_REVIEW");
   if (review) {

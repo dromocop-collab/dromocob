@@ -33,19 +33,29 @@ export async function getStudentToday(context: HafizContext) {
   ))).filter(item => item !== null)
     .sort((left, right) => left!.revision.deadlineAt.localeCompare(right!.revision.deadlineAt))
     .map(item => item!);
-  const active = assignments.find(item => !["STUDENT_WORK_COMPLETE", "APPROVED"].includes(item.recipientStatus))
+  const todayAssignments = assignments.filter(item => item.lastActiveStepId
+    && !["STUDENT_WORK_COMPLETE", "APPROVED"].includes(item.recipientStatus));
+  const active = todayAssignments[0]
     || assignments.find(item => item.recipientStatus === "STUDENT_WORK_COMPLETE")
     || null;
   const teacher = await resolveAssignedTeacher(context, active?.id || null);
+  const messageKeys = new Set<string>();
+  const teacherMessages = assignments
+    .filter(item => item.revision.teacherNote.trim())
+    .flatMap(item => {
+      const key = item.planId || item.id;
+      if (messageKeys.has(key)) return [];
+      messageKeys.add(key);
+      return [{ assignmentId: item.id, message: item.revision.teacherNote }];
+    });
   return {
     completionPercent: assignments.length === 0
       ? 0
       : Math.round(assignments.reduce((sum, item) => sum + item.completionPercent, 0) / assignments.length),
     activeAssignment: active,
-    remainingTasks: assignments.filter(item => item.recipientStatus !== "STUDENT_WORK_COMPLETE").length,
-    teacherMessages: assignments
-      .filter(item => item.revision.teacherNote.trim())
-      .map(item => ({ assignmentId: item.id, message: item.revision.teacherNote })),
+    todayAssignments,
+    remainingTasks: todayAssignments.length,
+    teacherMessages,
     teacher,
     assignments,
   };
@@ -464,6 +474,11 @@ function publicStudentAssignment(
     totalStudySeconds: Number(recipient.totalStudySeconds || 0),
     lastActivityAt: recipient.lastActivityAt || null,
     difficulty: recipient.difficulty || null,
+    planId: recipient.planId || null,
+    planTitle: recipient.planTitle || null,
+    planTrackIndex: recipient.planTrackIndex ?? null,
+    planJuzNumber: recipient.planJuzNumber ?? null,
+    planPageNumber: recipient.planPageNumber ?? null,
     progress: readProgress(recipient.stepProgress),
     revision,
   };

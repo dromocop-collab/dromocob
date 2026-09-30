@@ -71,3 +71,12 @@ test("cross-tenant and inactive grants are rejected", () => {
     grant.assignmentId,
   ), false);
 });
+
+test("a scheduled plan page stays private until its study day", () => {
+  const scheduled = { ...grant, availableAt: "2026-10-05T06:00:00.000Z" };
+  assert.equal(studentMayResolveAssignmentQuran(
+    student, scheduled, grant.assignmentId, new Date("2026-10-05T05:59:59.000Z")), false);
+  assert.equal(assignmentAllowsPage(scheduled, 341, new Date("2026-10-05T05:59:59.000Z")), false);
+  assert.equal(studentMayResolveAssignmentQuran(
+    student, scheduled, grant.assignmentId, new Date("2026-10-05T06:00:00.000Z")), true);
+});
