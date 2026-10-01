@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { buildFirstStepPlan } from "../lib/hafiz/weekly-assignment-plan.ts";
-import { initializeWorkflow, transitionWorkflow, WorkflowTransitionError } from "../lib/hafiz/workflow-policy.ts";
+import {
+  initializeWorkflow,
+  normalizeStoredWorkflow,
+  transitionWorkflow,
+  WorkflowTransitionError,
+} from "../lib/hafiz/workflow-policy.ts";
 
 const start = "2026-10-05T06:00:00.000Z";
 const preview = buildFirstStepPlan({
@@ -34,6 +39,19 @@ test("plan workflow keeps 3/33 on the same day and stages on following study day
   assert.equal(steps[0].configuration.availableAt, steps[1].configuration.availableAt);
   assert.notEqual(steps[1].configuration.availableAt, steps[2].configuration.availableAt);
   assert.equal(steps.at(-1)?.type, "RECITE_TO_TEACHER");
+});
+
+test("a published plan automatically opens its first step when start time arrives", () => {
+  const steps = preview.tracks[0].workflowSteps;
+  const beforeStart = new Date(new Date(start).getTime() - 1_000);
+  const waiting = initializeWorkflow(steps, true, beforeStart);
+  assert.equal(waiting.activeStepId, null);
+  assert.ok(waiting.progress.every(item => item.state === "LOCKED"));
+
+  const started = normalizeStoredWorkflow(steps, waiting.progress, true, new Date(start));
+  assert.equal(started.activeStepId, steps[0].id);
+  assert.equal(started.progress[0].state, "AVAILABLE");
+  assert.equal(started.progress[1].state, "LOCKED");
 });
 
 test("scheduled workflow rejects tomorrow's step even after today's work is complete", () => {
