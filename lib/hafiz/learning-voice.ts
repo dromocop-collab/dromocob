@@ -5,6 +5,7 @@ import { basename, join } from "node:path";
 
 import { adminStorage } from "@/lib/firebase-admin";
 import {
+  bundledLetterRecordingPath,
   bundledVowelRecordingPath,
   HumanVoiceUnavailableError,
   humanLetterRecordingURL,
@@ -26,7 +27,8 @@ export async function renderLearningVoice(request: LearningVoiceRequest): Promis
   const cached = await readCachedAudio(cachePath);
   if (cached) return cached;
 
-  const bundledRecording = bundledVowelRecordingPath(request);
+  const bundledRecording = bundledLetterRecordingPath(request)
+    ?? bundledVowelRecordingPath(request);
   if (bundledRecording) {
     const audio = await readBundledAudio(bundledRecording);
     await writeCachedAudio(cachePath, audio, "qamar-qaida-human-cc-by-sa");

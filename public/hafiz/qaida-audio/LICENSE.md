@@ -1,6 +1,6 @@
 # Noorani Qaida human recordings
 
-The audio files in this directory are excerpts from **Al Qaida Al Nooraniya** by
+The Arabic letter-name and vowel audio files in this directory are excerpts from **Al Qaida Al Nooraniya** by
 Qamar Apps, recited by Mufti Mohammed Ghiyas Mohiuddin of Madrasa Arabia Hifzul
 Quraan, India.
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  bundledLetterRecordingPath,
   bundledVowelRecordingPath,
   humanLetterRecordingURL,
   learningVoiceCachePath,
@@ -10,11 +11,11 @@ import {
   quranWordAudioURL,
 } from "../lib/hafiz/learning-voice-policy.ts";
 
-test("letter lessons resolve to free human recordings on GitHub", () => {
+test("letter lessons resolve to bundled real-teacher recordings", () => {
   const request = parseLearningVoiceRequest({ profile: "QURAN_AR", text: "أَلِفْ",
     delivery: "LETTER_NAME", pace: "SLOW" });
-  assert.equal(humanLetterRecordingURL(request)?.href,
-    "https://raw.githubusercontent.com/razunatmohammed88-cyber/arabic-alphabet-audio/main/alif.mp3");
+  assert.equal(bundledLetterRecordingPath(request),
+    "public/hafiz/qaida-audio/letter_alif.mp3");
 });
 
 test("Quran words resolve to Quran Foundation word-by-word human audio", () => {

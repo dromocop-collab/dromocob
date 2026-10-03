@@ -25,21 +25,21 @@ export class HumanVoiceUnavailableError extends Error {
 }
 
 const MAX_TEXT_LENGTH = 120;
-const CACHE_VERSION = "v3-qaida-human-recordings";
+const CACHE_VERSION = "v4-bundled-qaida-human-recordings";
 const ARABIC_ALPHABET_AUDIO_BASE =
   "https://raw.githubusercontent.com/razunatmohammed88-cyber/arabic-alphabet-audio/main";
 
 const LETTER_RECORDINGS: Readonly<Record<string, string>> = {
-  "أَلِف": "alif.mp3", "بَاء": "baa.mp3", "تَاء": "taa.mp3",
-  "ثَاء": "thaa.mp3", "جِيم": "jiim.mp3", "حَاء": "haa.mp3",
-  "خَاء": "khaa.mp3", "دَال": "daal.mp3", "ذَال": "thaal.mp3",
-  "رَاء": "raa.mp3", "زَاي": "zaay.mp3", "سِين": "siin.mp3",
-  "شِين": "shiin.mp3", "صَاد": "saad.mp3", "ضَاد": "daad.mp3",
-  "طَاء": "taa'.mp3", "ظَاء": "thaa'.mp3", "عَين": "àyn.mp3",
-  "غَين": "ghayn.mp3", "فَاء": "faa.mp3", "قَاف": "qaaf.mp3",
-  "كَاف": "kaaf.mp3", "لَام": "laam.mp3", "مِيم": "miim.mp3",
-  "نُون": "nuun.mp3", "وَاو": "waaw.mp3", "هَاء": "haa'.mp3",
-  "يَاء": "yaa.mp3", "هَمْزَة": "hamzah.mp3",
+  "أَلِف": "letter_alif.mp3", "بَاء": "letter_baa.mp3", "تَاء": "letter_taa.mp3",
+  "ثَاء": "letter_thaa.mp3", "جِيم": "letter_jeem.mp3", "حَاء": "letter_haa_heavy.mp3",
+  "خَاء": "letter_khaa.mp3", "دَال": "letter_daal.mp3", "ذَال": "letter_dhaal.mp3",
+  "رَاء": "letter_raa.mp3", "زَاي": "letter_zay.mp3", "سِين": "letter_seen.mp3",
+  "شِين": "letter_sheen.mp3", "صَاد": "letter_saad.mp3", "ضَاد": "letter_daad.mp3",
+  "طَاء": "letter_taa_heavy.mp3", "ظَاء": "letter_zaa.mp3", "عَين": "letter_ayn.mp3",
+  "غَين": "letter_ghayn.mp3", "فَاء": "letter_faa.mp3", "قَاف": "letter_qaaf.mp3",
+  "كَاف": "letter_kaaf.mp3", "لَام": "letter_laam.mp3", "مِيم": "letter_meem.mp3",
+  "نُون": "letter_noon.mp3", "وَاو": "letter_waaw.mp3", "هَاء": "letter_haa_soft.mp3",
+  "يَاء": "letter_yaa.mp3",
 };
 
 const VOWEL_RECORDINGS: Readonly<Record<string, string>> = {
@@ -80,6 +80,12 @@ export function humanLetterRecordingURL(request: LearningVoiceRequest): URL | nu
 export function bundledVowelRecordingPath(request: LearningVoiceRequest): string | null {
   if (request.profile !== "QURAN_AR" || request.delivery !== "VOWEL_SOUND") return null;
   const fileName = VOWEL_RECORDINGS[normalizeArabic(request.text)];
+  return fileName ? `public/hafiz/qaida-audio/${fileName}` : null;
+}
+
+export function bundledLetterRecordingPath(request: LearningVoiceRequest): string | null {
+  if (request.profile !== "QURAN_AR" || request.delivery !== "LETTER_NAME") return null;
+  const fileName = LETTER_RECORDINGS[normalizeArabic(request.text)];
   return fileName ? `public/hafiz/qaida-audio/${fileName}` : null;
 }
 
