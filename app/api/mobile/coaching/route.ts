@@ -44,12 +44,30 @@ async function requirePremium(uid: string) {
   if (status !== "active") throw new Error("PREMIUM_REQUIRED");
 }
 
+async function accountRole(uid: string) {
+  const snapshot = await adminDb.collection("mobile_app_users").doc(uid).get();
+  const role = String(snapshot.data()?.professionalRole || "customer");
+  return ROLES.has(role) ? role : "customer";
+}
+
+async function requireCustomerAccount(uid: string) {
+  if (await accountRole(uid) !== "customer") throw new Error("CUSTOMER_ACCOUNT_REQUIRED");
+}
+
+async function requireProfessionalAccount(uid: string) {
+  const role = await accountRole(uid);
+  if (!ROLES.has(role)) throw new Error("PROFESSIONAL_ACCOUNT_REQUIRED");
+  return role;
+}
+
 function responseError(error: unknown) {
   const code = error instanceof Error ? error.message : "UNKNOWN";
   if (code === "UNAUTHORIZED") return NextResponse.json({ message: "Oturum gerekli." }, { status: 401 });
   if (code === "PREMIUM_REQUIRED") return NextResponse.json({ message: "Bu özellik Premium hesaplara açıktır." }, { status: 403 });
   if (code === "INVALID_CODE") return NextResponse.json({ message: "Kod geçersiz, kullanılmış veya süresi dolmuş." }, { status: 400 });
   if (code === "SELF_LINK") return NextResponse.json({ message: "Kendi müşteri kodunu kullanamazsın." }, { status: 400 });
+  if (code === "CUSTOMER_ACCOUNT_REQUIRED") return NextResponse.json({ message: "Diyetisyen ve antrenör hesapları danışan kodu oluşturamaz. Danışanlar bölümünden verilen kodu kullanabilirsin." }, { status: 403 });
+  if (code === "PROFESSIONAL_ACCOUNT_REQUIRED") return NextResponse.json({ message: "Bu işlem yalnızca diyetisyen veya antrenör hesaplarına açıktır." }, { status: 403 });
   console.error("[MOBILE COACHING]", error);
   return NextResponse.json({ message: "Koçluk işlemi şu anda tamamlanamadı." }, { status: 500 });
 }
@@ -83,6 +101,7 @@ export async function POST(request: NextRequest) {
     await requirePremium(user.uid);
 
     if (action === "generateInvite") {
+      await requireCustomerAccount(user.uid);
       const account = await adminDb.collection("mobile_app_users").doc(user.uid).get();
       const authUser = await adminAuth.getUser(user.uid);
       const raw = generateCode();
@@ -100,9 +119,7 @@ export async function POST(request: NextRequest) {
 
     if (action === "redeemInvite") {
       const code = cleanCode(body.code);
-      const professionalAccount = await adminDb.collection("mobile_app_users").doc(user.uid).get();
-      const role = String(professionalAccount.data()?.professionalRole || "customer");
-      if (!ROLES.has(role)) return NextResponse.json({ message: "Bu hesap diyetisyen veya antrenör olarak yetkilendirilmemiş." }, { status: 403 });
+      const role = await requireProfessionalAccount(user.uid);
       if (code.length !== 8) throw new Error("INVALID_CODE");
       const inviteRef = adminDb.collection("coaching_invites").doc(hashCode(code));
       const professional = await adminAuth.getUser(user.uid);
@@ -134,6 +151,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "syncMeals") {
+      await requireCustomerAccount(user.uid);
       const meals = Array.isArray(body.meals) ? body.meals.slice(0, MAX_MEALS) : [];
       const batch = adminDb.batch();
       const activeMealIDs: string[] = [];
@@ -169,9 +187,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === "submitFeedback") {
-      const professionalAccount = await adminDb.collection("mobile_app_users").doc(user.uid).get();
-      const role = String(professionalAccount.data()?.professionalRole || "customer");
-      if (!ROLES.has(role)) return NextResponse.json({ message: "Profesyonel hesap yetkisi gerekli." }, { status: 403 });
+      const role = await requireProfessionalAccount(user.uid);
       const customerUid = String(body.customerUid || "").trim();
       const mealID = String(body.mealID || "").trim();
       const feedback = String(body.feedback || "").trim().slice(0, 1500);
@@ -212,6 +228,7 @@ export async function GET(request: NextRequest) {
     await requirePremium(user.uid);
     const scope = request.nextUrl.searchParams.get("scope");
     if (scope === "customer") {
+      await requireCustomerAccount(user.uid);
       const outgoing = await adminDb.collection("coaching_relationships").where("customerUid", "==", user.uid).limit(100).get();
       const connections = outgoing.docs.filter(document => document.data().active === true).map(document => {
         const value = document.data();
@@ -225,6 +242,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (scope === "feedback") {
+      await requireCustomerAccount(user.uid);
       const relationships = await adminDb.collection("coaching_relationships").where("customerUid", "==", user.uid).limit(100).get();
       const activeProfessionals = new Map(relationships.docs
         .filter(document => document.data().active === true)
@@ -253,10 +271,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ feedback }, { headers: { "cache-control": "private, no-store" } });
     }
 
-    const professionalAccount = await adminDb.collection("mobile_app_users").doc(user.uid).get();
-    if (!ROLES.has(String(professionalAccount.data()?.professionalRole || "customer"))) {
-      return NextResponse.json({ message: "Profesyonel hesap yetkisi gerekli." }, { status: 403 });
-    }
+    await requireProfessionalAccount(user.uid);
 
     const relationships = await adminDb.collection("coaching_relationships")
       .where("professionalUid", "==", user.uid).limit(100).get();
