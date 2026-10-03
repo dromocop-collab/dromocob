@@ -1,50 +1,55 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildLearningVoiceRequest } from "../lib/hafiz/learning-voice-policy.ts";
+import {
+  humanLetterRecordingURL,
+  learningVoiceCachePath,
+  parseLearningVoiceRequest,
+  quranSearchURL,
+  quranWordAudioURL,
+} from "../lib/hafiz/learning-voice-policy.ts";
 
-test("Mürşid uses a locked natural Turkish profile", () => {
-  const request = buildLearningVoiceRequest(
-    "MURSHID_TR",
-    "  Harika!   Bir daha deneyelim.  ",
-    "COACH",
-    "NATURAL",
-    {},
-  );
-  assert.equal(request.text, "Harika! Bir daha deneyelim.");
-  assert.equal(request.model, "gpt-4o-mini-tts-2025-12-15");
-  assert.equal(request.voice, "marin");
-  assert.match(request.instructions, /real human educator/);
+test("letter lessons resolve to free human recordings on GitHub", () => {
+  const request = parseLearningVoiceRequest({ profile: "QURAN_AR", text: "أَلِفْ",
+    delivery: "LETTER_NAME", pace: "SLOW" });
+  assert.equal(humanLetterRecordingURL(request)?.href,
+    "https://raw.githubusercontent.com/razunatmohammed88-cyber/arabic-alphabet-audio/main/alif.mp3");
 });
 
-test("Quran letters use a separate precise Arabic profile", () => {
-  const request = buildLearningVoiceRequest("QURAN_AR", "بِ", "VOWEL_SOUND", "SLOW", {});
-  assert.equal(request.voice, "cedar");
-  assert.match(request.instructions, /makharij/);
-  assert.match(request.instructions, /do not turn it into the full name/);
-  assert.match(request.instructions, /never digitally stretch/);
-  assert.notEqual(
-    request.cacheKey,
-    buildLearningVoiceRequest("QURAN_AR", "بِ", "VOWEL_SOUND", "NATURAL", {}).cacheKey,
-  );
+test("Quran words resolve to Quran Foundation word-by-word human audio", () => {
+  const request = parseLearningVoiceRequest({ profile: "QURAN_AR", text: "كَتَبَ",
+    delivery: "QURAN_RECITATION", pace: "LEARNING" });
+  const payload = { search: { results: [{ verse_key: "58:21", words: [
+    { char_type: "word", text: "كَتَبَ", highlight: true },
+    { char_type: "word", text: "ٱللَّهُ" },
+  ] }] } };
+  assert.equal(quranWordAudioURL(request, payload)?.href,
+    "https://audio.qurancdn.com/wbw/058_021_001.mp3");
 });
 
-test("consented studio teacher voices can replace built-in voices", () => {
-  const request = buildLearningVoiceRequest(
-    "QURAN_AR",
-    "بَاءْ",
-    "LETTER_NAME",
-    "LEARNING",
-    { HAFIZ_QURAN_CUSTOM_VOICE_ID: "voice_quran_teacher" },
-  );
-  assert.deepEqual(request.voice, { id: "voice_quran_teacher" });
-  assert.match(request.instructions, /complete letter name once/);
+test("isolated vowel sounds are not replaced with an incorrect recording", () => {
+  const request = parseLearningVoiceRequest({ profile: "QURAN_AR", text: "بَ",
+    delivery: "VOWEL_SOUND", pace: "SLOW" });
+  assert.equal(quranWordAudioURL(request, { search: { results: [] } }), null);
+  assert.equal(humanLetterRecordingURL(request), null);
 });
 
-test("invalid or abusive voice input is rejected", () => {
-  assert.throws(() => buildLearningVoiceRequest("QURAN_AR", "hello", "VOWEL_SOUND", "SLOW", {}));
-  assert.throws(() => buildLearningVoiceRequest("MURSHID_TR", "https://example.test", "COACH", "NATURAL", {}));
-  assert.throws(() => buildLearningVoiceRequest("OTHER", "Merhaba", "COACH", "NATURAL", {}));
-  assert.throws(() => buildLearningVoiceRequest("QURAN_AR", "بِ", "COACH", "LEARNING", {}));
-  assert.throws(() => buildLearningVoiceRequest("QURAN_AR", "بِ", "VOWEL_SOUND", "TURBO", {}));
+test("search URL encodes Arabic and uses the public Quran word index", () => {
+  assert.equal(quranSearchURL("بِسْمِ").searchParams.get("q"), "بِسْمِ");
+});
+
+test("learning voice rejects cross-profile delivery and oversized text", () => {
+  assert.throws(() => parseLearningVoiceRequest({ profile: "MURSHID_TR", text: "أَلِف",
+    delivery: "LETTER_NAME", pace: "SLOW" }));
+  assert.throws(() => parseLearningVoiceRequest({ profile: "QURAN_AR", text: "x".repeat(121),
+    delivery: "QURAN_RECITATION", pace: "NATURAL" }));
+});
+
+test("cache identity changes by text, voice role and pace", () => {
+  const base = parseLearningVoiceRequest({ profile: "QURAN_AR", text: "بَاء",
+    delivery: "LETTER_NAME", pace: "LEARNING" });
+  const same = learningVoiceCachePath(base);
+  assert.equal(same, learningVoiceCachePath({ ...base }));
+  assert.notEqual(same, learningVoiceCachePath({ ...base, text: "تَاء" }));
+  assert.notEqual(same, learningVoiceCachePath({ ...base, pace: "SLOW" }));
 });

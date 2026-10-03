@@ -1,142 +1,144 @@
 import { createHash } from "node:crypto";
 
 export const LEARNING_VOICE_PROFILES = ["MURSHID_TR", "QURAN_AR"] as const;
-export type LearningVoiceProfile = (typeof LEARNING_VOICE_PROFILES)[number];
 export const LEARNING_VOICE_DELIVERIES = [
-  "COACH",
-  "LETTER_NAME",
-  "VOWEL_SOUND",
-  "QURAN_RECITATION",
+  "COACH", "LETTER_NAME", "VOWEL_SOUND", "QURAN_RECITATION",
 ] as const;
-export type LearningVoiceDelivery = (typeof LEARNING_VOICE_DELIVERIES)[number];
 export const LEARNING_VOICE_PACES = ["SLOW", "LEARNING", "NATURAL"] as const;
-export type LearningVoicePace = (typeof LEARNING_VOICE_PACES)[number];
-export type LearningVoice = string | { id: string };
 
+export type LearningVoiceProfile = (typeof LEARNING_VOICE_PROFILES)[number];
+export type LearningVoiceDelivery = (typeof LEARNING_VOICE_DELIVERIES)[number];
+export type LearningVoicePace = (typeof LEARNING_VOICE_PACES)[number];
 export type LearningVoiceRequest = {
   profile: LearningVoiceProfile;
+  text: string;
   delivery: LearningVoiceDelivery;
   pace: LearningVoicePace;
-  text: string;
-  model: string;
-  voice: LearningVoice;
-  instructions: string;
-  cacheKey: string;
 };
 
-const TURKISH_MAX_LENGTH = 280;
-const ARABIC_MAX_LENGTH = 80;
-const ARABIC_TEXT = /^[\p{Script=Arabic}\p{M}\s.,،؛؟!ـ]+$/u;
-
-export function buildLearningVoiceRequest(
-  profileValue: unknown,
-  textValue: unknown,
-  deliveryValue: unknown,
-  paceValue: unknown,
-  environment: Record<string, string | undefined> = process.env,
-): LearningVoiceRequest {
-  if (!LEARNING_VOICE_PROFILES.includes(profileValue as LearningVoiceProfile)) {
-    throw new Error("INVALID_VOICE_PROFILE");
-  }
-  if (typeof textValue !== "string") throw new Error("INVALID_VOICE_TEXT");
-
-  const profile = profileValue as LearningVoiceProfile;
-  const delivery = (deliveryValue
-    ?? (profile === "MURSHID_TR" ? "COACH" : "QURAN_RECITATION")) as LearningVoiceDelivery;
-  const pace = (paceValue
-    ?? (profile === "MURSHID_TR" ? "NATURAL" : "LEARNING")) as LearningVoicePace;
-  if (!LEARNING_VOICE_DELIVERIES.includes(delivery)) throw new Error("INVALID_VOICE_DELIVERY");
-  if (!LEARNING_VOICE_PACES.includes(pace)) throw new Error("INVALID_VOICE_PACE");
-  if (profile === "MURSHID_TR" && delivery !== "COACH") {
-    throw new Error("INVALID_VOICE_DELIVERY");
-  }
-  if (profile === "QURAN_AR" && delivery === "COACH") {
-    throw new Error("INVALID_VOICE_DELIVERY");
-  }
-
-  const text = textValue.trim().replace(/\s+/g, " ");
-  const maxLength = profile === "MURSHID_TR" ? TURKISH_MAX_LENGTH : ARABIC_MAX_LENGTH;
-  if (!text || text.length > maxLength || /[\u0000-\u001F\u007F]/u.test(text)) {
-    throw new Error("INVALID_VOICE_TEXT");
-  }
-  if (/https?:\/\/|www\./iu.test(text)) throw new Error("INVALID_VOICE_TEXT");
-  if (profile === "QURAN_AR" && (!ARABIC_TEXT.test(text) || !/\p{Script=Arabic}/u.test(text))) {
-    throw new Error("INVALID_VOICE_TEXT");
-  }
-
-  const model = environment.HAFIZ_TTS_MODEL?.trim() || "gpt-4o-mini-tts-2025-12-15";
-  const voice = resolveVoice(profile, environment);
-  const instructions = buildInstructions(profile, delivery, pace);
-  const voiceIdentity = typeof voice === "string" ? voice : voice.id;
-  const cacheKey = createHash("sha256")
-    .update(JSON.stringify({
-      version: 3,
-      model,
-      voice: voiceIdentity,
-      profile,
-      delivery,
-      pace,
-      instructions,
-      text,
-    }), "utf8")
-    .digest("hex");
-
-  return { profile, delivery, pace, text, model, voice, instructions, cacheKey };
+export class LearningVoiceRequestError extends Error {
+  readonly code = "INVALID_LEARNING_VOICE_REQUEST";
 }
 
-function resolveVoice(
-  profile: LearningVoiceProfile,
-  environment: Record<string, string | undefined>,
-): LearningVoice {
-  const customVoiceID = profile === "MURSHID_TR"
-    ? environment.HAFIZ_MURSHID_CUSTOM_VOICE_ID?.trim()
-    : environment.HAFIZ_QURAN_CUSTOM_VOICE_ID?.trim();
-  if (customVoiceID) return { id: customVoiceID };
-  return profile === "MURSHID_TR"
-    ? environment.HAFIZ_MURSHID_VOICE?.trim() || "marin"
-    : environment.HAFIZ_QURAN_VOICE?.trim() || "cedar";
+export class HumanVoiceUnavailableError extends Error {
+  readonly code = "HUMAN_VOICE_UNAVAILABLE";
 }
 
-function buildInstructions(
-  profile: LearningVoiceProfile,
-  delivery: LearningVoiceDelivery,
-  pace: LearningVoicePace,
-): string {
-  if (profile === "MURSHID_TR") {
-    return [
-      "Speak as Mürşid, a warm, experienced Turkish teacher talking naturally to one learner.",
-      "Use contemporary Istanbul Turkish, studio-clean diction, gentle confidence, and sincere warmth.",
-      "Sound like a real human educator, not an announcer, cartoon, assistant, or synthetic voice.",
-      "Use small natural variations in emphasis and breathing; avoid sing-song rhythm and exaggerated cheerfulness.",
-      "Keep sentences conversational with short meaningful pauses and pronounce Arabic words carefully when present.",
-      "Read exactly the supplied text without adding an introduction, explanation, sound effect, or repetition.",
-    ].join(" ");
-  }
+const MAX_TEXT_LENGTH = 120;
+const CACHE_VERSION = "v2-human-recordings";
+const ARABIC_ALPHABET_AUDIO_BASE =
+  "https://raw.githubusercontent.com/razunatmohammed88-cyber/arabic-alphabet-audio/main";
 
-  const deliveryInstruction: Record<Exclude<LearningVoiceDelivery, "COACH">, string> = {
-    LETTER_NAME: [
-      "This is an isolated Arabic letter name for an Elif-Ba lesson.",
-      "Say the complete letter name once, clearly and naturally, preserving every written vowel and final consonant.",
-    ].join(" "),
-    VOWEL_SOUND: [
-      "This is a single Arabic letter with a vowel mark.",
-      "Produce only its short target sound once; do not turn it into the full name of the letter and do not lengthen a short vowel.",
-    ].join(" "),
-    QURAN_RECITATION: [
-      "This is a Qur'anic reading example for a learner.",
-      "Use a calm educational murattal delivery, joining and stopping naturally while preserving the supplied vowel marks.",
-    ].join(" "),
-  };
-  const paceInstruction: Record<LearningVoicePace, string> = {
-    SLOW: "Use a deliberately slow teaching tempo with clean articulation, but never digitally stretch vowels or consonants.",
-    LEARNING: "Use a measured teacher tempo: clear enough to imitate while remaining fully natural.",
-    NATURAL: "Use a fluent natural recitation tempo with precise articulation.",
-  };
-  return [
-    "Speak as a qualified native Arabic Qur'an and Elif-Ba teacher demonstrating one exact target.",
-    "Use precise makharij and sifaat, a stable adult voice, clean studio diction, and no synthetic cadence.",
-    deliveryInstruction[delivery as Exclude<LearningVoiceDelivery, "COACH">],
-    paceInstruction[pace],
-    "Read only the supplied Arabic text. Do not translate, explain, spell, add words, add music, chant theatrically, or repeat.",
-  ].join(" ");
+const LETTER_RECORDINGS: Readonly<Record<string, string>> = {
+  "أَلِف": "alif.mp3", "بَاء": "baa.mp3", "تَاء": "taa.mp3",
+  "ثَاء": "thaa.mp3", "جِيم": "jiim.mp3", "حَاء": "haa.mp3",
+  "خَاء": "khaa.mp3", "دَال": "daal.mp3", "ذَال": "thaal.mp3",
+  "رَاء": "raa.mp3", "زَاي": "zaay.mp3", "سِين": "siin.mp3",
+  "شِين": "shiin.mp3", "صَاد": "saad.mp3", "ضَاد": "daad.mp3",
+  "طَاء": "taa'.mp3", "ظَاء": "thaa'.mp3", "عَين": "àyn.mp3",
+  "غَين": "ghayn.mp3", "فَاء": "faa.mp3", "قَاف": "qaaf.mp3",
+  "كَاف": "kaaf.mp3", "لَام": "laam.mp3", "مِيم": "miim.mp3",
+  "نُون": "nuun.mp3", "وَاو": "waaw.mp3", "هَاء": "haa'.mp3",
+  "يَاء": "yaa.mp3", "هَمْزَة": "hamzah.mp3",
+};
+
+export function parseLearningVoiceRequest(payload: unknown): LearningVoiceRequest {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+    throw invalidVoiceRequest();
+  }
+  const candidate = payload as Record<string, unknown>;
+  const profile = enumValue(candidate.profile, LEARNING_VOICE_PROFILES);
+  const delivery = enumValue(candidate.delivery, LEARNING_VOICE_DELIVERIES);
+  const pace = enumValue(candidate.pace, LEARNING_VOICE_PACES);
+  const text = typeof candidate.text === "string" ? candidate.text.trim() : "";
+  if (!profile || !delivery || !pace || !text || text.length > MAX_TEXT_LENGTH) {
+    throw invalidVoiceRequest();
+  }
+  if (/\p{Cc}/u.test(text.replace(/[\n\r\t]/g, ""))) throw invalidVoiceRequest();
+  if (profile === "MURSHID_TR" && delivery !== "COACH") throw invalidVoiceRequest();
+  if (profile === "QURAN_AR" && delivery === "COACH") throw invalidVoiceRequest();
+  return { profile, text, delivery, pace };
+}
+
+export function humanLetterRecordingURL(request: LearningVoiceRequest): URL | null {
+  if (request.profile !== "QURAN_AR" || request.delivery !== "LETTER_NAME") return null;
+  const fileName = LETTER_RECORDINGS[normalizeArabic(request.text)];
+  return fileName
+    ? new URL(`${ARABIC_ALPHABET_AUDIO_BASE}/${encodeURIComponent(fileName)}`)
+    : null;
+}
+
+export function quranWordAudioURL(
+  request: LearningVoiceRequest,
+  searchPayload: unknown,
+): URL | null {
+  if (request.profile !== "QURAN_AR" || request.delivery === "LETTER_NAME") return null;
+  const expected = normalizeArabic(request.text);
+  if (arabicLetterCount(expected) < 2 || /\s/u.test(expected)) return null;
+  if (!searchPayload || typeof searchPayload !== "object") return null;
+  const search = (searchPayload as { search?: unknown }).search;
+  if (!search || typeof search !== "object") return null;
+  const results = (search as { results?: unknown }).results;
+  if (!Array.isArray(results)) return null;
+
+  for (const result of results) {
+    if (!result || typeof result !== "object") continue;
+    const verseKey = (result as { verse_key?: unknown }).verse_key;
+    const words = (result as { words?: unknown }).words;
+    if (typeof verseKey !== "string" || !Array.isArray(words)) continue;
+    const [chapter, verse] = verseKey.split(":").map(Number);
+    if (!validReferencePart(chapter, 114) || !validReferencePart(verse, 286)) continue;
+
+    let position = 0;
+    for (const word of words) {
+      if (!word || typeof word !== "object") continue;
+      const candidate = word as { char_type?: unknown; text?: unknown; highlight?: unknown };
+      if (candidate.char_type !== "word") continue;
+      position += 1;
+      if (candidate.highlight !== true || typeof candidate.text !== "string") continue;
+      if (normalizeArabic(candidate.text) !== expected) continue;
+      const path = [chapter, verse, position]
+        .map((value) => String(value).padStart(3, "0"))
+        .join("_");
+      return new URL(`https://audio.qurancdn.com/wbw/${path}.mp3`);
+    }
+  }
+  return null;
+}
+
+export function quranSearchURL(text: string): URL {
+  const url = new URL("https://api.quran.com/api/v4/search");
+  url.searchParams.set("q", text.trim());
+  url.searchParams.set("size", "20");
+  url.searchParams.set("language", "en");
+  return url;
+}
+
+export function learningVoiceCachePath(request: LearningVoiceRequest): string {
+  const identity = [CACHE_VERSION, request.profile, request.delivery, request.pace,
+    normalizeArabic(request.text)].join("|");
+  const digest = createHash("sha256").update(identity, "utf8").digest("hex");
+  return `hafiz-learning-voice/${CACHE_VERSION}/${digest}.mp3`;
+}
+
+export function normalizeArabic(value: string): string {
+  return value.normalize("NFC").replace(/ـ/gu, "").replace(/[ۖ-ٰۭ]/gu, "")
+    .replace(/[ْۡ]/gu, "").trim();
+}
+
+function arabicLetterCount(value: string): number {
+  return [...value].filter((character) => /\p{Script=Arabic}/u.test(character)
+    && /\p{Letter}/u.test(character)).length;
+}
+
+function validReferencePart(value: number, maximum: number): boolean {
+  return Number.isInteger(value) && value >= 1 && value <= maximum;
+}
+
+function enumValue<T extends string>(value: unknown, values: readonly T[]): T | null {
+  return typeof value === "string" && values.includes(value as T) ? value as T : null;
+}
+
+function invalidVoiceRequest(): LearningVoiceRequestError {
+  return new LearningVoiceRequestError("Seslendirme isteği geçersiz.");
 }
