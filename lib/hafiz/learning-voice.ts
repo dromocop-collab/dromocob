@@ -1,7 +1,11 @@
 import "server-only";
 
+import { readFile } from "node:fs/promises";
+import { basename, join } from "node:path";
+
 import { adminStorage } from "@/lib/firebase-admin";
 import {
+  bundledVowelRecordingPath,
   HumanVoiceUnavailableError,
   humanLetterRecordingURL,
   learningVoiceCachePath,
@@ -22,6 +26,13 @@ export async function renderLearningVoice(request: LearningVoiceRequest): Promis
   const cached = await readCachedAudio(cachePath);
   if (cached) return cached;
 
+  const bundledRecording = bundledVowelRecordingPath(request);
+  if (bundledRecording) {
+    const audio = await readBundledAudio(bundledRecording);
+    await writeCachedAudio(cachePath, audio, "qamar-qaida-human-cc-by-sa");
+    return audio;
+  }
+
   const directRecording = humanLetterRecordingURL(request);
   const sourceURL = directRecording ?? await resolveQuranWordRecording(request);
   if (!sourceURL) {
@@ -33,6 +44,22 @@ export async function renderLearningVoice(request: LearningVoiceRequest): Promis
   await writeCachedAudio(cachePath, audio,
     directRecording ? "github-human" : "quran-foundation-wbw");
   return audio;
+}
+
+async function readBundledAudio(path: string): Promise<Buffer> {
+  try {
+    const audio = await readFile(join(
+      process.cwd(),
+      "public",
+      "hafiz",
+      "qaida-audio",
+      basename(path),
+    ));
+    if (audio.length < 512 || audio.length > MAX_AUDIO_BYTES) throw new Error("invalid audio");
+    return audio;
+  } catch {
+    throw new HumanVoiceUnavailableError("Gerçek hoca kaydı hazırlanamadı.");
+  }
 }
 
 async function resolveQuranWordRecording(request: LearningVoiceRequest): Promise<URL | null> {
@@ -72,7 +99,7 @@ async function readCachedAudio(path: string): Promise<Buffer | null> {
 async function writeCachedAudio(
   path: string,
   audio: Buffer,
-  source: "github-human" | "quran-foundation-wbw",
+  source: "github-human" | "quran-foundation-wbw" | "qamar-qaida-human-cc-by-sa",
 ): Promise<void> {
   try {
     await adminStorage.bucket().file(path).save(audio, {

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  bundledVowelRecordingPath,
   humanLetterRecordingURL,
   learningVoiceCachePath,
   parseLearningVoiceRequest,
@@ -27,11 +28,19 @@ test("Quran words resolve to Quran Foundation word-by-word human audio", () => {
     "https://audio.qurancdn.com/wbw/058_021_001.mp3");
 });
 
-test("isolated vowel sounds are not replaced with an incorrect recording", () => {
-  const request = parseLearningVoiceRequest({ profile: "QURAN_AR", text: "بَ",
+test("isolated vowel sounds resolve to bundled real-teacher recordings", () => {
+  const request = parseLearningVoiceRequest({ profile: "QURAN_AR", text: "بِ",
     delivery: "VOWEL_SOUND", pace: "SLOW" });
+  assert.equal(bundledVowelRecordingPath(request),
+    "public/hafiz/qaida-audio/kasra_bi.mp3");
   assert.equal(quranWordAudioURL(request, { search: { results: [] } }), null);
   assert.equal(humanLetterRecordingURL(request), null);
+});
+
+test("unsupported vowel sounds never fall back to a wrong recording", () => {
+  const request = parseLearningVoiceRequest({ profile: "QURAN_AR", text: "جِ",
+    delivery: "VOWEL_SOUND", pace: "SLOW" });
+  assert.equal(bundledVowelRecordingPath(request), null);
 });
 
 test("search URL encodes Arabic and uses the public Quran word index", () => {

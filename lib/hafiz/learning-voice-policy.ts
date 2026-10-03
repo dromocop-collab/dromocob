@@ -25,7 +25,7 @@ export class HumanVoiceUnavailableError extends Error {
 }
 
 const MAX_TEXT_LENGTH = 120;
-const CACHE_VERSION = "v2-human-recordings";
+const CACHE_VERSION = "v3-qaida-human-recordings";
 const ARABIC_ALPHABET_AUDIO_BASE =
   "https://raw.githubusercontent.com/razunatmohammed88-cyber/arabic-alphabet-audio/main";
 
@@ -40,6 +40,15 @@ const LETTER_RECORDINGS: Readonly<Record<string, string>> = {
   "كَاف": "kaaf.mp3", "لَام": "laam.mp3", "مِيم": "miim.mp3",
   "نُون": "nuun.mp3", "وَاو": "waaw.mp3", "هَاء": "haa'.mp3",
   "يَاء": "yaa.mp3", "هَمْزَة": "hamzah.mp3",
+};
+
+const VOWEL_RECORDINGS: Readonly<Record<string, string>> = {
+  "بَ": "fatha_ba.mp3", "تَ": "fatha_ta.mp3",
+  "مَ": "fatha_ma.mp3", "سَ": "fatha_sa.mp3",
+  "بِ": "kasra_bi.mp3", "تِ": "kasra_ti.mp3",
+  "مِ": "kasra_mi.mp3", "سِ": "kasra_si.mp3",
+  "بُ": "damma_bu.mp3", "تُ": "damma_tu.mp3",
+  "مُ": "damma_mu.mp3", "سُ": "damma_su.mp3",
 };
 
 export function parseLearningVoiceRequest(payload: unknown): LearningVoiceRequest {
@@ -66,6 +75,12 @@ export function humanLetterRecordingURL(request: LearningVoiceRequest): URL | nu
   return fileName
     ? new URL(`${ARABIC_ALPHABET_AUDIO_BASE}/${encodeURIComponent(fileName)}`)
     : null;
+}
+
+export function bundledVowelRecordingPath(request: LearningVoiceRequest): string | null {
+  if (request.profile !== "QURAN_AR" || request.delivery !== "VOWEL_SOUND") return null;
+  const fileName = VOWEL_RECORDINGS[normalizeArabic(request.text)];
+  return fileName ? `public/hafiz/qaida-audio/${fileName}` : null;
 }
 
 export function quranWordAudioURL(
