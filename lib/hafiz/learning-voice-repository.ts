@@ -4,6 +4,8 @@ import { adminDb, adminStorage } from "@/lib/firebase-admin";
 import { HafizAuthorizationError, type HafizContext } from "@/lib/hafiz/authorization";
 import {
   buildLearningVoiceRequest,
+  type LearningVoiceDelivery,
+  type LearningVoicePace,
   type LearningVoiceProfile,
 } from "@/lib/hafiz/learning-voice-policy";
 
@@ -13,15 +15,17 @@ export async function learningVoiceAudio(
   context: HafizContext,
   profile: LearningVoiceProfile | unknown,
   text: unknown,
+  delivery?: LearningVoiceDelivery | unknown,
+  pace?: LearningVoicePace | unknown,
 ): Promise<{ bytes: Buffer; cacheKey: string }> {
   let speech;
   try {
-    speech = buildLearningVoiceRequest(profile, text);
+    speech = buildLearningVoiceRequest(profile, text, delivery, pace);
   } catch {
     throw new HafizAuthorizationError(400, "INVALID_VOICE_REQUEST", "Seslendirme isteği geçersiz.");
   }
 
-  const file = adminStorage.bucket().file(`hafiz-learning-voice/v1/${speech.cacheKey}.aac`);
+  const file = adminStorage.bucket().file(`hafiz-learning-voice/v3/${speech.cacheKey}.aac`);
   try {
     const [bytes] = await file.download();
     if (bytes.length > 0 && bytes.length <= MAX_AUDIO_BYTES) {
@@ -47,6 +51,7 @@ export async function learningVoiceAudio(
       input: speech.text,
       instructions: speech.instructions,
       response_format: "aac",
+      speed: 1,
     }),
     signal: AbortSignal.timeout(30_000),
   });

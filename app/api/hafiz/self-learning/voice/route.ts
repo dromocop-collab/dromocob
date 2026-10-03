@@ -11,7 +11,13 @@ export async function POST(request: NextRequest) {
   try {
     const context = await requireHafizContext(request, ["STUDENT"]);
     const body = await request.json();
-    const audio = await learningVoiceAudio(context, body?.profile, body?.text);
+    const audio = await learningVoiceAudio(
+      context,
+      body?.profile,
+      body?.text,
+      body?.delivery,
+      body?.pace,
+    );
     return new NextResponse(new Uint8Array(audio.bytes).buffer as ArrayBuffer, {
       headers: {
         "content-type": "audio/aac",
@@ -19,6 +25,7 @@ export async function POST(request: NextRequest) {
         "content-disposition": "inline",
         "x-content-type-options": "nosniff",
         "x-hafiz-voice-cache-key": audio.cacheKey,
+        "x-hafiz-voice-version": "3",
         "vary": "Authorization",
       },
     });
